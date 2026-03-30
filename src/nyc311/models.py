@@ -264,4 +264,9 @@ class GeographyTopicSummary:
 
 def supported_topic_queries() -> tuple[str, ...]:
     """Return the complaint types with implemented topic extraction in v0.1."""
-    return ("Noise - Residential", "Rodent")
+    return (
+        "Noise - Residential",
+        "Rodent",
+        "Illegal Parking",
+        "Street Condition",
+    )

@@ -22,6 +22,16 @@ _SUPPORTED_TOPIC_RULES: Final[dict[str, tuple[tuple[str, tuple[str, ...]], ...]]
         ("pet_noise", ("dog", "barking", "pet")),
         ("banging", ("banging", "thumping", "shaking", "arguing", "hammering")),
     ),
+    "Illegal Parking": (
+        ("blocked_driveway", ("driveway", "garage", "blocking entrance")),
+        ("hydrant_blocking", ("hydrant", "fire hydrant")),
+        ("double_parking", ("double parked", "double parking", "double-parked")),
+    ),
+    "Street Condition": (
+        ("pothole", ("pothole", "crater", "road hole")),
+        ("sinkhole", ("sinkhole", "street collapse", "collapsed roadway")),
+        ("rough_surface", ("uneven pavement", "broken asphalt", "rough road")),
+    ),
     "Rodent": (
         ("extermination_request", ("exterminator", "extermination", "infestation")),
         ("rats_seen", ("rats", "rat", "trash bags")),
