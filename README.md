@@ -10,24 +10,27 @@ Python toolkit for building reproducible complaint-intelligence outputs from NYC
 
 ## Status
 
-`nyc311` now ships a **real but narrow v0.1 foundation**.
+`nyc311` now ships a **real but still intentionally narrow v0.1 foundation**.
 
 ### Implemented now in v0.1
 
 - load filtered NYC 311-style records from a **local CSV extract**
+- load filtered NYC 311-style records from the **live Socrata API**
 - derive a deterministic **first-pass topic label** for supported complaint
   types
 - aggregate complaint topics by **borough** or **community district**
-- export one useful output: a **CSV topic summary table**
+- export useful outputs as:
+  - a **CSV topic summary table**
+  - a **boundary-backed GeoJSON feature collection**
+- run one thin CLI workflow for the happy path
 
 ### Still planned later
 
-- live Socrata loading
-- boundary loading and GeoJSON exports
 - anomaly detection
 - resolution-gap analysis
 - report-card generation
-- a full CLI workflow
+- broader report-generation and notebook workflows
+- richer CLI coverage beyond the single happy-path command
 
 Anything in the public package surface that is still planned remains importable
 and raises a consistent `NotImplementedError`.
@@ -46,16 +49,19 @@ implemented today.
 
 The current release focuses on one deterministic, testable workflow:
 
-1. read a local CSV extract of NYC 311-style records
+1. read a local CSV extract of NYC 311-style records or load a filtered slice
+   from Socrata
 2. filter rows by date, geography, and complaint type
 3. assign a first-pass topic label using explicit keyword rules
 4. aggregate counts by borough or community district
-5. export the result as a CSV summary table
+5. export the result as a CSV summary table or boundary-backed GeoJSON
 
 ### Supported v0.1 topic extraction
 
 The current rules-based topic extractor is implemented only for:
 
+- `Blocked Driveway`
+- `Illegal Parking`
 - `Noise - Residential`
 - `Rodent`
 
@@ -98,9 +104,24 @@ export_topic_table(
 )
 ```
 
+CLI equivalent:
+
+```bash
+nyc311 topics \
+  --source tests/fixtures/service_requests_fixture.csv \
+  --complaint-type "Noise - Residential" \
+  --geography community_district \
+  --output brooklyn-noise-topics.csv
+```
+
 ## Data assumptions in v0.1
 
-`load_service_requests()` currently supports local CSV files with these columns:
+`load_service_requests()` currently supports:
+
+- local CSV files
+- live Socrata loading via `SocrataConfig`
+
+CSV inputs use these columns:
 
 - `unique_key`
 - `created_date`
@@ -117,21 +138,21 @@ used in the v0.1 topic rules.
 ### Implemented now
 
 - `nyc311.load_service_requests`
+- `nyc311.load_boundaries`
 - `nyc311.extract_topics`
 - `nyc311.aggregate_by_geography`
 - `nyc311.export_topic_table`
+- `nyc311.export_geojson`
+- `nyc311.main` with the `topics` subcommand
 - typed models for filters, records, assignments, and summary rows
 
 ### Planned placeholders
 
 - `nyc311.load_resolution_data`
-- `nyc311.load_boundaries`
 - `nyc311.detect_anomalies`
 - `nyc311.analyze_resolution_gaps`
-- `nyc311.export_geojson`
 - `nyc311.export_anomalies`
 - `nyc311.export_report_card`
-- `nyc311.main` / CLI entrypoint
 
 ## Seeded sources of truth
 

@@ -5,12 +5,13 @@ reusable complaint-intelligence outputs.
 
 ## v0.1 status
 
-The repository now includes one real, fully tested foundation workflow:
+The repository now includes several real, fully tested workflows:
 
 1. load filtered NYC 311-style service-request records from a local CSV extract
-2. derive a deterministic first-pass topic label from short complaint text
+   or the live Socrata API
+2. derive deterministic first-pass topic labels from short complaint text
 3. aggregate those topics by a supported geography field
-4. export a reusable CSV summary table
+4. export either a reusable CSV summary table or a boundary-backed GeoJSON layer
 
 This first release is intentionally narrow. It is designed to be easy to audit,
 easy to test, and honest about what is still future work.
@@ -18,26 +19,31 @@ easy to test, and honest about what is still future work.
 ## Implemented now
 
 - local CSV loading via `load_service_requests(...)`
+- live Socrata loading via `load_service_requests(SocrataConfig(...))`
 - filtering by date range, borough, community district, and complaint type
 - deterministic topic extraction for:
   - `Noise - Residential`
   - `Rodent`
+  - `Illegal Parking`
+  - `Blocked Driveway`
 - geography-aware aggregation by:
   - `community_district`
   - `borough`
 - CSV export via `export_topic_table(...)`
+- boundary-backed GeoJSON export via `load_boundaries(...)` +
+  `export_geojson(...)`
+- a thin CLI command:
+  - `nyc311 topics ...`
 
 ## Planned later
 
 These surfaces are still scaffolded and intentionally raise
 `NotImplementedError`:
 
-- Socrata / live API loading
-- boundary loading and boundary-backed GeoJSON export
 - anomaly detection
 - resolution-gap analysis
 - report-card generation
-- production-ready CLI workflows
+- richer multi-command CLI workflows
 
 ## Project focus
 

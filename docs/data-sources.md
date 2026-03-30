@@ -1,11 +1,13 @@
 # Data Sources
 
-## Implemented In v0.1
+## Implemented now
 
-The current release supports **local CSV extracts** of NYC 311-style service
-request records.
+The current release supports two real service-request input paths:
 
-The implemented happy path expects these columns:
+- **local CSV extracts**
+- **live Socrata loading** via the NYC 311 dataset
+
+The CSV loader expects these columns:
 
 - `unique_key`
 - `created_date`
@@ -15,40 +17,53 @@ The implemented happy path expects these columns:
 - `community_district` (or `community_board`)
 
 An optional `resolution_description` column is also accepted and preserved on
-loaded records, but it is not yet used for any shipped analysis.
+loaded records, but it is not yet used for shipped analysis.
 
-## Current Loader Scope
+## Current loader scope
 
 `load_service_requests(...)` supports:
 
 - loading from a local CSV path
+- loading from a `SocrataConfig(...)` source
 - filtering by created-date range
 - filtering by `borough`
 - filtering by `community_district`
 - filtering by complaint type
 
-This is intentionally narrow so the first release stays deterministic,
-inspectable, and easy to test.
+The live Socrata path intentionally keeps the projection and filter set narrow
+so the implementation remains transparent and easy to validate.
 
-## Planned Later
+## Implemented boundary support
 
-The following inputs are still planned and are **not implemented** in v0.1:
+`load_boundaries(...)` now supports loading a GeoJSON FeatureCollection for
+supported geographies.
 
-- live Socrata/API pulls
+Current boundary support is still intentionally narrow:
+
+- field-backed joins only
+- boundary features must include:
+  - `geography`
+  - `geography_value`
+- currently useful for boundary-backed GeoJSON export of aggregated results
+
+## Planned later
+
+The following inputs are still planned:
+
 - caching/downloading workflows for large public extracts
-- polygon boundary loading
-- spatial joins for tract- or district-level geography derivation
+- broader spatial joins for tract- or district-level geography derivation
 - demographic overlay inputs
+- richer live-ingestion ergonomics beyond the current focused Socrata path
 
-## Data Principles
+## Data principles
 
 - keep raw data access explicit and easy to audit
-- prefer stable local extracts for the current implemented workflow
+- prefer stable local extracts for reproducible tests and examples
 - avoid hidden geocoding or fuzzy geography standardization
 - keep large real-world extracts out of git
 
-## Notes On Text Fields
+## Notes on text fields
 
-The descriptor text is short, noisy, and inconsistent. v0.1 therefore uses a
-documented deterministic ruleset for first-pass topic labeling instead of
-claiming broader NLP coverage than is actually implemented today.
+The descriptor text is short, noisy, and inconsistent. The current release
+therefore uses a documented deterministic ruleset for first-pass topic labeling
+instead of claiming broader NLP coverage than is actually implemented today.
