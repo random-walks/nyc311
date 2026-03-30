@@ -54,4 +54,4 @@ These surfaces are still scaffolded and intentionally raise
 - [Agent kickoff TODO](agent-kickoff-todo.md)
 - [Agent handoff prompt](agent-handoff-prompt.md)
 - [Original seed spec](notes/original-spec.md)
-- [Gap explination](notes/gap-explination.md)
+- [Gap explanation](notes/gap-explination.md)

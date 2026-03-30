@@ -2,7 +2,9 @@
 
 ## Problem
 
-NYC 311 has huge public value, but the most important signal often lives in short, messy text fields and in localized time patterns that are hard to see in the standard complaint taxonomy.
+NYC 311 has huge public value, but the most important signal often lives in
+short, messy text fields and in localized time patterns that are hard to see in
+the standard complaint taxonomy.
 
 ## Intended Users
 
@@ -22,13 +24,16 @@ NYC 311 has huge public value, but the most important signal often lives in shor
 
 ## Why This Is Worth Building
 
-There are plenty of 311 analyses and notebooks, but there is not an obvious popular package that turns NYC 311 complaint intelligence into a reusable CLI and library workflow.
+There are plenty of 311 analyses and notebooks, but there is not an obvious
+popular package that turns NYC 311 complaint intelligence into a reusable CLI
+and library workflow.
 
 ## Positioning
 
 Do not position this as a generic LLM wrapper for civic text.
 
-Position it as a reproducible complaint-intelligence toolkit that helps people answer questions like:
+Position it as a reproducible complaint-intelligence toolkit that helps people
+answer questions like:
 
 - what residents are actually complaining about within a broad complaint type
 - which topics are emerging in a neighborhood

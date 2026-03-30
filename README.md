@@ -15,7 +15,8 @@ Python toolkit for building reproducible complaint-intelligence outputs from NYC
 ### Implemented now in v0.1
 
 - load filtered NYC 311-style records from a **local CSV extract**
-- derive a deterministic **first-pass topic label** for supported complaint types
+- derive a deterministic **first-pass topic label** for supported complaint
+  types
 - aggregate complaint topics by **borough** or **community district**
 - export one useful output: a **CSV topic summary table**
 

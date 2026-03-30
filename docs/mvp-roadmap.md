@@ -25,4 +25,5 @@
 
 ## Release Philosophy
 
-The first release should prove that classical, reproducible NLP can turn a messy civic dataset into something decision-makers and researchers can actually use.
+The first release should prove that classical, reproducible NLP can turn a messy
+civic dataset into something decision-makers and researchers can actually use.
