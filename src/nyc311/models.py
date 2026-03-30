@@ -199,13 +199,19 @@ class GeographyTopicSummary:
             raise ValueError("share_of_geography must be in the interval (0, 1].")
         if self.topic_rank < 1:
             raise ValueError("topic_rank must be at least 1.")
+        if not _normalize_value(self.geography_value):
+            raise ValueError("geography_value must not be empty.")
+        if not _normalize_value(self.complaint_type):
+            raise ValueError("complaint_type must not be empty.")
+        if not _normalize_value(self.topic):
+            raise ValueError("topic must not be empty.")
 
         object.__setattr__(self, "geography", normalized_geography)
         object.__setattr__(self, "geography_value", _normalize_value(self.geography_value))
         object.__setattr__(self, "complaint_type", _normalize_value(self.complaint_type))
         object.__setattr__(self, "topic", _normalize_value(self.topic))
-        
-        
+
+
 def supported_topic_queries() -> tuple[str, ...]:
     """Return the complaint types with implemented topic extraction in v0.1."""
     return ("Noise - Residential", "Rodent")

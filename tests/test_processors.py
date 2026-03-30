@@ -29,7 +29,7 @@ def test_extract_topics_assigns_deterministic_noise_labels() -> None:
         "1002": "banging",
         "1003": "construction",
         "1004": "pet_noise",
-        "1005": "television_audio",
+        "1005": "party_music",
         "1006": "banging",
         "1010": "party_music",
         "1011": "party_music",

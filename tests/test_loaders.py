@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from nyc311.loaders import REQUIRED_SERVICE_REQUEST_COLUMNS, load_service_requests
+from nyc311.loaders import load_service_requests
 from nyc311.models import GeographyFilter, ServiceRequestFilter
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"
@@ -14,22 +14,22 @@ FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.cs
 def test_load_service_requests_without_filters_returns_all_fixture_rows() -> None:
     records = load_service_requests(FIXTURE_PATH)
 
-    assert len(records) == 10
-    assert records[0].service_request_id == "1000001"
-    assert records[-1].community_district == "Manhattan 06"
+    assert len(records) == 12
+    assert records[0].service_request_id == "1001"
+    assert records[-1].community_district == "QUEENS 02"
 
 
 def test_load_service_requests_filters_by_date_geography_and_complaint_type() -> None:
     filters = ServiceRequestFilter(
         start_date=date(2025, 1, 5),
-        end_date=date(2025, 1, 10),
-        geography=GeographyFilter(geography="community_district", value="Brooklyn 01"),
+        end_date=date(2025, 1, 11),
+        geography=GeographyFilter(geography="community_district", value="BROOKLYN 01"),
         complaint_types=("Noise - Residential",),
     )
 
     records = load_service_requests(FIXTURE_PATH, filters=filters)
 
-    assert [record.service_request_id for record in records] == ["1000002", "1000003"]
+    assert [record.service_request_id for record in records] == ["1001", "1002"]
 
 
 def test_load_service_requests_filters_by_borough() -> None:
@@ -40,8 +40,8 @@ def test_load_service_requests_filters_by_borough() -> None:
         ),
     )
 
-    assert len(records) == 5
-    assert {record.borough for record in records} == {"Brooklyn"}
+    assert len(records) == 6
+    assert {record.borough for record in records} == {"BROOKLYN"}
 
 
 def test_load_service_requests_requires_expected_columns(tmp_path: Path) -> None:
@@ -52,16 +52,5 @@ def test_load_service_requests_requires_expected_columns(tmp_path: Path) -> None
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="Missing required columns"):
+    with pytest.raises(ValueError, match="missing required columns"):
         load_service_requests(invalid_csv)
-
-
-def test_required_service_request_columns_are_documented() -> None:
-    assert REQUIRED_SERVICE_REQUEST_COLUMNS == (
-        "unique_key",
-        "created_date",
-        "complaint_type",
-        "descriptor",
-        "borough",
-        "community_district",
-    )

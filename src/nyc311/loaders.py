@@ -17,6 +17,14 @@ _COMMUNITY_DISTRICT_ALIASES: Final[tuple[str, ...]] = (
     "community_district",
     "community_board",
 )
+REQUIRED_SERVICE_REQUEST_COLUMNS: Final[tuple[str, ...]] = (
+    "unique_key",
+    "created_date",
+    "complaint_type",
+    "descriptor",
+    "borough",
+    "community_district",
+)
 
 
 def _parse_created_date(raw_value: str) -> date:
