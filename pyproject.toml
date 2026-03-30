@@ -32,6 +32,9 @@ classifiers = [
 dynamic = ["version"]
 dependencies = []
 
+[project.scripts]
+nyc311 = "nyc311.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/random-walks/nyc311"
 "Bug Tracker" = "https://github.com/random-walks/nyc311/issues"

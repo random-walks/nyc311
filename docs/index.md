@@ -4,6 +4,11 @@
 
 The repository is being seeded early so the eventual implementation starts inside a disciplined OSS package shape instead of growing out of a single exploratory notebook.
 
+This docs site now includes two exact source documents imported from the showcase planning repo:
+
+- the original `nyc311` seed spec
+- the gap explanation for why this is still a real OSS opportunity
+
 ## Project Focus
 
 - keep the first release reproducible and explainable
@@ -16,4 +21,7 @@ The repository is being seeded early so the eventual implementation starts insid
 - [Project brief](project-brief.md)
 - [Data sources](data-sources.md)
 - [MVP roadmap](mvp-roadmap.md)
+- [Agent kickoff TODO](agent-kickoff-todo.md)
+- [Agent handoff prompt](agent-handoff-prompt.md)
 - [Original seed spec](notes/original-spec.md)
+- [Gap explination](notes/gap-explination.md)

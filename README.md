@@ -9,11 +9,11 @@ NLP pipeline for extracting topics, anomalies, and resolution gaps from NYC 311 
 
 ## Status
 
-This repository has been scaffolded as a public-ready package repo before implementation begins.
+This repository has been scaffolded as a public-ready package repo before implementation begins and now includes the exact seed docs that define the product target.
 
 - Packaging, docs, CI, and release plumbing are present.
 - The project is still in the planning and seeding phase.
-- There is not yet a stable public API.
+- The target API surface is scaffolded with typed placeholders that raise `NotImplementedError`.
 
 ## Why This Exists
 
@@ -33,6 +33,13 @@ NYC 311 data is one of the richest public records of neighborhood quality-of-lif
 - GeoJSON and CSV exports
 - neighborhood report-card style notebooks
 
+## Seeded Sources Of Truth
+
+- `docs/notes/original-spec.md`: exact copied seed spec for `nyc311`
+- `docs/notes/gap-explination.md`: exact copied gap analysis that explains why this project is still worth building
+- `docs/agent-kickoff-todo.md`: kickoff plan for follow-on implementation agents
+- `docs/agent-handoff-prompt.md`: paste-ready prompt for the next agent session
+
 ## Initial Scope
 
 - pull date- and geography-filtered 311 records
@@ -40,12 +47,15 @@ NYC 311 data is one of the richest public records of neighborhood quality-of-lif
 - produce trend summaries and map-friendly outputs
 - document methodology clearly enough for reuse and review
 
-## Documentation
+## Scaffolded Package Surface
 
-- `docs/project-brief.md`: problem framing and package positioning
-- `docs/data-sources.md`: dataset assumptions and provenance notes
-- `docs/mvp-roadmap.md`: v0.1 scope and stretch path
-- `docs/notes/original-spec.md`: preserved project seed notes
+The package now exposes planned-but-unimplemented modules so contributors can see the intended shape before building:
+
+- `nyc311.loaders`
+- `nyc311.processors`
+- `nyc311.exporters`
+- `nyc311.models`
+- `nyc311.cli`
 
 ## Development
 

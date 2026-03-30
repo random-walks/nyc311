@@ -52,6 +52,9 @@ nav:
   - Project Brief: project-brief.md
   - Data Sources: data-sources.md
   - MVP Roadmap: mvp-roadmap.md
+  - Agent Kickoff TODO: agent-kickoff-todo.md
+  - Agent Handoff Prompt: agent-handoff-prompt.md
   - Python API: api.md
   - Notes:
       - Original Spec: notes/original-spec.md
+      - Gap explination: notes/gap-explination.md

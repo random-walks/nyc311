@@ -1,10 +1,25 @@
-# API status
+# API scaffold
 
-The public API is not implemented yet. This page will expand once the first data-loading, topic-modeling, and anomaly-analysis modules are added.
+The public API is intentionally scaffolded before implementation so the target surface is visible and importable.
 
-The expected first stable surfaces are:
+Every callable below currently raises `NotImplementedError` until the real implementation lands.
 
-- dataset loading and filtering helpers
-- topic extraction utilities
-- geography and time aggregation functions
-- anomaly and resolution-gap analysis entry points
+## Models
+
+::: nyc311.models
+
+## Loaders
+
+::: nyc311.loaders
+
+## Processors
+
+::: nyc311.processors
+
+## Exporters
+
+::: nyc311.exporters
+
+## CLI
+
+::: nyc311.cli
