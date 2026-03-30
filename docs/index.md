@@ -1,22 +1,52 @@
 # nyc311
 
-`nyc311` is a Python-first toolkit for turning NYC 311 complaint records into reusable topic, trend, anomaly, and resolution-gap outputs.
+`nyc311` is a Python-first toolkit for turning NYC 311 complaint records into
+reusable complaint-intelligence outputs.
 
-The repository is being seeded early so the eventual implementation starts inside a disciplined OSS package shape instead of growing out of a single exploratory notebook.
+## v0.1 status
 
-This docs site now includes two exact source documents imported from the showcase planning repo:
+The repository now includes one real, fully tested foundation workflow:
 
-- the original `nyc311` seed spec
-- the gap explanation for why this is still a real OSS opportunity
+1. load filtered NYC 311-style service-request records from a local CSV extract
+2. derive a deterministic first-pass topic label from short complaint text
+3. aggregate those topics by a supported geography field
+4. export a reusable CSV summary table
 
-## Project Focus
+This first release is intentionally narrow. It is designed to be easy to audit,
+easy to test, and honest about what is still future work.
+
+## Implemented now
+
+- local CSV loading via `load_service_requests(...)`
+- filtering by date range, borough, community district, and complaint type
+- deterministic topic extraction for:
+  - `Noise - Residential`
+  - `Rodent`
+- geography-aware aggregation by:
+  - `community_district`
+  - `borough`
+- CSV export via `export_topic_table(...)`
+
+## Planned later
+
+These surfaces are still scaffolded and intentionally raise
+`NotImplementedError`:
+
+- Socrata / live API loading
+- boundary loading and boundary-backed GeoJSON export
+- anomaly detection
+- resolution-gap analysis
+- report-card generation
+- production-ready CLI workflows
+
+## Project focus
 
 - keep the first release reproducible and explainable
-- favor classical NLP and transparent methods over opaque magic
-- connect text analysis with time and geography
+- favor transparent first-pass methods over overclaiming advanced NLP
+- connect text analysis with geography through clearly supported fields
 - make outputs useful for civic analysis, journalism, and research
 
-## Read Next
+## Read next
 
 - [Project brief](project-brief.md)
 - [Data sources](data-sources.md)

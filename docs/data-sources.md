@@ -1,30 +1,54 @@
 # Data Sources
 
-## Primary Inputs
+## Implemented In v0.1
 
-- NYC 311 Service Requests dataset via Socrata
-- supporting geographic boundary files for borough, tract, district, or neighborhood aggregation
-- optional demographic overlays for contextual analysis
+The current release supports **local CSV extracts** of NYC 311-style service
+request records.
 
-## Initial Data Principles
+The implemented happy path expects these columns:
 
-- prefer direct documented pulls from the public dataset
-- cache filtered extracts locally for reproducibility
-- keep data-loading logic transparent and easy to audit
-- separate raw dataset access from downstream topic-model outputs
+- `unique_key`
+- `created_date`
+- `complaint_type`
+- `descriptor`
+- `borough`
+- `community_district` (or `community_board`)
 
-## Early Technical Notes
+An optional `resolution_description` column is also accepted and preserved on
+loaded records, but it is not yet used for any shipped analysis.
 
-- the text fields are short and noisy
-- some useful fields may vary in completeness across years
-- spatial joins and geography standardization should be explicit
-- large extracts should stay out of git
+## Current Loader Scope
 
-## Documentation Follow-Up
+`load_service_requests(...)` supports:
 
-As implementation starts, this page should grow to include:
+- loading from a local CSV path
+- filtering by created-date range
+- filtering by `borough`
+- filtering by `community_district`
+- filtering by complaint type
 
-- exact dataset identifiers and URLs
-- field notes for the first supported workflow
-- geography assumptions
-- caveats about text cleanliness and missingness
+This is intentionally narrow so the first release stays deterministic,
+inspectable, and easy to test.
+
+## Planned Later
+
+The following inputs are still planned and are **not implemented** in v0.1:
+
+- live Socrata/API pulls
+- caching/downloading workflows for large public extracts
+- polygon boundary loading
+- spatial joins for tract- or district-level geography derivation
+- demographic overlay inputs
+
+## Data Principles
+
+- keep raw data access explicit and easy to audit
+- prefer stable local extracts for the current implemented workflow
+- avoid hidden geocoding or fuzzy geography standardization
+- keep large real-world extracts out of git
+
+## Notes On Text Fields
+
+The descriptor text is short, noisy, and inconsistent. v0.1 therefore uses a
+documented deterministic ruleset for first-pass topic labeling instead of
+claiming broader NLP coverage than is actually implemented today.

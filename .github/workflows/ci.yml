@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: "0 10 * * 1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,7 +21,7 @@ env:
 
 jobs:
   lint:
-    name: Format
+    name: Lint and format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -32,23 +34,25 @@ jobs:
 
       - uses: astral-sh/setup-uv@v7
 
-      - uses: j178/prek-action@v2
+      - name: Install package and dev dependencies
+        run: uv sync --group docs
 
-      - name: Run Pylint
+      - name: Run pre-commit checks
+        run: uvx nox -s lint
+
+      - name: Run mypy
+        run: uv run mypy
+
+      - name: Run pylint
         run: uvx nox -s pylint -- --output-format=github
 
-  checks:
-    name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
-    runs-on: ${{ matrix.runs-on }}
+  tests:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.14"]
-        runs-on: [ubuntu-latest, windows-latest, macos-latest, macos-15-intel]
-
-        include:
-          - python-version: "pypy-3.11"
-            runs-on: ubuntu-latest
+        python-version: ["3.10", "3.12"]
 
     steps:
       - uses: actions/checkout@v6
@@ -58,7 +62,6 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-          allow-prereleases: true
 
       - uses: astral-sh/setup-uv@v7
 
@@ -75,9 +78,42 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  compatibility:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    name: Compatibility Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
+    continue-on-error: true
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.11"
+            runs-on: windows-latest
+          - python-version: "3.12"
+            runs-on: macos-latest
+          - python-version: "3.13"
+            runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: astral-sh/setup-uv@v7
+
+      - name: Install package
+        run: uv sync
+
+      - name: Test package
+        run: uv run pytest -ra --durations=20
+
   pass:
     if: always()
-    needs: [lint, checks]
+    needs: [lint, tests]
     runs-on: ubuntu-slim
     timeout-minutes: 2
     steps:
