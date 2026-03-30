@@ -4,19 +4,19 @@ from __future__ import annotations
 
 import csv
 import json
-import urllib.parse
-import urllib.request
 from collections.abc import Sequence
 from datetime import date, datetime
 from pathlib import Path
 from typing import Final
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 from ._not_implemented import planned_surface
 from .models import (
     GeographyFilter,
+    SocrataConfig,
     ServiceRequestFilter,
     ServiceRequestRecord,
-    SocrataRequest,
 )
 
 _REQUIRED_COLUMNS: Final[frozenset[str]] = frozenset(
@@ -232,16 +232,17 @@ def _socrata_where_clauses(service_request_filter: ServiceRequestFilter) -> list
         else:
             clauses.append(f"{field} = '{value}'")
     if service_request_filter.complaint_types:
-        allowed_values = ", ".join(
-            f"'{complaint_type.replace(\"'\", \"''\")}'"
+        escaped_values = [
+            complaint_type.replace("'", "''")
             for complaint_type in service_request_filter.complaint_types
-        )
+        ]
+        allowed_values = ", ".join(f"'{complaint_type}'" for complaint_type in escaped_values)
         clauses.append(f"complaint_type IN ({allowed_values})")
     return clauses
 
 
 def _build_socrata_url(
-    socrata_request: SocrataRequest,
+    socrata_config: SocrataConfig,
     service_request_filter: ServiceRequestFilter,
     *,
     offset: int,
@@ -249,41 +250,40 @@ def _build_socrata_url(
     """Build a paginated Socrata API URL for the implemented loader."""
     query_params: dict[str, str] = {
         "$select": _socrata_select_fields(),
-        "$limit": str(socrata_request.limit or _SOCRATA_PAGE_SIZE),
+        "$limit": str(socrata_config.page_size),
         "$offset": str(offset),
         "$order": "created_date ASC, unique_key ASC",
     }
     where_clauses = _socrata_where_clauses(service_request_filter)
+    if socrata_config.extra_where_clauses:
+        where_clauses.extend(socrata_config.extra_where_clauses)
     if where_clauses:
         query_params["$where"] = " AND ".join(where_clauses)
-    encoded_query = urllib.parse.urlencode(query_params, quote_via=urllib.parse.quote)
-    return (
-        f"https://{socrata_request.domain}/resource/"
-        f"{socrata_request.dataset_id}.json?{encoded_query}"
-    )
+    encoded_query = urlencode(query_params)
+    return f"{socrata_config.base_url}/{socrata_config.dataset_identifier}.json?{encoded_query}"
 
 
 def _load_service_requests_from_socrata(
-    socrata_request: SocrataRequest,
+    socrata_config: SocrataConfig,
     service_request_filter: ServiceRequestFilter,
 ) -> list[ServiceRequestRecord]:
     """Load service-request records from the live Socrata API."""
     headers = {"Accept": "application/json"}
-    if socrata_request.app_token is not None:
-        headers["X-App-Token"] = socrata_request.app_token
+    if socrata_config.app_token is not None:
+        headers["X-App-Token"] = socrata_config.app_token
 
-    request_limit = socrata_request.limit or _SOCRATA_PAGE_SIZE
+    request_limit = socrata_config.page_size
     offset = 0
+    page_count = 0
     records: list[ServiceRequestRecord] = []
 
     while True:
-        request_url = _build_socrata_url(
-            socrata_request,
-            service_request_filter,
-            offset=offset,
-        )
-        request = urllib.request.Request(request_url, headers=headers)
-        with urllib.request.urlopen(request) as response:  # noqa: S310
+        if socrata_config.max_pages is not None and page_count >= socrata_config.max_pages:
+            break
+
+        request_url = _build_socrata_url(socrata_config, service_request_filter, offset=offset)
+        request = Request(request_url, headers=headers)
+        with urlopen(request, timeout=socrata_config.request_timeout_seconds) as response:  # noqa: S310
             payload = json.loads(response.read().decode("utf-8"))
 
         if not isinstance(payload, list):
@@ -309,18 +309,19 @@ def _load_service_requests_from_socrata(
         if len(payload) < request_limit:
             break
         offset += request_limit
+        page_count += 1
 
     return _apply_filters(records, service_request_filter)
 
 
 def load_service_requests(
-    source: str | Path | SocrataRequest,
+    source: str | Path | SocrataConfig,
     *,
     filters: ServiceRequestFilter | None = None,
 ) -> list[ServiceRequestRecord]:
     """Load filtered NYC 311-style service-request records from CSV or Socrata."""
     service_request_filter = filters or ServiceRequestFilter()
-    if isinstance(source, SocrataRequest):
+    if isinstance(source, SocrataConfig):
         return _load_service_requests_from_socrata(source, service_request_filter)
 
     source_path = Path(source)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from typing import Final
@@ -60,43 +60,6 @@ class ServiceRequestFilter:
             if (normalized := _normalize_value(raw_value))
         )
         object.__setattr__(self, "complaint_types", normalized_complaint_types)
-
-
-@dataclass(frozen=True)
-class SocrataConfig:
-    """Configuration for the implemented live Socrata loader path."""
-
-    dataset_identifier: str = SOCRATA_DATASET_IDENTIFIER
-    base_url: str = "https://data.cityofnewyork.us/resource"
-    app_token: str | None = None
-    page_size: int = 1000
-    request_timeout_seconds: float = 30.0
-    max_pages: int | None = None
-    extra_where_clauses: tuple[str, ...] = field(default_factory=tuple)
-
-    def __post_init__(self) -> None:
-        dataset_identifier = self.dataset_identifier.strip()
-        base_url = self.base_url.rstrip("/")
-
-        if not dataset_identifier:
-            raise ValueError("dataset_identifier must not be empty.")
-        if not base_url:
-            raise ValueError("base_url must not be empty.")
-        if self.page_size < 1:
-            raise ValueError("page_size must be at least 1.")
-        if self.request_timeout_seconds <= 0:
-            raise ValueError("request_timeout_seconds must be positive.")
-        if self.max_pages is not None and self.max_pages < 1:
-            raise ValueError("max_pages must be at least 1 when provided.")
-
-        normalized_extra_where_clauses = tuple(
-            normalized
-            for raw_value in self.extra_where_clauses
-            if (normalized := _normalize_value(raw_value))
-        )
-        object.__setattr__(self, "dataset_identifier", dataset_identifier)
-        object.__setattr__(self, "base_url", base_url)
-        object.__setattr__(self, "extra_where_clauses", normalized_extra_where_clauses)
 
 
 @dataclass(frozen=True)
@@ -264,9 +227,4 @@ class GeographyTopicSummary:
 
 def supported_topic_queries() -> tuple[str, ...]:
     """Return the complaint types with implemented topic extraction in v0.1."""
-    return (
-        "Noise - Residential",
-        "Rodent",
-        "Illegal Parking",
-        "Street Condition",
-    )
+    return ("Noise - Residential", "Rodent")

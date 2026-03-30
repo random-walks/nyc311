@@ -7,11 +7,9 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 
 from nyc311.loaders import (
-    NYC311_SOCRATA_DATASET_ID,
-    SOCRATA_API_ROOT,
     load_service_requests,
 )
-from nyc311.models import GeographyFilter, ServiceRequestFilter
+from nyc311.models import GeographyFilter, ServiceRequestFilter, SocrataConfig
 
 
 class FakeResponse:
@@ -31,7 +29,9 @@ class FakeResponse:
         return json.dumps(self._payload).encode("utf-8")
 
 
-def test_load_service_requests_supports_socrata_json(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_load_service_requests_supports_socrata_json(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     requested_urls: list[str] = []
     payload = [
         {
@@ -53,20 +53,21 @@ def test_load_service_requests_supports_socrata_json(monkeypatch: pytest.MonkeyP
         },
     ]
 
-    def fake_urlopen(url: str) -> FakeResponse:
-        requested_urls.append(url)
+    def fake_urlopen(request: object, *, timeout: float | None = None) -> FakeResponse:
+        del timeout
+        requested_urls.append(request.full_url)
         return FakeResponse(payload)
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.loaders.urllib.request.urlopen", fake_urlopen)
 
-    records = load_service_requests("socrata://311", filters=ServiceRequestFilter())
+    records = load_service_requests(SocrataConfig(), filters=ServiceRequestFilter())
 
     assert [record.service_request_id for record in records] == ["2001", "2002"]
     assert requested_urls
     parsed = urlparse(requested_urls[0])
     assert parsed.scheme == "https"
-    assert parsed.netloc == urlparse(SOCRATA_API_ROOT).netloc
-    assert parsed.path.endswith(f"/resource/{NYC311_SOCRATA_DATASET_ID}.json")
+    assert parsed.netloc == "data.cityofnewyork.us"
+    assert parsed.path.endswith("/resource/erm2-nwe9.json")
 
 
 def test_load_service_requests_builds_filtered_socrata_query(
@@ -74,14 +75,15 @@ def test_load_service_requests_builds_filtered_socrata_query(
 ) -> None:
     requested_urls: list[str] = []
 
-    def fake_urlopen(url: str) -> FakeResponse:
-        requested_urls.append(url)
+    def fake_urlopen(request: object, *, timeout: float | None = None) -> FakeResponse:
+        del timeout
+        requested_urls.append(request.full_url)
         return FakeResponse([])
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.loaders.urllib.request.urlopen", fake_urlopen)
 
     load_service_requests(
-        "socrata://311",
+        SocrataConfig(),
         filters=ServiceRequestFilter(
             start_date=date(2025, 4, 1),
             end_date=date(2025, 4, 30),
@@ -95,10 +97,18 @@ def test_load_service_requests_builds_filtered_socrata_query(
     where_clause = query_string["$where"][0]
     assert "created_date >= '2025-04-01T00:00:00'" in where_clause
     assert "created_date <= '2025-04-30T23:59:59'" in where_clause
-    assert "upper(borough) = 'BROOKLYN'" in where_clause
-    assert "complaint_type in ('Noise - Residential', 'Rodent')" in where_clause
+    assert "borough = 'Brooklyn'" in where_clause
+    assert "complaint_type IN ('Noise - Residential', 'Rodent')" in where_clause
 
 
-def test_load_service_requests_rejects_unknown_remote_source() -> None:
-    with pytest.raises(ValueError, match="Unsupported service request source"):
-        load_service_requests("https://example.com/not-supported")
+def test_load_service_requests_rejects_non_json_socrata_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_urlopen(request: object, *, timeout: float | None = None) -> FakeResponse:
+        del request, timeout
+        return FakeResponse({"not": "a list"})  # type: ignore[arg-type]
+
+    monkeypatch.setattr("nyc311.loaders.urllib.request.urlopen", fake_urlopen)
+
+    with pytest.raises(ValueError, match="expected a JSON list"):
+        load_service_requests(SocrataConfig())
