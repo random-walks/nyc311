@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+from pathlib import Path
 
 from ._not_implemented import planned_surface
 from .models import ExportTarget, GeographyTopicSummary
@@ -14,9 +15,7 @@ def export_geojson(data: object, target: ExportTarget) -> object:
     planned_surface("export_geojson()")
 
 
-def export_topic_table(
-    data: list[GeographyTopicSummary], target: ExportTarget
-) -> ExportTarget:
+def export_topic_table(data: list[GeographyTopicSummary], target: ExportTarget) -> Path:
     """Export v0.1 geography-topic summaries to a CSV file."""
     if target.format != "csv":
         raise ValueError(
@@ -58,7 +57,7 @@ def export_topic_table(
                 }
             )
 
-    return target
+    return output_path
 
 
 def export_anomalies(data: object, target: ExportTarget) -> object:

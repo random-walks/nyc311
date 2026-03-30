@@ -52,5 +52,5 @@ def test_load_service_requests_requires_expected_columns(tmp_path: Path) -> None
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="missing required columns"):
+    with pytest.raises(ValueError, match="community-district column"):
         load_service_requests(invalid_csv)

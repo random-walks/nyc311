@@ -18,9 +18,9 @@ from .models import (
 _SUPPORTED_TOPIC_RULES: Final[dict[str, tuple[tuple[str, tuple[str, ...]], ...]]] = {
     "Noise - Residential": (
         ("party_music", ("party", "music", "speakers", "stereo", "bass", "television")),
-        ("construction", ("construction", "drilling", "jackhammer", "hammering")),
+        ("construction", ("construction", "drilling", "jackhammer")),
         ("pet_noise", ("dog", "barking", "pet")),
-        ("banging", ("banging", "thumping", "shaking", "arguing")),
+        ("banging", ("banging", "thumping", "shaking", "arguing", "hammering")),
     ),
     "Rodent": (
         ("extermination_request", ("exterminator", "extermination", "infestation")),
@@ -36,6 +36,13 @@ def _normalize_text(value: str) -> str:
     stripped = value.strip().lower()
     normalized = _TEXT_NORMALIZATION_PATTERN.sub(" ", stripped)
     return " ".join(normalized.split())
+
+
+def _matches_keyword(normalized_text: str, keyword: str) -> bool:
+    """Return whether a normalized text contains a normalized keyword."""
+    if " " in keyword:
+        return keyword in normalized_text
+    return keyword in normalized_text.split()
 
 
 def extract_topics(
@@ -62,7 +69,7 @@ def extract_topics(
         matched_topic = "other"
 
         for topic, keywords in rules:
-            if any(keyword in normalized_text for keyword in keywords):
+            if any(_matches_keyword(normalized_text, keyword) for keyword in keywords):
                 matched_topic = topic
                 break
 
@@ -79,11 +86,12 @@ def extract_topics(
 
     topic_frequencies = Counter(assignment.topic for assignment in topic_assignments)
     allowed_topics = {
-        topic
-        for topic, _count in topic_frequencies.most_common(query.top_n)
+        topic for topic, _count in topic_frequencies.most_common(query.top_n)
     }
     return [
-        assignment for assignment in topic_assignments if assignment.topic in allowed_topics
+        assignment
+        for assignment in topic_assignments
+        if assignment.topic in allowed_topics
     ]
 
 
@@ -109,8 +117,12 @@ def aggregate_by_geography(
         grouped_topics[(geography_value, complaint_type)].append((topic, count))
 
     summaries: list[GeographyTopicSummary] = []
-    for (geography_value, complaint_type), topic_counts in sorted(grouped_topics.items()):
-        ordered_topic_counts = sorted(topic_counts, key=lambda item: (-item[1], item[0]))
+    for (geography_value, complaint_type), topic_counts in sorted(
+        grouped_topics.items()
+    ):
+        ordered_topic_counts = sorted(
+            topic_counts, key=lambda item: (-item[1], item[0])
+        )
         total_count = geography_totals[(geography_value, complaint_type)]
 
         for index, (topic, count) in enumerate(ordered_topic_counts, start=1):

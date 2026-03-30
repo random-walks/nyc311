@@ -63,19 +63,13 @@ def test_extract_topics_rejects_unsupported_complaint_type() -> None:
 
 def test_aggregate_by_geography_returns_ranked_counts_for_community_district() -> None:
     records = load_service_requests(FIXTURE_PATH)
-    assignments = extract_topics(records, TopicQuery(complaint_type="Noise - Residential"))
+    assignments = extract_topics(
+        records, TopicQuery(complaint_type="Noise - Residential")
+    )
 
     summaries = aggregate_by_geography(assignments, geography="community_district")
 
-    assert summaries == [
-        summaries[0],
-        summaries[1],
-        summaries[2],
-        summaries[3],
-        summaries[4],
-        summaries[5],
-        summaries[6],
-    ]
+    assert len(summaries) == 8
     assert summaries[0].geography_value == "BROOKLYN 01"
     assert summaries[0].topic == "banging"
     assert summaries[0].complaint_count == 1

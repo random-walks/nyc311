@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+from collections.abc import Sequence
 from datetime import date, datetime
 from pathlib import Path
 from typing import Final
@@ -46,7 +47,7 @@ def _casefold(value: str) -> str:
     return " ".join(value.strip().split()).casefold()
 
 
-def _community_district_column(fieldnames: list[str]) -> str:
+def _community_district_column(fieldnames: Sequence[str]) -> str:
     """Resolve the supported community-district source column."""
     for candidate in _COMMUNITY_DISTRICT_ALIASES:
         if candidate in fieldnames:
@@ -54,19 +55,17 @@ def _community_district_column(fieldnames: list[str]) -> str:
 
     expected = ", ".join(_COMMUNITY_DISTRICT_ALIASES)
     raise ValueError(
-        "CSV file is missing a community-district column. "
-        f"Expected one of: {expected}."
+        f"CSV file is missing a community-district column. Expected one of: {expected}."
     )
 
 
-def _validate_columns(fieldnames: list[str]) -> str:
+def _validate_columns(fieldnames: Sequence[str]) -> str:
     """Validate that a CSV contains the required v0.1 columns."""
     missing_columns = sorted(_REQUIRED_COLUMNS.difference(fieldnames))
     if missing_columns:
         missing = ", ".join(missing_columns)
         raise ValueError(
-            "CSV file is missing required columns for v0.1 loading: "
-            f"{missing}."
+            f"CSV file is missing required columns for v0.1 loading: {missing}."
         )
     return _community_district_column(fieldnames)
 
@@ -77,9 +76,8 @@ def _matches_geography(
     """Return whether a record satisfies the optional geography filter."""
     if geography_filter is None:
         return True
-    return (
-        _casefold(record.geography_value(geography_filter.geography))
-        == _casefold(geography_filter.value)
+    return _casefold(record.geography_value(geography_filter.geography)) == _casefold(
+        geography_filter.value
     )
 
 
@@ -144,7 +142,9 @@ def load_service_requests(
                 continue
             if not _matches_geography(record, service_request_filter.geography):
                 continue
-            if not _matches_complaint_type(record, service_request_filter.complaint_types):
+            if not _matches_complaint_type(
+                record, service_request_filter.complaint_types
+            ):
                 continue
             loaded_records.append(record)
 

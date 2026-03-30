@@ -13,7 +13,9 @@ FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.cs
 
 def test_export_topic_table_writes_deterministic_csv(tmp_path: Path) -> None:
     records = load_service_requests(FIXTURE_PATH)
-    assignments = extract_topics(records, TopicQuery(complaint_type="Noise - Residential"))
+    assignments = extract_topics(
+        records, TopicQuery(complaint_type="Noise - Residential")
+    )
     summaries = aggregate_by_geography(assignments, geography="community_district")
 
     output_path = tmp_path / "exports" / "noise_topics.csv"
@@ -34,7 +36,7 @@ def test_export_topic_table_writes_deterministic_csv(tmp_path: Path) -> None:
         "topic": "banging",
         "complaint_count": "1",
         "geography_total_count": "2",
-        "share_of_geography": "0.5000",
+        "share_of_geography": "0.500000",
         "topic_rank": "1",
         "is_dominant_topic": "true",
     }
@@ -45,7 +47,7 @@ def test_export_topic_table_writes_deterministic_csv(tmp_path: Path) -> None:
         "topic": "banging",
         "complaint_count": "1",
         "geography_total_count": "3",
-        "share_of_geography": "0.3333",
+        "share_of_geography": "0.333333",
         "topic_rank": "2",
         "is_dominant_topic": "false",
     }

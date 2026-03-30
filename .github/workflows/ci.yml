@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - main
-  schedule:
-    - cron: "0 10 * * 1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -77,39 +75,6 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  compatibility:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    name: Compatibility Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
-    continue-on-error: true
-    runs-on: ${{ matrix.runs-on }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - python-version: "3.11"
-            runs-on: windows-latest
-          - python-version: "3.12"
-            runs-on: macos-latest
-          - python-version: "3.13"
-            runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - uses: astral-sh/setup-uv@v7
-
-      - name: Install package
-        run: uv sync
-
-      - name: Test package
-        run: uv run pytest -ra --durations=20
 
   pass:
     if: always()

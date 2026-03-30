@@ -121,11 +121,17 @@ class ServiceRequestRecord:
         if not _normalize_value(self.community_district):
             raise ValueError("community_district must not be empty.")
 
-        object.__setattr__(self, "service_request_id", _normalize_value(self.service_request_id))
-        object.__setattr__(self, "complaint_type", _normalize_value(self.complaint_type))
+        object.__setattr__(
+            self, "service_request_id", _normalize_value(self.service_request_id)
+        )
+        object.__setattr__(
+            self, "complaint_type", _normalize_value(self.complaint_type)
+        )
         object.__setattr__(self, "descriptor", _normalize_value(self.descriptor))
         object.__setattr__(self, "borough", _normalize_value(self.borough))
-        object.__setattr__(self, "community_district", _normalize_value(self.community_district))
+        object.__setattr__(
+            self, "community_district", _normalize_value(self.community_district)
+        )
 
         if self.resolution_description is None:
             return
@@ -166,7 +172,9 @@ class TopicAssignment:
             raise ValueError("normalized_text must not be empty.")
 
         object.__setattr__(self, "topic", _normalize_value(self.topic))
-        object.__setattr__(self, "normalized_text", _normalize_value(self.normalized_text))
+        object.__setattr__(
+            self, "normalized_text", _normalize_value(self.normalized_text)
+        )
 
 
 @dataclass(frozen=True)
@@ -207,8 +215,12 @@ class GeographyTopicSummary:
             raise ValueError("topic must not be empty.")
 
         object.__setattr__(self, "geography", normalized_geography)
-        object.__setattr__(self, "geography_value", _normalize_value(self.geography_value))
-        object.__setattr__(self, "complaint_type", _normalize_value(self.complaint_type))
+        object.__setattr__(
+            self, "geography_value", _normalize_value(self.geography_value)
+        )
+        object.__setattr__(
+            self, "complaint_type", _normalize_value(self.complaint_type)
+        )
         object.__setattr__(self, "topic", _normalize_value(self.topic))
 
 

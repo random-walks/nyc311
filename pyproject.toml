@@ -48,6 +48,9 @@ test = [
 ]
 dev = [
   { include-group = "test" },
+  "mypy >=1.18",
+  "pylint >=3.3",
+  "ruff >=0.12",
 ]
 docs = [
     "markdown>=3.9",
@@ -150,15 +153,21 @@ extend-select = [
   "YTT",    # flake8-2020
 ]
 ignore = [
+  "EM",       # Exception message style is too noisy for this repo
   "PLR09",    # Too many <...>
   "PLR2004",  # Magic value used in comparison
+  "RUF022",   # __all__ sorting is low value, especially for generated files
+  "SIM103",   # Explicit guard clauses are clearer in this codebase
+  "TC",       # Type-checking-only import shuffling is unnecessary here
+  "TRY",      # Long exception messages are acceptable for user-facing validation
+  "FURB110",  # Prefer explicit ternaries where they read better
 ]
 # Uncomment if using a _compat.typing backport
 # typing-modules = ["nyc311._compat.typing"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]
-"noxfile.py" = ["T20"]
+"noxfile.py" = ["EXE001", "T20"]
 "docs/examples/**" = ["T20"]
 
 
