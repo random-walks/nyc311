@@ -1,0 +1,104 @@
+from __future__ import annotations
+
+from datetime import date
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
+import pytest
+
+from nyc311.loaders import (
+    NYC311_SOCRATA_DATASET_ID,
+    SOCRATA_API_ROOT,
+    load_service_requests,
+)
+from nyc311.models import GeographyFilter, ServiceRequestFilter
+
+
+class FakeResponse:
+    def __init__(self, payload: list[dict[str, str]], *, status_code: int = 200) -> None:
+        self._payload = payload
+        self.status = status_code
+
+    def __enter__(self) -> FakeResponse:
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        del exc_type, exc, tb
+
+    def read(self) -> bytes:
+        import json
+
+        return json.dumps(self._payload).encode("utf-8")
+
+
+def test_load_service_requests_supports_socrata_json(monkeypatch: pytest.MonkeyPatch) -> None:
+    requested_urls: list[str] = []
+    payload = [
+        {
+            "unique_key": "2001",
+            "created_date": "2025-04-01T01:02:03",
+            "complaint_type": "Noise - Residential",
+            "descriptor": "Loud party music all night",
+            "borough": "BROOKLYN",
+            "community_board": "BROOKLYN 01",
+            "resolution_description": "Warning issued",
+        },
+        {
+            "unique_key": "2002",
+            "created_date": "2025-04-02T10:30:00",
+            "complaint_type": "Rodent",
+            "descriptor": "Rat seen near garbage bags",
+            "borough": "BROOKLYN",
+            "community_district": "BROOKLYN 01",
+        },
+    ]
+
+    def fake_urlopen(url: str) -> FakeResponse:
+        requested_urls.append(url)
+        return FakeResponse(payload)
+
+    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+
+    records = load_service_requests("socrata://311", filters=ServiceRequestFilter())
+
+    assert [record.service_request_id for record in records] == ["2001", "2002"]
+    assert requested_urls
+    parsed = urlparse(requested_urls[0])
+    assert parsed.scheme == "https"
+    assert parsed.netloc == urlparse(SOCRATA_API_ROOT).netloc
+    assert parsed.path.endswith(f"/resource/{NYC311_SOCRATA_DATASET_ID}.json")
+
+
+def test_load_service_requests_builds_filtered_socrata_query(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requested_urls: list[str] = []
+
+    def fake_urlopen(url: str) -> FakeResponse:
+        requested_urls.append(url)
+        return FakeResponse([])
+
+    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+
+    load_service_requests(
+        "socrata://311",
+        filters=ServiceRequestFilter(
+            start_date=date(2025, 4, 1),
+            end_date=date(2025, 4, 30),
+            geography=GeographyFilter("borough", "Brooklyn"),
+            complaint_types=("Noise - Residential", "Rodent"),
+        ),
+    )
+
+    assert len(requested_urls) == 1
+    query_string = parse_qs(urlparse(requested_urls[0]).query)
+    where_clause = query_string["$where"][0]
+    assert "created_date >= '2025-04-01T00:00:00'" in where_clause
+    assert "created_date <= '2025-04-30T23:59:59'" in where_clause
+    assert "upper(borough) = 'BROOKLYN'" in where_clause
+    assert "complaint_type in ('Noise - Residential', 'Rodent')" in where_clause
+
+
+def test_load_service_requests_rejects_unknown_remote_source() -> None:
+    with pytest.raises(ValueError, match="Unsupported service request source"):
+        load_service_requests("https://example.com/not-supported")

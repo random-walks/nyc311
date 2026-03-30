@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 import csv
+import json
+import urllib.parse
+import urllib.request
 from collections.abc import Sequence
 from datetime import date, datetime
 from pathlib import Path
 from typing import Final
 
 from ._not_implemented import planned_surface
-from .models import GeographyFilter, ServiceRequestFilter, ServiceRequestRecord
+from .models import (
+    GeographyFilter,
+    ServiceRequestFilter,
+    ServiceRequestRecord,
+    SocrataRequest,
+)
 
 _REQUIRED_COLUMNS: Final[frozenset[str]] = frozenset(
     {"unique_key", "created_date", "complaint_type", "descriptor", "borough"}
@@ -26,6 +34,19 @@ REQUIRED_SERVICE_REQUEST_COLUMNS: Final[tuple[str, ...]] = (
     "borough",
     "community_district",
 )
+DEFAULT_SOCRATA_DATASET_ID: Final[str] = "erm2-nwe9"
+DEFAULT_SOCRATA_DOMAIN: Final[str] = "data.cityofnewyork.us"
+_SOCRATA_PAGE_SIZE: Final[int] = 1000
+
+_SOCRATA_FIELD_ALIASES: Final[dict[str, tuple[str, ...]]] = {
+    "unique_key": ("unique_key",),
+    "created_date": ("created_date",),
+    "complaint_type": ("complaint_type",),
+    "descriptor": ("descriptor",),
+    "borough": ("borough",),
+    "community_district": ("community_district", "community_board"),
+    "resolution_description": ("resolution_description",),
+}
 
 
 def _parse_created_date(raw_value: str) -> date:
@@ -111,12 +132,197 @@ def _matches_date_range(
     return True
 
 
+def _record_from_mapping(row: dict[str, str], community_district_column: str) -> ServiceRequestRecord:
+    """Build a validated service-request record from a normalized mapping."""
+    return ServiceRequestRecord(
+        service_request_id=row["unique_key"],
+        created_date=_parse_created_date(row["created_date"]),
+        complaint_type=row["complaint_type"],
+        descriptor=row["descriptor"],
+        borough=row["borough"],
+        community_district=row[community_district_column],
+        resolution_description=row.get("resolution_description"),
+    )
+
+
+def _apply_filters(
+    records: list[ServiceRequestRecord],
+    service_request_filter: ServiceRequestFilter,
+) -> list[ServiceRequestRecord]:
+    """Apply the implemented v0.1 filters to service-request records."""
+    filtered_records: list[ServiceRequestRecord] = []
+    for record in records:
+        if not _matches_date_range(record, service_request_filter):
+            continue
+        if not _matches_geography(record, service_request_filter.geography):
+            continue
+        if not _matches_complaint_type(record, service_request_filter.complaint_types):
+            continue
+        filtered_records.append(record)
+    return filtered_records
+
+
+def _normalize_socrata_row(raw_row: dict[str, object]) -> dict[str, str]:
+    """Normalize a Socrata JSON row into the local CSV-style schema."""
+    normalized_row: dict[str, str] = {}
+    missing_fields: list[str] = []
+
+    for canonical_field, aliases in _SOCRATA_FIELD_ALIASES.items():
+        matched_value: object | None = None
+        for alias in aliases:
+            candidate = raw_row.get(alias)
+            if candidate not in (None, ""):
+                matched_value = candidate
+                break
+
+        if matched_value is None:
+            if canonical_field == "resolution_description":
+                continue
+            missing_fields.append(canonical_field)
+            continue
+
+        normalized_row[canonical_field] = str(matched_value)
+
+    if missing_fields:
+        missing = ", ".join(sorted(missing_fields))
+        raise ValueError(
+            "Socrata response row is missing required v0.1 fields: "
+            f"{missing}."
+        )
+
+    return normalized_row
+
+
+def _socrata_select_fields() -> str:
+    """Return the minimal field projection for the implemented loader."""
+    return ", ".join(
+        (
+            "unique_key",
+            "created_date",
+            "complaint_type",
+            "descriptor",
+            "borough",
+            "community_district",
+            "community_board",
+            "resolution_description",
+        )
+    )
+
+
+def _socrata_where_clauses(service_request_filter: ServiceRequestFilter) -> list[str]:
+    """Build a SoQL where-clause list for supported v0.1 filters."""
+    clauses: list[str] = []
+    if service_request_filter.start_date is not None:
+        clauses.append(
+            f"created_date >= '{service_request_filter.start_date.isoformat()}T00:00:00'"
+        )
+    if service_request_filter.end_date is not None:
+        clauses.append(
+            f"created_date <= '{service_request_filter.end_date.isoformat()}T23:59:59'"
+        )
+    if service_request_filter.geography is not None:
+        field = service_request_filter.geography.geography
+        value = service_request_filter.geography.value.replace("'", "''")
+        if field == "community_district":
+            clauses.append(
+                "("
+                f"community_district = '{value}' OR community_board = '{value}'"
+                ")"
+            )
+        else:
+            clauses.append(f"{field} = '{value}'")
+    if service_request_filter.complaint_types:
+        allowed_values = ", ".join(
+            f"'{complaint_type.replace(\"'\", \"''\")}'"
+            for complaint_type in service_request_filter.complaint_types
+        )
+        clauses.append(f"complaint_type IN ({allowed_values})")
+    return clauses
+
+
+def _build_socrata_url(
+    socrata_request: SocrataRequest,
+    service_request_filter: ServiceRequestFilter,
+    *,
+    offset: int,
+) -> str:
+    """Build a paginated Socrata API URL for the implemented loader."""
+    query_params: dict[str, str] = {
+        "$select": _socrata_select_fields(),
+        "$limit": str(socrata_request.limit or _SOCRATA_PAGE_SIZE),
+        "$offset": str(offset),
+        "$order": "created_date ASC, unique_key ASC",
+    }
+    where_clauses = _socrata_where_clauses(service_request_filter)
+    if where_clauses:
+        query_params["$where"] = " AND ".join(where_clauses)
+    encoded_query = urllib.parse.urlencode(query_params, quote_via=urllib.parse.quote)
+    return (
+        f"https://{socrata_request.domain}/resource/"
+        f"{socrata_request.dataset_id}.json?{encoded_query}"
+    )
+
+
+def _load_service_requests_from_socrata(
+    socrata_request: SocrataRequest,
+    service_request_filter: ServiceRequestFilter,
+) -> list[ServiceRequestRecord]:
+    """Load service-request records from the live Socrata API."""
+    headers = {"Accept": "application/json"}
+    if socrata_request.app_token is not None:
+        headers["X-App-Token"] = socrata_request.app_token
+
+    request_limit = socrata_request.limit or _SOCRATA_PAGE_SIZE
+    offset = 0
+    records: list[ServiceRequestRecord] = []
+
+    while True:
+        request_url = _build_socrata_url(
+            socrata_request,
+            service_request_filter,
+            offset=offset,
+        )
+        request = urllib.request.Request(request_url, headers=headers)
+        with urllib.request.urlopen(request) as response:  # noqa: S310
+            payload = json.loads(response.read().decode("utf-8"))
+
+        if not isinstance(payload, list):
+            raise ValueError("Unexpected Socrata response payload; expected a JSON list.")
+        if not payload:
+            break
+
+        batch_records: list[ServiceRequestRecord] = []
+        for raw_row in payload:
+            if not isinstance(raw_row, dict):
+                raise ValueError("Unexpected Socrata response row; expected a JSON object.")
+            normalized_row = _normalize_socrata_row(raw_row)
+            community_district_column = (
+                "community_district"
+                if "community_district" in normalized_row
+                else "community_board"
+            )
+            batch_records.append(
+                _record_from_mapping(normalized_row, community_district_column)
+            )
+
+        records.extend(batch_records)
+        if len(payload) < request_limit:
+            break
+        offset += request_limit
+
+    return _apply_filters(records, service_request_filter)
+
+
 def load_service_requests(
-    source: str | Path,
+    source: str | Path | SocrataRequest,
     *,
     filters: ServiceRequestFilter | None = None,
 ) -> list[ServiceRequestRecord]:
-    """Load filtered NYC 311-style service-request records from a local CSV."""
+    """Load filtered NYC 311-style service-request records from CSV or Socrata."""
+    service_request_filter = filters or ServiceRequestFilter()
+    if isinstance(source, SocrataRequest):
+        return _load_service_requests_from_socrata(source, service_request_filter)
+
     source_path = Path(source)
     with source_path.open(newline="", encoding="utf-8") as csv_file:
         reader = csv.DictReader(csv_file)
@@ -125,30 +331,12 @@ def load_service_requests(
             raise ValueError("CSV file must include a header row.")
 
         community_district_column = _validate_columns(fieldnames)
-        service_request_filter = filters or ServiceRequestFilter()
         loaded_records: list[ServiceRequestRecord] = []
 
         for row in reader:
-            record = ServiceRequestRecord(
-                service_request_id=row["unique_key"],
-                created_date=_parse_created_date(row["created_date"]),
-                complaint_type=row["complaint_type"],
-                descriptor=row["descriptor"],
-                borough=row["borough"],
-                community_district=row[community_district_column],
-                resolution_description=row.get("resolution_description"),
-            )
-            if not _matches_date_range(record, service_request_filter):
-                continue
-            if not _matches_geography(record, service_request_filter.geography):
-                continue
-            if not _matches_complaint_type(
-                record, service_request_filter.complaint_types
-            ):
-                continue
-            loaded_records.append(record)
+            loaded_records.append(_record_from_mapping(row, community_district_column))
 
-    return loaded_records
+    return _apply_filters(loaded_records, service_request_filter)
 
 
 def load_resolution_data(source: str | Path) -> list[object]:
