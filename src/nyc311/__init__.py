@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ._version import version as __version__
+from .boundaries import BoundaryFeature
 from .cli import main
 from .exporters import (
     export_anomalies,
@@ -18,6 +19,7 @@ from .loaders import (
 )
 from .models import (
     AnalysisWindow,
+    BoundaryGeoJSONExport,
     ExportTarget,
     GeographyFilter,
     GeographyTopicSummary,
@@ -38,6 +40,8 @@ from .processors import (
 __all__ = [
     "__version__",
     "AnalysisWindow",
+    "BoundaryFeature",
+    "BoundaryGeoJSONExport",
     "ExportTarget",
     "GeographyFilter",
     "GeographyTopicSummary",

@@ -11,8 +11,10 @@ from typing import Final
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from .boundaries import load_boundary_collection
 from ._not_implemented import planned_surface
 from .models import (
+    BoundaryCollection,
     GeographyFilter,
     SocrataConfig,
     ServiceRequestFilter,
@@ -347,6 +349,5 @@ def load_resolution_data(source: str | Path) -> list[object]:
 
 
 def load_boundaries(source: str | Path) -> object:
-    """Load spatial boundaries used for tract, district, or borough aggregation."""
-    del source
-    planned_surface("load_boundaries()")
+    """Load boundary polygons from a GeoJSON file for supported exports."""
+    return load_boundary_collection(source)

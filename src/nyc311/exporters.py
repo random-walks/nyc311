@@ -3,16 +3,42 @@
 from __future__ import annotations
 
 import csv
+import json
 from pathlib import Path
 
 from ._not_implemented import planned_surface
+from .boundaries import BoundaryFeature
 from .models import ExportTarget, GeographyTopicSummary
 
 
-def export_geojson(data: object, target: ExportTarget) -> object:
-    """Export geography-aware complaint outputs to GeoJSON."""
-    del data, target
-    planned_surface("export_geojson()")
+def export_geojson(
+    data: list[BoundaryFeature], target: ExportTarget
+) -> Path:
+    """Export supported boundary-backed complaint outputs to GeoJSON."""
+    if target.format != "geojson":
+        raise ValueError(
+            "export_geojson() currently supports only GeoJSON output. "
+            f"Got format={target.format!r}."
+        )
+
+    output_path = target.output_path
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    feature_collection = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": feature.geometry,
+                "properties": feature.properties,
+            }
+            for feature in data
+        ],
+    }
+    output_path.write_text(
+        json.dumps(feature_collection, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    return output_path
 
 
 def export_topic_table(data: list[GeographyTopicSummary], target: ExportTarget) -> Path:

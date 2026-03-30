@@ -1,0 +1,81 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "community_district": "BROOKLYN 01",
+        "borough": "BROOKLYN"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-73.97, 40.72],
+            [-73.95, 40.72],
+            [-73.95, 40.74],
+            [-73.97, 40.74],
+            [-73.97, 40.72]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "community_district": "BROOKLYN 03",
+        "borough": "BROOKLYN"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-73.95, 40.67],
+            [-73.92, 40.67],
+            [-73.92, 40.70],
+            [-73.95, 40.70],
+            [-73.95, 40.67]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "community_district": "MANHATTAN 10",
+        "borough": "MANHATTAN"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-73.95, 40.80],
+            [-73.93, 40.80],
+            [-73.93, 40.83],
+            [-73.95, 40.83],
+            [-73.95, 40.80]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "community_district": "QUEENS 02",
+        "borough": "QUEENS"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-73.94, 40.74],
+            [-73.90, 40.74],
+            [-73.90, 40.77],
+            [-73.94, 40.77],
+            [-73.94, 40.74]
+          ]
+        ]
+      }
+    }
+  ]
+}
