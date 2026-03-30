@@ -6,12 +6,12 @@ import json
 from pathlib import Path
 from typing import Final
 
-from .models import BoundaryFeature
+from .models import BoundaryCollection, BoundaryFeature
 
 _GEOJSON_REQUIRED_KEYS: Final[tuple[str, ...]] = ("type", "features")
 
 
-def load_boundaries(source: str | Path) -> list[BoundaryFeature]:
+def load_boundary_collection(source: str | Path) -> BoundaryCollection:
     """Load simple GeoJSON polygon features for supported geographies."""
     source_path = Path(source)
     payload = json.loads(source_path.read_text(encoding="utf-8"))
@@ -60,4 +60,5 @@ def load_boundaries(source: str | Path) -> list[BoundaryFeature]:
             )
         )
 
-    return features
+    geography = features[0].geography
+    return BoundaryCollection(geography=geography, features=tuple(features))

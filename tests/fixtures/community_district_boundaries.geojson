@@ -4,7 +4,9 @@
     {
       "type": "Feature",
       "properties": {
-        "community_district": "BROOKLYN 01",
+        "geography": "community_district",
+        "geography_value": "BROOKLYN 01",
+        "name": "Brooklyn Community District 1",
         "borough": "BROOKLYN"
       },
       "geometry": {
@@ -23,7 +25,9 @@
     {
       "type": "Feature",
       "properties": {
-        "community_district": "BROOKLYN 03",
+        "geography": "community_district",
+        "geography_value": "BROOKLYN 03",
+        "name": "Brooklyn Community District 3",
         "borough": "BROOKLYN"
       },
       "geometry": {
@@ -32,8 +36,8 @@
           [
             [-73.95, 40.67],
             [-73.92, 40.67],
-            [-73.92, 40.70],
-            [-73.95, 40.70],
+            [-73.92, 40.7],
+            [-73.95, 40.7],
             [-73.95, 40.67]
           ]
         ]
@@ -42,18 +46,20 @@
     {
       "type": "Feature",
       "properties": {
-        "community_district": "MANHATTAN 10",
+        "geography": "community_district",
+        "geography_value": "MANHATTAN 10",
+        "name": "Manhattan Community District 10",
         "borough": "MANHATTAN"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [-73.95, 40.80],
-            [-73.93, 40.80],
+            [-73.95, 40.8],
+            [-73.93, 40.8],
             [-73.93, 40.83],
             [-73.95, 40.83],
-            [-73.95, 40.80]
+            [-73.95, 40.8]
           ]
         ]
       }
@@ -61,7 +67,9 @@
     {
       "type": "Feature",
       "properties": {
-        "community_district": "QUEENS 02",
+        "geography": "community_district",
+        "geography_value": "QUEENS 02",
+        "name": "Queens Community District 2",
         "borough": "QUEENS"
       },
       "geometry": {
@@ -69,8 +77,8 @@
         "coordinates": [
           [
             [-73.94, 40.74],
-            [-73.90, 40.74],
-            [-73.90, 40.77],
+            [-73.9, 40.74],
+            [-73.9, 40.77],
             [-73.94, 40.77],
             [-73.94, 40.74]
           ]

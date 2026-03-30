@@ -23,6 +23,7 @@ _SUPPORTED_TOPIC_RULES: Final[dict[str, tuple[tuple[str, tuple[str, ...]], ...]]
         ("banging", ("banging", "thumping", "shaking", "arguing", "hammering")),
     ),
     "Illegal Parking": (
+        ("hydrant_blocking", ("hydrant", "fire hydrant")),
         ("crosswalk_blocking", ("crosswalk",)),
         ("bus_stop_blocking", ("bus stop",)),
         ("double_parked", ("double parked", "double parking", "double parked")),

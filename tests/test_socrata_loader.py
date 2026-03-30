@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 from datetime import date
-from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from typing_extensions import Self
 
 from nyc311.loaders import (
     load_service_requests,
@@ -13,19 +14,19 @@ from nyc311.models import GeographyFilter, ServiceRequestFilter, SocrataConfig
 
 
 class FakeResponse:
-    def __init__(self, payload: list[dict[str, str]], *, status_code: int = 200) -> None:
+    def __init__(
+        self, payload: list[dict[str, str]], *, status_code: int = 200
+    ) -> None:
         self._payload = payload
         self.status = status_code
 
-    def __enter__(self) -> FakeResponse:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
         del exc_type, exc, tb
 
     def read(self) -> bytes:
-        import json
-
         return json.dumps(self._payload).encode("utf-8")
 
 
@@ -55,10 +56,11 @@ def test_load_service_requests_supports_socrata_json(
 
     def fake_urlopen(request: object, *, timeout: float | None = None) -> FakeResponse:
         del timeout
-        requested_urls.append(request.full_url)
+        request_url = request.full_url  # type: ignore[attr-defined]
+        requested_urls.append(str(request_url))
         return FakeResponse(payload)
 
-    monkeypatch.setattr("nyc311.loaders.urllib.request.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
 
     records = load_service_requests(SocrataConfig(), filters=ServiceRequestFilter())
 
@@ -77,10 +79,11 @@ def test_load_service_requests_builds_filtered_socrata_query(
 
     def fake_urlopen(request: object, *, timeout: float | None = None) -> FakeResponse:
         del timeout
-        requested_urls.append(request.full_url)
+        request_url = request.full_url  # type: ignore[attr-defined]
+        requested_urls.append(str(request_url))
         return FakeResponse([])
 
-    monkeypatch.setattr("nyc311.loaders.urllib.request.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
 
     load_service_requests(
         SocrataConfig(),
@@ -104,11 +107,13 @@ def test_load_service_requests_builds_filtered_socrata_query(
 def test_load_service_requests_rejects_non_json_socrata_payload(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def fake_urlopen(request: object, *, timeout: float | None = None) -> FakeResponse:
+    def fake_urlopen(
+        request: pytest.MonkeyPatch, *, timeout: float | None = None
+    ) -> FakeResponse:
         del request, timeout
         return FakeResponse({"not": "a list"})  # type: ignore[arg-type]
 
-    monkeypatch.setattr("nyc311.loaders.urllib.request.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
 
     with pytest.raises(ValueError, match="expected a JSON list"):
         load_service_requests(SocrataConfig())

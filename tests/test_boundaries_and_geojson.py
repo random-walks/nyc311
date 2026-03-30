@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from nyc311.exporters import export_geojson
 from nyc311.loaders import load_boundaries, load_service_requests
-from nyc311.models import ExportTarget, TopicQuery
+from nyc311.models import BoundaryGeoJSONExport, ExportTarget, TopicQuery
 from nyc311.processors import aggregate_by_geography, extract_topics
 
 BOUNDARIES_FIXTURE_PATH = (
@@ -19,10 +21,11 @@ SERVICE_REQUESTS_FIXTURE_PATH = (
 def test_load_boundaries_reads_geojson_fixture() -> None:
     boundaries = load_boundaries(BOUNDARIES_FIXTURE_PATH)
 
-    assert len(boundaries) == 3
-    assert boundaries[0].geography == "community_district"
-    assert boundaries[0].geography_value == "BROOKLYN 01"
-    assert boundaries[0].properties["name"] == "Brooklyn Community District 1"
+    assert boundaries.geography == "community_district"
+    assert len(boundaries.features) == 4
+    assert boundaries.features[0].geography == "community_district"
+    assert boundaries.features[0].geography_value == "BROOKLYN 01"
+    assert boundaries.features[0].properties["name"] == "Brooklyn Community District 1"
 
 
 def test_export_geojson_writes_feature_collection(tmp_path: Path) -> None:
@@ -36,7 +39,7 @@ def test_export_geojson_writes_feature_collection(tmp_path: Path) -> None:
 
     output_path = tmp_path / "exports" / "noise_topics.geojson"
     written_path = export_geojson(
-        {"summaries": summaries, "boundaries": boundaries},
+        BoundaryGeoJSONExport(boundaries=boundaries, summaries=tuple(summaries)),
         ExportTarget(format="geojson", output_path=output_path),
     )
 
@@ -44,7 +47,7 @@ def test_export_geojson_writes_feature_collection(tmp_path: Path) -> None:
 
     payload = json.loads(output_path.read_text(encoding="utf-8"))
     assert payload["type"] == "FeatureCollection"
-    assert len(payload["features"]) == 3
+    assert len(payload["features"]) == 4
 
     brooklyn_feature = next(
         feature
@@ -53,4 +56,15 @@ def test_export_geojson_writes_feature_collection(tmp_path: Path) -> None:
     )
     assert brooklyn_feature["properties"]["complaint_type"] == "Noise - Residential"
     assert brooklyn_feature["properties"]["dominant_topic"] == "banging"
-    assert brooklyn_feature["properties"]["topic_count"] == 2
+    assert brooklyn_feature["properties"]["topic_count"] == 1
+
+
+def test_export_geojson_requires_geojson_target(tmp_path: Path) -> None:
+    boundaries = load_boundaries(BOUNDARIES_FIXTURE_PATH)
+    output_path = tmp_path / "exports" / "invalid.json"
+
+    with pytest.raises(ValueError, match="only GeoJSON output"):
+        export_geojson(
+            BoundaryGeoJSONExport(boundaries=boundaries, summaries=()),
+            ExportTarget(format="json", output_path=output_path),
+        )

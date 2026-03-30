@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 SUPPORTED_GEOGRAPHIES: Final[tuple[str, ...]] = ("borough", "community_district")
 SOCRATA_DATASET_IDENTIFIER: Final[str] = "erm2-nwe9"
@@ -18,7 +18,7 @@ def _normalize_value(value: str) -> str:
 
 @dataclass(frozen=True)
 class GeographyFilter:
-    """A supported geography selector for v0.1 CSV loading filters."""
+    """A supported geography selector for implemented loading filters."""
 
     geography: str
     value: str
@@ -33,7 +33,6 @@ class GeographyFilter:
                 f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
             )
             raise ValueError(msg)
-
         if not normalized_value:
             raise ValueError("Geography filter value must not be empty.")
 
@@ -43,7 +42,7 @@ class GeographyFilter:
 
 @dataclass(frozen=True)
 class ServiceRequestFilter:
-    """Loader filters for the implemented v0.1 local-CSV happy path."""
+    """Filters for CSV and Socrata service-request loading."""
 
     start_date: date | None = None
     end_date: date | None = None
@@ -100,43 +99,6 @@ class SocrataConfig:
 
 
 @dataclass(frozen=True)
-class SocrataConfig:
-    """Configuration for the implemented live Socrata loader path."""
-
-    dataset_identifier: str = SOCRATA_DATASET_IDENTIFIER
-    base_url: str = "https://data.cityofnewyork.us/resource"
-    app_token: str | None = None
-    page_size: int = 1000
-    request_timeout_seconds: float = 30.0
-    max_pages: int | None = None
-    extra_where_clauses: tuple[str, ...] = field(default_factory=tuple)
-
-    def __post_init__(self) -> None:
-        dataset_identifier = self.dataset_identifier.strip()
-        base_url = self.base_url.rstrip("/")
-
-        if not dataset_identifier:
-            raise ValueError("dataset_identifier must not be empty.")
-        if not base_url:
-            raise ValueError("base_url must not be empty.")
-        if self.page_size < 1:
-            raise ValueError("page_size must be at least 1.")
-        if self.request_timeout_seconds <= 0:
-            raise ValueError("request_timeout_seconds must be positive.")
-        if self.max_pages is not None and self.max_pages < 1:
-            raise ValueError("max_pages must be at least 1 when provided.")
-
-        normalized_extra_where_clauses = tuple(
-            normalized
-            for raw_value in self.extra_where_clauses
-            if (normalized := _normalize_value(raw_value))
-        )
-        object.__setattr__(self, "dataset_identifier", dataset_identifier)
-        object.__setattr__(self, "base_url", base_url)
-        object.__setattr__(self, "extra_where_clauses", normalized_extra_where_clauses)
-
-
-@dataclass(frozen=True)
 class AnalysisWindow:
     """Rolling time window used for trend and anomaly calculations."""
 
@@ -145,7 +107,7 @@ class AnalysisWindow:
 
 @dataclass(frozen=True)
 class TopicQuery:
-    """Topic-analysis parameters for the implemented v0.1 rules-based workflow."""
+    """Topic-analysis parameters for the implemented rules-based workflow."""
 
     complaint_type: str
     top_n: int = 20
@@ -299,11 +261,64 @@ class GeographyTopicSummary:
         object.__setattr__(self, "topic", _normalize_value(self.topic))
 
 
+@dataclass(frozen=True)
+class BoundaryFeature:
+    """A supported boundary feature for boundary-backed GeoJSON export."""
+
+    geography: str
+    geography_value: str
+    geometry: dict[str, Any]
+    properties: dict[str, Any]
+
+    def __post_init__(self) -> None:
+        normalized_geography = self.geography.strip().lower()
+        if normalized_geography not in SUPPORTED_GEOGRAPHIES:
+            msg = (
+                "Unsupported boundary geography. "
+                f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
+            )
+            raise ValueError(msg)
+        if not _normalize_value(self.geography_value):
+            raise ValueError("geography_value must not be empty.")
+        object.__setattr__(self, "geography", normalized_geography)
+        object.__setattr__(
+            self, "geography_value", _normalize_value(self.geography_value)
+        )
+
+
+@dataclass(frozen=True)
+class BoundaryCollection:
+    """Boundary features for one supported geography type."""
+
+    geography: str
+    features: tuple[BoundaryFeature, ...]
+
+    def __post_init__(self) -> None:
+        normalized_geography = self.geography.strip().lower()
+        if normalized_geography not in SUPPORTED_GEOGRAPHIES:
+            msg = (
+                "Unsupported boundary collection geography. "
+                f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
+            )
+            raise ValueError(msg)
+        if not self.features:
+            raise ValueError("features must not be empty.")
+        object.__setattr__(self, "geography", normalized_geography)
+
+
+@dataclass(frozen=True)
+class BoundaryGeoJSONExport:
+    """Combined boundary + summary payload for GeoJSON export."""
+
+    boundaries: BoundaryCollection
+    summaries: tuple[GeographyTopicSummary, ...]
+
+
 def supported_topic_queries() -> tuple[str, ...]:
-    """Return the complaint types with implemented topic extraction in v0.1."""
+    """Return the complaint types with implemented topic extraction."""
     return (
+        "Blocked Driveway",
         "Illegal Parking",
         "Noise - Residential",
         "Rodent",
-        "Blocked Driveway",
     )

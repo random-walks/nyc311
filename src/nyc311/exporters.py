@@ -7,13 +7,14 @@ import json
 from pathlib import Path
 
 from ._not_implemented import planned_surface
-from .boundaries import BoundaryFeature
-from .models import ExportTarget, GeographyTopicSummary
+from .models import (
+    BoundaryGeoJSONExport,
+    ExportTarget,
+    GeographyTopicSummary,
+)
 
 
-def export_geojson(
-    data: list[BoundaryFeature], target: ExportTarget
-) -> Path:
+def export_geojson(data: BoundaryGeoJSONExport, target: ExportTarget) -> Path:
     """Export supported boundary-backed complaint outputs to GeoJSON."""
     if target.format != "geojson":
         raise ValueError(
@@ -23,17 +24,39 @@ def export_geojson(
 
     output_path = target.output_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    feature_collection = {
-        "type": "FeatureCollection",
-        "features": [
+
+    summary_by_geography = {
+        summary.geography_value: summary
+        for summary in data.summaries
+        if summary.is_dominant_topic
+    }
+    features: list[dict[str, object]] = []
+    for boundary in data.boundaries.features:
+        summary = summary_by_geography.get(boundary.geography_value)
+        properties: dict[str, object] = {
+            "geography": boundary.geography,
+            "geography_value": boundary.geography_value,
+            **boundary.properties,
+        }
+        if summary is not None:
+            properties.update(
+                {
+                    "complaint_type": summary.complaint_type,
+                    "dominant_topic": summary.topic,
+                    "topic_count": summary.complaint_count,
+                    "geography_total_count": summary.geography_total_count,
+                    "share_of_geography": round(summary.share_of_geography, 6),
+                }
+            )
+        features.append(
             {
                 "type": "Feature",
-                "geometry": feature.geometry,
-                "properties": feature.properties,
+                "geometry": boundary.geometry,
+                "properties": properties,
             }
-            for feature in data
-        ],
-    }
+        )
+
+    feature_collection = {"type": "FeatureCollection", "features": features}
     output_path.write_text(
         json.dumps(feature_collection, indent=2, sort_keys=True),
         encoding="utf-8",
@@ -42,10 +65,10 @@ def export_geojson(
 
 
 def export_topic_table(data: list[GeographyTopicSummary], target: ExportTarget) -> Path:
-    """Export v0.1 geography-topic summaries to a CSV file."""
+    """Export geography-topic summaries to a CSV file."""
     if target.format != "csv":
         raise ValueError(
-            "export_topic_table() currently supports only CSV output in v0.1. "
+            "export_topic_table() currently supports only CSV output. "
             f"Got format={target.format!r}."
         )
 

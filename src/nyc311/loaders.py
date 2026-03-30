@@ -11,14 +11,14 @@ from typing import Final
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from .boundaries import load_boundary_collection
 from ._not_implemented import planned_surface
+from .boundaries import load_boundary_collection
 from .models import (
     BoundaryCollection,
     GeographyFilter,
-    SocrataConfig,
     ServiceRequestFilter,
     ServiceRequestRecord,
+    SocrataConfig,
 )
 
 _REQUIRED_COLUMNS: Final[frozenset[str]] = frozenset(
@@ -36,9 +36,6 @@ REQUIRED_SERVICE_REQUEST_COLUMNS: Final[tuple[str, ...]] = (
     "borough",
     "community_district",
 )
-DEFAULT_SOCRATA_DATASET_ID: Final[str] = "erm2-nwe9"
-DEFAULT_SOCRATA_DOMAIN: Final[str] = "data.cityofnewyork.us"
-_SOCRATA_PAGE_SIZE: Final[int] = 1000
 
 _SOCRATA_FIELD_ALIASES: Final[dict[str, tuple[str, ...]]] = {
     "unique_key": ("unique_key",),
@@ -83,12 +80,12 @@ def _community_district_column(fieldnames: Sequence[str]) -> str:
 
 
 def _validate_columns(fieldnames: Sequence[str]) -> str:
-    """Validate that a CSV contains the required v0.1 columns."""
+    """Validate that a CSV contains the required implemented columns."""
     missing_columns = sorted(_REQUIRED_COLUMNS.difference(fieldnames))
     if missing_columns:
         missing = ", ".join(missing_columns)
         raise ValueError(
-            f"CSV file is missing required columns for v0.1 loading: {missing}."
+            f"CSV file is missing required columns for loading: {missing}."
         )
     return _community_district_column(fieldnames)
 
@@ -96,7 +93,6 @@ def _validate_columns(fieldnames: Sequence[str]) -> str:
 def _matches_geography(
     record: ServiceRequestRecord, geography_filter: GeographyFilter | None
 ) -> bool:
-    """Return whether a record satisfies the optional geography filter."""
     if geography_filter is None:
         return True
     return _casefold(record.geography_value(geography_filter.geography)) == _casefold(
@@ -107,7 +103,6 @@ def _matches_geography(
 def _matches_complaint_type(
     record: ServiceRequestRecord, complaint_types: tuple[str, ...]
 ) -> bool:
-    """Return whether a record matches the optional complaint-type allowlist."""
     if not complaint_types:
         return True
     normalized_complaint_type = _casefold(record.complaint_type)
@@ -120,7 +115,6 @@ def _matches_complaint_type(
 def _matches_date_range(
     record: ServiceRequestRecord, service_request_filter: ServiceRequestFilter
 ) -> bool:
-    """Return whether a record falls within the optional date range."""
     if (
         service_request_filter.start_date
         and record.created_date < service_request_filter.start_date
@@ -134,8 +128,9 @@ def _matches_date_range(
     return True
 
 
-def _record_from_mapping(row: dict[str, str], community_district_column: str) -> ServiceRequestRecord:
-    """Build a validated service-request record from a normalized mapping."""
+def _record_from_mapping(
+    row: dict[str, str], community_district_column: str
+) -> ServiceRequestRecord:
     return ServiceRequestRecord(
         service_request_id=row["unique_key"],
         created_date=_parse_created_date(row["created_date"]),
@@ -151,7 +146,6 @@ def _apply_filters(
     records: list[ServiceRequestRecord],
     service_request_filter: ServiceRequestFilter,
 ) -> list[ServiceRequestRecord]:
-    """Apply the implemented v0.1 filters to service-request records."""
     filtered_records: list[ServiceRequestRecord] = []
     for record in records:
         if not _matches_date_range(record, service_request_filter):
@@ -165,7 +159,6 @@ def _apply_filters(
 
 
 def _normalize_socrata_row(raw_row: dict[str, object]) -> dict[str, str]:
-    """Normalize a Socrata JSON row into the local CSV-style schema."""
     normalized_row: dict[str, str] = {}
     missing_fields: list[str] = []
 
@@ -187,32 +180,19 @@ def _normalize_socrata_row(raw_row: dict[str, object]) -> dict[str, str]:
 
     if missing_fields:
         missing = ", ".join(sorted(missing_fields))
-        raise ValueError(
-            "Socrata response row is missing required v0.1 fields: "
-            f"{missing}."
-        )
+        raise ValueError(f"Socrata response row is missing required fields: {missing}.")
 
     return normalized_row
 
 
 def _socrata_select_fields() -> str:
-    """Return the minimal field projection for the implemented loader."""
-    return ", ".join(
-        (
-            "unique_key",
-            "created_date",
-            "complaint_type",
-            "descriptor",
-            "borough",
-            "community_district",
-            "community_board",
-            "resolution_description",
-        )
+    return (
+        "unique_key, created_date, complaint_type, descriptor, borough, "
+        "community_district, community_board, resolution_description"
     )
 
 
 def _socrata_where_clauses(service_request_filter: ServiceRequestFilter) -> list[str]:
-    """Build a SoQL where-clause list for supported v0.1 filters."""
     clauses: list[str] = []
     if service_request_filter.start_date is not None:
         clauses.append(
@@ -227,9 +207,7 @@ def _socrata_where_clauses(service_request_filter: ServiceRequestFilter) -> list
         value = service_request_filter.geography.value.replace("'", "''")
         if field == "community_district":
             clauses.append(
-                "("
-                f"community_district = '{value}' OR community_board = '{value}'"
-                ")"
+                f"(community_district = '{value}' OR community_board = '{value}')"
             )
         else:
             clauses.append(f"{field} = '{value}'")
@@ -238,7 +216,9 @@ def _socrata_where_clauses(service_request_filter: ServiceRequestFilter) -> list
             complaint_type.replace("'", "''")
             for complaint_type in service_request_filter.complaint_types
         ]
-        allowed_values = ", ".join(f"'{complaint_type}'" for complaint_type in escaped_values)
+        allowed_values = ", ".join(
+            f"'{complaint_type}'" for complaint_type in escaped_values
+        )
         clauses.append(f"complaint_type IN ({allowed_values})")
     return clauses
 
@@ -249,7 +229,6 @@ def _build_socrata_url(
     *,
     offset: int,
 ) -> str:
-    """Build a paginated Socrata API URL for the implemented loader."""
     query_params: dict[str, str] = {
         "$select": _socrata_select_fields(),
         "$limit": str(socrata_config.page_size),
@@ -269,7 +248,6 @@ def _load_service_requests_from_socrata(
     socrata_config: SocrataConfig,
     service_request_filter: ServiceRequestFilter,
 ) -> list[ServiceRequestRecord]:
-    """Load service-request records from the live Socrata API."""
     headers = {"Accept": "application/json"}
     if socrata_config.app_token is not None:
         headers["X-App-Token"] = socrata_config.app_token
@@ -280,23 +258,34 @@ def _load_service_requests_from_socrata(
     records: list[ServiceRequestRecord] = []
 
     while True:
-        if socrata_config.max_pages is not None and page_count >= socrata_config.max_pages:
+        if (
+            socrata_config.max_pages is not None
+            and page_count >= socrata_config.max_pages
+        ):
             break
 
-        request_url = _build_socrata_url(socrata_config, service_request_filter, offset=offset)
+        request_url = _build_socrata_url(
+            socrata_config, service_request_filter, offset=offset
+        )
         request = Request(request_url, headers=headers)
-        with urlopen(request, timeout=socrata_config.request_timeout_seconds) as response:  # noqa: S310
+        with urlopen(
+            request, timeout=socrata_config.request_timeout_seconds
+        ) as response:
             payload = json.loads(response.read().decode("utf-8"))
 
         if not isinstance(payload, list):
-            raise ValueError("Unexpected Socrata response payload; expected a JSON list.")
+            raise ValueError(
+                "Unexpected Socrata response payload; expected a JSON list."
+            )
         if not payload:
             break
 
         batch_records: list[ServiceRequestRecord] = []
         for raw_row in payload:
             if not isinstance(raw_row, dict):
-                raise ValueError("Unexpected Socrata response row; expected a JSON object.")
+                raise ValueError(
+                    "Unexpected Socrata response row; expected a JSON object."
+                )
             normalized_row = _normalize_socrata_row(raw_row)
             community_district_column = (
                 "community_district"
@@ -334,10 +323,9 @@ def load_service_requests(
             raise ValueError("CSV file must include a header row.")
 
         community_district_column = _validate_columns(fieldnames)
-        loaded_records: list[ServiceRequestRecord] = []
-
-        for row in reader:
-            loaded_records.append(_record_from_mapping(row, community_district_column))
+        loaded_records = [
+            _record_from_mapping(row, community_district_column) for row in reader
+        ]
 
     return _apply_filters(loaded_records, service_request_filter)
 
@@ -348,6 +336,6 @@ def load_resolution_data(source: str | Path) -> list[object]:
     planned_surface("load_resolution_data()")
 
 
-def load_boundaries(source: str | Path) -> object:
+def load_boundaries(source: str | Path) -> BoundaryCollection:
     """Load boundary polygons from a GeoJSON file for supported exports."""
     return load_boundary_collection(source)

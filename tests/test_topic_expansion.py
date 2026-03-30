@@ -11,14 +11,14 @@ FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.cs
 
 def test_supported_topic_queries_includes_expanded_complaint_types() -> None:
     assert supported_topic_queries() == (
+        "Blocked Driveway",
+        "Illegal Parking",
         "Noise - Residential",
         "Rodent",
-        "Illegal Parking",
-        "Blocked Driveway",
     )
 
 
-def test_extract_topics_assigns_street_condition_labels() -> None:
+def test_extract_topics_assigns_illegal_parking_labels() -> None:
     records = load_service_requests(FIXTURE_PATH)
 
     assignments = extract_topics(records, TopicQuery(complaint_type="Illegal Parking"))
@@ -29,13 +29,13 @@ def test_extract_topics_assigns_street_condition_labels() -> None:
     }
 
     assert topic_by_id == {
-        "1013": "crosswalk_blocking",
-        "1014": "bus_stop_blocking",
-        "1015": "double_parked",
+        "1016": "hydrant_blocking",
+        "1017": "double_parked",
+        "1018": "other",
     }
 
 
-def test_extract_topics_assigns_illegal_parking_labels() -> None:
+def test_extract_topics_assigns_blocked_driveway_labels() -> None:
     records = load_service_requests(FIXTURE_PATH)
 
     assignments = extract_topics(records, TopicQuery(complaint_type="Blocked Driveway"))
@@ -46,9 +46,9 @@ def test_extract_topics_assigns_illegal_parking_labels() -> None:
     }
 
     assert topic_by_id == {
-        "1016": "residential_driveway",
-        "1017": "commercial_driveway",
-        "1018": "overnight_blocking",
+        "1019": "residential_driveway",
+        "1020": "commercial_driveway",
+        "1021": "overnight_blocking",
     }
 
 

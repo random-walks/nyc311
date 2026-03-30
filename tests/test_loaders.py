@@ -14,9 +14,9 @@ FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.cs
 def test_load_service_requests_without_filters_returns_all_fixture_rows() -> None:
     records = load_service_requests(FIXTURE_PATH)
 
-    assert len(records) == 12
+    assert len(records) == 18
     assert records[0].service_request_id == "1001"
-    assert records[-1].community_district == "QUEENS 02"
+    assert records[-1].community_district == "MANHATTAN 10"
 
 
 def test_load_service_requests_filters_by_date_geography_and_complaint_type() -> None:
@@ -40,7 +40,7 @@ def test_load_service_requests_filters_by_borough() -> None:
         ),
     )
 
-    assert len(records) == 6
+    assert len(records) == 8
     assert {record.borough for record in records} == {"BROOKLYN"}
 
 
