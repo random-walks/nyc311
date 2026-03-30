@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 
-from nyc311.cli import main
 from nyc311.exporters import export_anomalies, export_geojson, export_report_card
 from nyc311.loaders import load_boundaries, load_resolution_data
 from nyc311.models import AnalysisWindow, ExportTarget
@@ -27,7 +26,7 @@ def test_planned_processors_still_raise_not_implemented() -> None:
         analyze_resolution_gaps([], object())
 
 
-def test_planned_exporters_and_cli_still_raise_not_implemented(tmp_path: Path) -> None:
+def test_planned_exporters_still_raise_not_implemented(tmp_path: Path) -> None:
     target = ExportTarget(format="geojson", output_path=tmp_path / "out.geojson")
 
     with pytest.raises(NotImplementedError, match="planned nyc311 surface"):
@@ -38,6 +37,3 @@ def test_planned_exporters_and_cli_still_raise_not_implemented(tmp_path: Path) -
 
     with pytest.raises(NotImplementedError, match="planned nyc311 surface"):
         export_report_card([], target)
-
-    with pytest.raises(NotImplementedError, match="planned nyc311 surface"):
-        main([])

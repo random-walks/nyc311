@@ -11,17 +11,17 @@ FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.cs
 
 def test_supported_topic_queries_includes_expanded_complaint_types() -> None:
     assert supported_topic_queries() == (
-        "Illegal Parking",
         "Noise - Residential",
         "Rodent",
-        "Street Condition",
+        "Illegal Parking",
+        "Blocked Driveway",
     )
 
 
 def test_extract_topics_assigns_street_condition_labels() -> None:
     records = load_service_requests(FIXTURE_PATH)
 
-    assignments = extract_topics(records, TopicQuery(complaint_type="Street Condition"))
+    assignments = extract_topics(records, TopicQuery(complaint_type="Illegal Parking"))
 
     topic_by_id = {
         assignment.record.service_request_id: assignment.topic
@@ -29,16 +29,16 @@ def test_extract_topics_assigns_street_condition_labels() -> None:
     }
 
     assert topic_by_id == {
-        "1013": "pothole",
-        "1014": "sinkhole_or_cave_in",
-        "1015": "road_surface_damage",
+        "1013": "crosswalk_blocking",
+        "1014": "bus_stop_blocking",
+        "1015": "double_parked",
     }
 
 
 def test_extract_topics_assigns_illegal_parking_labels() -> None:
     records = load_service_requests(FIXTURE_PATH)
 
-    assignments = extract_topics(records, TopicQuery(complaint_type="Illegal Parking"))
+    assignments = extract_topics(records, TopicQuery(complaint_type="Blocked Driveway"))
 
     topic_by_id = {
         assignment.record.service_request_id: assignment.topic
@@ -46,15 +46,15 @@ def test_extract_topics_assigns_illegal_parking_labels() -> None:
     }
 
     assert topic_by_id == {
-        "1016": "hydrant_blocking",
-        "1017": "double_parked",
-        "1018": "sidewalk_blocking",
+        "1016": "residential_driveway",
+        "1017": "commercial_driveway",
+        "1018": "overnight_blocking",
     }
 
 
 def test_aggregate_by_geography_handles_expanded_complaint_types() -> None:
     records = load_service_requests(FIXTURE_PATH)
-    assignments = extract_topics(records, TopicQuery(complaint_type="Illegal Parking"))
+    assignments = extract_topics(records, TopicQuery(complaint_type="Blocked Driveway"))
 
     summaries = aggregate_by_geography(assignments, geography="borough")
 
@@ -62,7 +62,7 @@ def test_aggregate_by_geography_handles_expanded_complaint_types() -> None:
         (summary.geography_value, summary.topic, summary.complaint_count)
         for summary in summaries
     ] == [
-        ("BRONX", "hydrant_blocking", 1),
-        ("BROOKLYN", "double_parked", 1),
-        ("QUEENS", "sidewalk_blocking", 1),
+        ("BROOKLYN", "residential_driveway", 1),
+        ("MANHATTAN", "overnight_blocking", 1),
+        ("QUEENS", "commercial_driveway", 1),
     ]

@@ -11,9 +11,9 @@ unique_key,created_date,complaint_type,descriptor,borough,community_district,res
 1010,2025-03-05,Noise - Residential,Neighbors arguing loudly with bass music,QUEENS,QUEENS 02,Patrol responded to scene
 1011,2025-03-09,Noise - Residential,Party speakers shaking shared wall,QUEENS,QUEENS 02,Occupants issued warning
 1012,2025-03-15,Noise - Residential,Repetitive thumping noise from upstairs unit,QUEENS,QUEENS 02,Inspection could not verify source
-1013,2025-03-18,Illegal Parking,Truck blocking crosswalk overnight,BROOKLYN,BROOKLYN 03,Summons issued to vehicle owner
-1014,2025-03-20,Illegal Parking,Car parked in bus stop during rush hour,MANHATTAN,MANHATTAN 10,Traffic enforcement dispatched
-1015,2025-03-22,Illegal Parking,Vehicle double parked on narrow street,QUEENS,QUEENS 02,Complaint forwarded to precinct
-1016,2025-03-24,Blocked Driveway,Unknown car blocking residential driveway,BROOKLYN,BROOKLYN 01,Officer requested vehicle relocation
-1017,2025-03-25,Blocked Driveway,Commercial van blocking driveway access,QUEENS,QUEENS 02,Summons requested
-1018,2025-03-26,Blocked Driveway,Neighbor vehicle parked across driveway overnight,MANHATTAN,MANHATTAN 10,Unable to locate owner
+1013,2025-03-18,Street Condition,Large pothole opened near intersection,BROOKLYN,BROOKLYN 03,Inspection scheduled by DOT
+1014,2025-03-20,Street Condition,Sinkhole forming beside storm drain,MANHATTAN,MANHATTAN 10,Barrier placed around collapse
+1015,2025-03-22,Street Condition,Rough broken asphalt causing rough ride,QUEENS,QUEENS 02,Repair request logged
+1016,2025-03-24,Illegal Parking,Vehicle parked at fire hydrant overnight,BRONX,BRONX 05,Officer requested vehicle relocation
+1017,2025-03-25,Illegal Parking,Commercial van double parked at curb, BROOKLYN,BROOKLYN 01,Summons requested
+1018,2025-03-26,Illegal Parking,Truck blocking driveway entrance,QUEENS,QUEENS 02,Unable to locate owner

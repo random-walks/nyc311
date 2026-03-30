@@ -23,14 +23,14 @@ _SUPPORTED_TOPIC_RULES: Final[dict[str, tuple[tuple[str, tuple[str, ...]], ...]]
         ("banging", ("banging", "thumping", "shaking", "arguing", "hammering")),
     ),
     "Illegal Parking": (
-        ("blocked_driveway", ("driveway", "garage", "blocking entrance")),
-        ("hydrant_blocking", ("hydrant", "fire hydrant")),
-        ("double_parking", ("double parked", "double parking", "double-parked")),
+        ("crosswalk_blocking", ("crosswalk",)),
+        ("bus_stop_blocking", ("bus stop",)),
+        ("double_parked", ("double parked", "double parking", "double parked")),
     ),
-    "Street Condition": (
-        ("pothole", ("pothole", "crater", "road hole")),
-        ("sinkhole", ("sinkhole", "street collapse", "collapsed roadway")),
-        ("rough_surface", ("uneven pavement", "broken asphalt", "rough road")),
+    "Blocked Driveway": (
+        ("commercial_driveway", ("commercial van", "delivery truck", "truck")),
+        ("overnight_blocking", ("overnight", "all night")),
+        ("residential_driveway", ("residential driveway", "driveway", "garage")),
     ),
     "Rodent": (
         ("extermination_request", ("exterminator", "extermination", "infestation")),
