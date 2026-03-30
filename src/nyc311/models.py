@@ -204,3 +204,8 @@ class GeographyTopicSummary:
         object.__setattr__(self, "geography_value", _normalize_value(self.geography_value))
         object.__setattr__(self, "complaint_type", _normalize_value(self.complaint_type))
         object.__setattr__(self, "topic", _normalize_value(self.topic))
+        
+        
+def supported_topic_queries() -> tuple[str, ...]:
+    """Return the complaint types with implemented topic extraction in v0.1."""
+    return ("Noise - Residential", "Rodent")
