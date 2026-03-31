@@ -1,4 +1,9 @@
-"""Typed models for the implemented and planned ``nyc311`` package surface."""
+"""Typed data models that define the nyc311 public package contract.
+
+These dataclasses and constants provide the shared vocabulary used by the CLI,
+the functional SDK, and the documentation. They make the implemented pipeline
+explicit and keep the public contract stable across the CLI, SDK, and exports.
+"""
 
 from __future__ import annotations
 
@@ -7,13 +12,63 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Final
 
+BoroughName = str
+
 SUPPORTED_GEOGRAPHIES: Final[tuple[str, ...]] = ("borough", "community_district")
 SOCRATA_DATASET_IDENTIFIER: Final[str] = "erm2-nwe9"
+BOROUGH_BRONX: Final[BoroughName] = "BRONX"
+BOROUGH_BROOKLYN: Final[BoroughName] = "BROOKLYN"
+BOROUGH_MANHATTAN: Final[BoroughName] = "MANHATTAN"
+BOROUGH_QUEENS: Final[BoroughName] = "QUEENS"
+BOROUGH_STATEN_ISLAND: Final[BoroughName] = "STATEN ISLAND"
+SUPPORTED_BOROUGHS: Final[tuple[BoroughName, ...]] = (
+    BOROUGH_BRONX,
+    BOROUGH_BROOKLYN,
+    BOROUGH_MANHATTAN,
+    BOROUGH_QUEENS,
+    BOROUGH_STATEN_ISLAND,
+)
+_BOROUGH_ALIASES: Final[dict[str, BoroughName]] = {
+    "bronx": BOROUGH_BRONX,
+    "bx": BOROUGH_BRONX,
+    "brooklyn": BOROUGH_BROOKLYN,
+    "bk": BOROUGH_BROOKLYN,
+    "kings": BOROUGH_BROOKLYN,
+    "manhattan": BOROUGH_MANHATTAN,
+    "mn": BOROUGH_MANHATTAN,
+    "new york": BOROUGH_MANHATTAN,
+    "new york county": BOROUGH_MANHATTAN,
+    "queens": BOROUGH_QUEENS,
+    "qn": BOROUGH_QUEENS,
+    "staten island": BOROUGH_STATEN_ISLAND,
+    "si": BOROUGH_STATEN_ISLAND,
+    "richmond": BOROUGH_STATEN_ISLAND,
+}
 
 
 def _normalize_value(value: str) -> str:
     """Normalize user- or file-provided string values."""
     return " ".join(value.strip().split())
+
+
+def _normalize_borough_or_passthrough(value: str) -> str:
+    """Normalize common borough aliases without rejecting unknown source values."""
+    normalized = _normalize_value(value)
+    if not normalized:
+        return normalized
+
+    return _BOROUGH_ALIASES.get(normalized.casefold(), normalized.upper())
+
+
+def normalize_borough_name(value: str) -> str:
+    """Normalize a borough name or borough alias to the canonical public constant."""
+    normalized = _normalize_borough_or_passthrough(value)
+    if normalized not in SUPPORTED_BOROUGHS:
+        raise ValueError(
+            "Unsupported borough name. "
+            f"Expected one of {SUPPORTED_BOROUGHS}, got {value!r}."
+        )
+    return normalized
 
 
 @dataclass(frozen=True)
@@ -25,7 +80,11 @@ class GeographyFilter:
 
     def __post_init__(self) -> None:
         normalized_geography = self.geography.strip().lower()
-        normalized_value = _normalize_value(self.value)
+        normalized_value = (
+            normalize_borough_name(self.value)
+            if normalized_geography == "borough"
+            else _normalize_value(self.value)
+        )
 
         if normalized_geography not in SUPPORTED_GEOGRAPHIES:
             msg = (
@@ -104,6 +163,10 @@ class AnalysisWindow:
 
     days: int
 
+    def __post_init__(self) -> None:
+        if self.days < 1:
+            raise ValueError("days must be at least 1.")
+
 
 @dataclass(frozen=True)
 class TopicQuery:
@@ -122,8 +185,39 @@ class TopicQuery:
 
 
 @dataclass(frozen=True)
+class TopicCoverageReport:
+    """Coverage metadata that shows how much a topic ruleset matched."""
+
+    complaint_type: str
+    total_records: int
+    matched_records: int
+    other_records: int
+    coverage_rate: float
+    top_unmatched_descriptors: tuple[tuple[str, int], ...]
+
+    def __post_init__(self) -> None:
+        if not _normalize_value(self.complaint_type):
+            raise ValueError("complaint_type must not be empty.")
+        if self.total_records < 0:
+            raise ValueError("total_records must be non-negative.")
+        if self.matched_records < 0:
+            raise ValueError("matched_records must be non-negative.")
+        if self.other_records < 0:
+            raise ValueError("other_records must be non-negative.")
+        if self.matched_records + self.other_records != self.total_records:
+            raise ValueError(
+                "matched_records + other_records must equal total_records."
+            )
+        if not 0 <= self.coverage_rate <= 1:
+            raise ValueError("coverage_rate must be in the interval [0, 1].")
+        object.__setattr__(
+            self, "complaint_type", _normalize_value(self.complaint_type)
+        )
+
+
+@dataclass(frozen=True)
 class ExportTarget:
-    """Destination metadata for implemented and planned exporters."""
+    """Destination metadata for supported exporters."""
 
     format: str
     output_path: Path
@@ -165,7 +259,9 @@ class ServiceRequestRecord:
             self, "complaint_type", _normalize_value(self.complaint_type)
         )
         object.__setattr__(self, "descriptor", _normalize_value(self.descriptor))
-        object.__setattr__(self, "borough", _normalize_value(self.borough))
+        object.__setattr__(
+            self, "borough", _normalize_borough_or_passthrough(self.borough)
+        )
         object.__setattr__(
             self, "community_district", _normalize_value(self.community_district)
         )
@@ -262,6 +358,110 @@ class GeographyTopicSummary:
 
 
 @dataclass(frozen=True)
+class ResolutionGapSummary:
+    """A first-pass borough-level summary of unresolved complaint volume."""
+
+    geography: str
+    geography_value: str
+    complaint_type: str
+    total_request_count: int
+    resolved_request_count: int
+    unresolved_request_count: int
+    unresolved_share: float
+    resolution_rate: float
+
+    def __post_init__(self) -> None:
+        normalized_geography = self.geography.strip().lower()
+        if normalized_geography not in SUPPORTED_GEOGRAPHIES:
+            msg = (
+                "Unsupported geography summary. "
+                f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
+            )
+            raise ValueError(msg)
+        if self.total_request_count < 1:
+            raise ValueError("total_request_count must be at least 1.")
+        if self.resolved_request_count < 0 or self.unresolved_request_count < 0:
+            raise ValueError("resolution counts must be non-negative.")
+        if (
+            self.resolved_request_count + self.unresolved_request_count
+            != self.total_request_count
+        ):
+            raise ValueError(
+                "resolved_request_count + unresolved_request_count must equal total_request_count."
+            )
+        if not 0 <= self.unresolved_share <= 1:
+            raise ValueError("unresolved_share must be in the interval [0, 1].")
+        if not 0 <= self.resolution_rate <= 1:
+            raise ValueError("resolution_rate must be in the interval [0, 1].")
+        if not _normalize_value(self.geography_value):
+            raise ValueError("geography_value must not be empty.")
+        if not _normalize_value(self.complaint_type):
+            raise ValueError("complaint_type must not be empty.")
+
+        object.__setattr__(self, "geography", normalized_geography)
+        object.__setattr__(
+            self, "geography_value", _normalize_value(self.geography_value)
+        )
+        object.__setattr__(
+            self, "complaint_type", _normalize_value(self.complaint_type)
+        )
+
+
+@dataclass(frozen=True)
+class AnomalyResult:
+    """A standardized anomaly score for one aggregated topic summary."""
+
+    geography: str
+    geography_value: str
+    complaint_type: str
+    topic: str
+    complaint_count: int
+    geography_total_count: int
+    share_of_geography: float
+    topic_rank: int
+    z_score: float
+    is_anomaly: bool
+    window_days: int
+    anomaly_threshold: float
+
+    def __post_init__(self) -> None:
+        normalized_geography = self.geography.strip().lower()
+        if normalized_geography not in SUPPORTED_GEOGRAPHIES:
+            msg = (
+                "Unsupported anomaly geography. "
+                f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
+            )
+            raise ValueError(msg)
+        if not _normalize_value(self.geography_value):
+            raise ValueError("geography_value must not be empty.")
+        if not _normalize_value(self.complaint_type):
+            raise ValueError("complaint_type must not be empty.")
+        if not _normalize_value(self.topic):
+            raise ValueError("topic must not be empty.")
+        if self.complaint_count < 1:
+            raise ValueError("complaint_count must be at least 1.")
+        if self.geography_total_count < self.complaint_count:
+            raise ValueError("geography_total_count must be >= complaint_count.")
+        if not 0 < self.share_of_geography <= 1:
+            raise ValueError("share_of_geography must be in the interval (0, 1].")
+        if self.topic_rank < 1:
+            raise ValueError("topic_rank must be at least 1.")
+        if self.window_days < 1:
+            raise ValueError("window_days must be at least 1.")
+        if self.anomaly_threshold <= 0:
+            raise ValueError("anomaly_threshold must be positive.")
+
+        object.__setattr__(self, "geography", normalized_geography)
+        object.__setattr__(
+            self, "geography_value", _normalize_value(self.geography_value)
+        )
+        object.__setattr__(
+            self, "complaint_type", _normalize_value(self.complaint_type)
+        )
+        object.__setattr__(self, "topic", _normalize_value(self.topic))
+
+
+@dataclass(frozen=True)
 class BoundaryFeature:
     """A supported boundary feature for boundary-backed GeoJSON export."""
 
@@ -317,8 +517,13 @@ class BoundaryGeoJSONExport:
 def supported_topic_queries() -> tuple[str, ...]:
     """Return the complaint types with implemented topic extraction."""
     return (
+        "Abandoned Vehicle",
         "Blocked Driveway",
+        "HEAT/HOT WATER",
         "Illegal Parking",
         "Noise - Residential",
+        "Noise - Street/Sidewalk",
         "Rodent",
+        "Street Condition",
+        "UNSANITARY CONDITION",
     )

@@ -1,3 +1,7 @@
+> Archived planning note: this analysis preserves the original `v0.1` framing.
+> For the active release framing, use the main docs for the current `0.2` alpha
+> line.
+
 Yes: all three still look like **real gaps**, but only if you position them as
 **end-to-end, reusable, NYC-specific tools** rather than generic wrappers around
 existing libraries. The pattern I found is that there are plenty of **building

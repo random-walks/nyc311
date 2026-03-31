@@ -14,7 +14,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
@@ -40,11 +40,25 @@ Homepage = "https://github.com/random-walks/nyc311"
 Discussions = "https://github.com/random-walks/nyc311/discussions"
 Changelog = "https://github.com/random-walks/nyc311/releases"
 
+[project.optional-dependencies]
+dataframes = [
+    "pandas>=2.3.3",
+]
+plotting = [
+    "matplotlib>=3.10.8",
+]
+science = [
+    "matplotlib>=3.10.8",
+    "pandas>=2.3.3",
+    "scipy>=1.15.3",
+]
+
 
 [dependency-groups]
 test = [
   "pytest >=9",
   "pytest-cov >=7",
+  "typing-extensions >=4.0",
 ]
 dev = [
   { include-group = "test" },
@@ -60,6 +74,12 @@ docs = [
     "mkdocstrings-python>=1.18.2",
     "pyyaml>=6.0.1",
 ]
+notebooks = [
+    "ipykernel>=7.2.0",
+]
+
+[tool.uv]
+default-groups = ["dev"]
 
 
 [tool.hatch]
@@ -78,6 +98,13 @@ env-vars.PYTHONWARNDEFAULTENCODING = "1"
 minversion = "9.0"
 addopts = ["-ra", "--showlocals"]
 strict = true
+markers = [
+  "unit: fast local tests for package development",
+  "fetch: tests focused on CSV or Socrata data fetching behavior",
+  "integration: heavier workflow or live-service tests",
+  "network: tests that reach external services",
+  "optional: tests that exercise optional dependency-backed features",
+]
 filterwarnings = [
   "error",
 ]
@@ -168,6 +195,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]
 "noxfile.py" = ["EXE001", "T20"]
+"examples/scripts/**" = ["T20"]
+"examples/notebooks/*.ipynb" = ["T20"]
 "docs/examples/**" = ["T20"]
 
 

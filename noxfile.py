@@ -45,11 +45,32 @@ def pylint(session: nox.Session) -> None:
 @nox.session
 def tests(session: nox.Session) -> None:
     """
-    Run the unit and regular tests.
+    Run the default fast suite without optional-feature tests.
     """
     test_deps = nox.project.dependency_groups(PROJECT, "test")
     session.install("-e.", *test_deps)
-    session.run("pytest", *session.posargs)
+    session.run("pytest", "-m", "not integration and not optional", *session.posargs)
+
+
+@nox.session(default=False)
+def tests_optional(session: nox.Session) -> None:
+    """
+    Run tests that rely on optional runtime extras.
+    """
+    test_deps = nox.project.dependency_groups(PROJECT, "test")
+    session.install("-e.[dataframes]", *test_deps)
+    session.run("pytest", "-m", "optional", *session.posargs)
+
+
+@nox.session(default=False)
+def tests_integration(session: nox.Session) -> None:
+    """
+    Run the heavier integration and live-fetch tests.
+    """
+    test_deps = nox.project.dependency_groups(PROJECT, "test")
+    session.install("-e.", *test_deps)
+    session.env["NYC311_RUN_LIVE_FETCH_TESTS"] = "1"
+    session.run("pytest", "-m", "integration", *session.posargs)
 
 
 @nox.session(reuse_venv=True, default=False)

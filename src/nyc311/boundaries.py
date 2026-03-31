@@ -1,4 +1,9 @@
-"""Boundary loading helpers for implemented boundary-backed exports."""
+"""Parse supported GeoJSON boundary files into nyc311 boundary models.
+
+Boundary-backed exports are intentionally narrow, so this module keeps the
+parsing rules explicit: a feature collection must provide supported geography
+metadata that downstream exports can join against aggregated topic summaries.
+"""
 
 from __future__ import annotations
 

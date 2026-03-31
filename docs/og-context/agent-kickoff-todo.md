@@ -1,5 +1,9 @@
 # Agent Kickoff TODO
 
+> Archived planning note: this page captures the original `v0.1` kickoff plan.
+> For the active release framing, use the main docs for the current `0.2` alpha
+> line.
+
 ## Goal
 
 Get `nyc311` to a solid v0.1 foundation with:
