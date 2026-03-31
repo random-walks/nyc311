@@ -141,7 +141,9 @@ def load_service_requests_from_socrata(
 
         request_url = _build_socrata_url(socrata_config, filters, offset=offset)
         request = Request(request_url, headers=headers)
-        with request_open(request, timeout=socrata_config.request_timeout_seconds) as response:
+        with request_open(
+            request, timeout=socrata_config.request_timeout_seconds
+        ) as response:
             payload = json.loads(response.read().decode("utf-8"))
 
         if not isinstance(payload, list):

@@ -19,9 +19,7 @@ def test_load_nyc_boundaries_loads_full_packaged_community_district_layer() -> N
 
     assert boundaries.geography == "community_district"
     assert len(boundaries.features) == 59
-    assert "BRONX 05" in {
-        feature.geography_value for feature in boundaries.features
-    }
+    assert "BRONX 05" in {feature.geography_value for feature in boundaries.features}
 
 
 def test_load_nyc_boundaries_filters_values_and_supports_zcta_aliases() -> None:
@@ -41,9 +39,7 @@ def test_specific_packaged_layer_loaders_work_for_remaining_layers() -> None:
         "36061000100"
     ]
     assert [feature.geography_value for feature in ntas.features] == ["BK0101"]
-    assert [feature.geography_value for feature in council_districts.features] == [
-        "33"
-    ]
+    assert [feature.geography_value for feature in council_districts.features] == ["33"]
 
 
 def test_load_boundaries_accepts_packaged_layer_names() -> None:
@@ -97,7 +93,9 @@ def test_sample_loaders_use_packaged_library_resources() -> None:
         "MN1002",
         "QN0104",
     }
-    assert {feature.geography_value for feature in census_tract_boundaries.features} == {
+    assert {
+        feature.geography_value for feature in census_tract_boundaries.features
+    } == {
         "36005022703",
         "36047029500",
         "36047056500",

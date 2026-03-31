@@ -11,6 +11,8 @@ from .boundaries import load_boundary_collection
 from .dataframes import records_to_dataframe, summaries_to_dataframe
 from .geographies.loaders import (
     _boundary_collection_to_geodataframe,
+)
+from .geographies.loaders import (
     load_nyc_boundaries_geodataframe as _load_nyc_boundaries_geodataframe,
 )
 from .models import BoundaryCollection, GeographyTopicSummary, ServiceRequestRecord
@@ -89,9 +91,12 @@ def spatial_join_records_to_boundaries(
     """Join point records to boundary polygons without clobbering record columns."""
     geopandas, _ = _require_geospatial_stack()
     aligned_boundaries = boundaries_gdf
-    if getattr(records_gdf, "crs", None) and getattr(boundaries_gdf, "crs", None):
-        if records_gdf.crs != boundaries_gdf.crs:
-            aligned_boundaries = boundaries_gdf.to_crs(records_gdf.crs)
+    if (
+        getattr(records_gdf, "crs", None)
+        and getattr(boundaries_gdf, "crs", None)
+        and records_gdf.crs != boundaries_gdf.crs
+    ):
+        aligned_boundaries = boundaries_gdf.to_crs(records_gdf.crs)
 
     renamed_boundaries = aligned_boundaries.rename(
         columns={

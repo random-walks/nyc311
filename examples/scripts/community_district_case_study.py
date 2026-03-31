@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import sys
 from collections import Counter
 from pathlib import Path
-import sys
 
 import nyc311
 
@@ -58,7 +58,9 @@ def main() -> None:
     print_section("Brooklyn exploratory data analysis")
     print(f"Loaded records: {len(records)}")
     print_counter("Top complaint types", complaint_type_counts.most_common(5))
-    print_counter("Top community districts by record volume", district_counts.most_common(5))
+    print_counter(
+        "Top community districts by record volume", district_counts.most_common(5)
+    )
     print_lines(
         "Highest unresolved-share complaint groups",
         [
@@ -68,7 +70,9 @@ def main() -> None:
         ],
     )
     print(f"Wrote summary to: {target_path}")
-    print_counter("Descriptor word-count distribution", sorted(descriptor_lengths.items()))
+    print_counter(
+        "Descriptor word-count distribution", sorted(descriptor_lengths.items())
+    )
     print_lines(
         "Dominant Brooklyn noise topics by community district",
         [

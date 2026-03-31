@@ -103,7 +103,9 @@ def dataframe_to_records(dataframe: pd.DataFrame) -> list[ServiceRequestRecord]:
                 community_district=str(row["community_district"]),
                 resolution_description=normalized_resolution,
                 latitude=None if latitude is None or pd.isna(latitude) else latitude,
-                longitude=None if longitude is None or pd.isna(longitude) else longitude,
+                longitude=None
+                if longitude is None or pd.isna(longitude)
+                else longitude,
             )
         )
     return records

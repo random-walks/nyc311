@@ -81,8 +81,7 @@ def normalize_boundary_layer(layer: str) -> str:
             )
         )
         raise ValueError(
-            "Unsupported boundary layer. "
-            f"Expected one of {supported}, got {layer!r}."
+            f"Unsupported boundary layer. Expected one of {supported}, got {layer!r}."
         )
     return canonical
 
@@ -133,8 +132,7 @@ def normalize_boundary_value(layer: str, value: str) -> str:
     if normalized_layer == "zcta":
         if len(matches) != 1:
             raise ValueError(
-                "ZCTA values must contain exactly one 5-digit ZIP code. "
-                f"Got {value!r}."
+                f"ZCTA values must contain exactly one 5-digit ZIP code. Got {value!r}."
             )
         return matches[0]
 

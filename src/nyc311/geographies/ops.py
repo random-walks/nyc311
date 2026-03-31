@@ -6,6 +6,7 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 from ..models import BoundaryCollection, BoundaryFeature, ServiceRequestRecord
+from ..spatial import records_to_geodataframe, spatial_join_records_to_boundaries
 from .loaders import _boundary_collection_to_geodataframe, load_nyc_boundaries
 from .normalize import normalize_boundary_layer
 
@@ -73,8 +74,6 @@ def spatially_enrich_records(
     boundaries: BoundaryCollection | None = None,
 ) -> gpd.GeoDataFrame:
     """Attach packaged boundary attributes to point-capable service requests."""
-    from ..spatial import records_to_geodataframe, spatial_join_records_to_boundaries
-
     normalized_layer = normalize_boundary_layer(layer)
     boundary_collection = boundaries or load_nyc_boundaries(normalized_layer)
     boundaries_gdf = _boundary_collection_to_geodataframe(boundary_collection)

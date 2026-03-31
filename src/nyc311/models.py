@@ -7,9 +7,9 @@ explicit and keep the public contract stable across the CLI, SDK, and exports.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from datetime import date
-import math
 from pathlib import Path
 from typing import Any, Final
 
@@ -110,8 +110,7 @@ def _normalize_coordinate_pair(
     min_longitude, max_longitude = _NYC_LONGITUDE_RANGE
     if not min_latitude <= normalized_latitude <= max_latitude:
         raise ValueError(
-            "latitude must fall within the supported NYC bounds "
-            f"{_NYC_LATITUDE_RANGE}."
+            f"latitude must fall within the supported NYC bounds {_NYC_LATITUDE_RANGE}."
         )
     if not min_longitude <= normalized_longitude <= max_longitude:
         raise ValueError(

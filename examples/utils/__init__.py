@@ -9,8 +9,12 @@ from .filters import (
     build_filter,
     manhattan_borough_filter,
 )
-from .geo import load_boundary_frame, merge_summary_map, save_choropleth
-from .geo import save_boundary_preview
+from .geo import (
+    load_boundary_frame,
+    merge_summary_map,
+    save_boundary_preview,
+    save_choropleth,
+)
 from .paths import (
     DATA_DIR,
     EXAMPLES_ROOT,
@@ -20,7 +24,11 @@ from .paths import (
     ensure_output_dir,
     output_path,
 )
-from .plotting import configure_matplotlib_style, require_matplotlib, save_current_figure
+from .plotting import (
+    configure_matplotlib_style,
+    require_matplotlib,
+    save_current_figure,
+)
 
 __all__ = [
     "DATA_DIR",

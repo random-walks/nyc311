@@ -201,6 +201,7 @@ ignore = [
 "tests/**" = ["T20"]
 "noxfile.py" = ["EXE001", "T20"]
 "examples/scripts/**" = ["T20"]
+"examples/utils/**" = ["T20"]
 "examples/notebooks/*.ipynb" = ["T20"]
 "docs/examples/**" = ["T20"]
 

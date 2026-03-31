@@ -185,7 +185,7 @@ def _status_for_symbol(
 
 def _iter_public_rows() -> list[tuple[str, str, str]]:
     planned_symbols = _planned_symbols_from_manifest()
-    planned_symbol_lookup = {symbol_name: module_name for symbol_name, module_name in planned_symbols}
+    planned_symbol_lookup = dict(planned_symbols)
     with tempfile.TemporaryDirectory() as tmp:
         probes = _build_probes(Path(tmp))
         rows = []

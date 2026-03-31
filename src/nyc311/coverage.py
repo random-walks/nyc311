@@ -5,7 +5,13 @@ from __future__ import annotations
 from collections import Counter
 
 from .models import ServiceRequestRecord, TopicCoverageReport, TopicQuery
-from .topics import TopicRuleSet, _OTHER_TOPIC, _UNSPECIFIED_TEXT, _normalize_value, extract_topics
+from .topics import (
+    _OTHER_TOPIC,
+    _UNSPECIFIED_TEXT,
+    TopicRuleSet,
+    _normalize_value,
+    extract_topics,
+)
 
 
 def analyze_topic_coverage(
