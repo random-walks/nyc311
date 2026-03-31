@@ -12,7 +12,11 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TypeVar
 
-from .loaders import REQUIRED_SERVICE_REQUEST_COLUMNS
+from ._tabular import (
+    ANOMALY_COLUMNS,
+    SERVICE_REQUEST_CSV_COLUMNS,
+    TOPIC_SUMMARY_COLUMNS,
+)
 from .models import (
     AnomalyResult,
     BoundaryGeoJSONExport,
@@ -87,17 +91,7 @@ def export_topic_table(data: list[GeographyTopicSummary], target: ExportTarget) 
     with output_path.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(
             csv_file,
-            fieldnames=(
-                "geography",
-                "geography_value",
-                "complaint_type",
-                "topic",
-                "complaint_count",
-                "geography_total_count",
-                "share_of_geography",
-                "topic_rank",
-                "is_dominant_topic",
-            ),
+            fieldnames=TOPIC_SUMMARY_COLUMNS,
         )
         writer.writeheader()
         for row in data:
@@ -134,7 +128,7 @@ def export_service_requests_csv(
     with output_path.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(
             csv_file,
-            fieldnames=(*REQUIRED_SERVICE_REQUEST_COLUMNS, "resolution_description"),
+            fieldnames=(*SERVICE_REQUEST_CSV_COLUMNS, "resolution_description"),
         )
         writer.writeheader()
         for row in data:
@@ -167,20 +161,7 @@ def export_anomalies(data: list[AnomalyResult], target: ExportTarget) -> Path:
     with output_path.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(
             csv_file,
-            fieldnames=(
-                "geography",
-                "geography_value",
-                "complaint_type",
-                "topic",
-                "complaint_count",
-                "geography_total_count",
-                "share_of_geography",
-                "topic_rank",
-                "z_score",
-                "is_anomaly",
-                "window_days",
-                "anomaly_threshold",
-            ),
+            fieldnames=ANOMALY_COLUMNS,
         )
         writer.writeheader()
         for row in data:

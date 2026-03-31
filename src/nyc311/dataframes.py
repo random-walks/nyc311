@@ -6,6 +6,14 @@ from datetime import date
 from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
+from ._tabular import (
+    ANOMALY_COLUMNS,
+    RESOLUTION_GAP_COLUMNS,
+    SERVICE_REQUEST_DATAFRAME_COLUMNS,
+    TOPIC_ASSIGNMENT_COLUMNS,
+    TOPIC_COVERAGE_COLUMNS,
+    TOPIC_SUMMARY_COLUMNS,
+)
 from .models import (
     AnomalyResult,
     GeographyTopicSummary,
@@ -46,15 +54,7 @@ def records_to_dataframe(records: list[ServiceRequestRecord]) -> pd.DataFrame:
             }
             for record in records
         ],
-        columns=(
-            "service_request_id",
-            "created_date",
-            "complaint_type",
-            "descriptor",
-            "borough",
-            "community_district",
-            "resolution_description",
-        ),
+        columns=SERVICE_REQUEST_DATAFRAME_COLUMNS,
     )
     if "created_date" in dataframe:
         dataframe["created_date"] = pd.to_datetime(dataframe["created_date"])
@@ -63,14 +63,7 @@ def records_to_dataframe(records: list[ServiceRequestRecord]) -> pd.DataFrame:
 
 def dataframe_to_records(dataframe: pd.DataFrame) -> list[ServiceRequestRecord]:
     """Convert a DataFrame back into typed service-request records."""
-    required_columns = {
-        "service_request_id",
-        "created_date",
-        "complaint_type",
-        "descriptor",
-        "borough",
-        "community_district",
-    }
+    required_columns = set(SERVICE_REQUEST_DATAFRAME_COLUMNS[:-1])
     missing_columns = sorted(required_columns.difference(dataframe.columns))
     if missing_columns:
         missing = ", ".join(missing_columns)
@@ -126,17 +119,7 @@ def assignments_to_dataframe(assignments: list[TopicAssignment]) -> pd.DataFrame
             }
             for assignment in assignments
         ],
-        columns=(
-            "service_request_id",
-            "created_date",
-            "complaint_type",
-            "descriptor",
-            "borough",
-            "community_district",
-            "resolution_description",
-            "topic",
-            "normalized_text",
-        ),
+        columns=TOPIC_ASSIGNMENT_COLUMNS,
     )
     if "created_date" in dataframe:
         dataframe["created_date"] = pd.to_datetime(dataframe["created_date"])
@@ -163,17 +146,7 @@ def summaries_to_dataframe(
             }
             for summary in summaries
         ],
-        columns=(
-            "geography",
-            "geography_value",
-            "complaint_type",
-            "topic",
-            "complaint_count",
-            "geography_total_count",
-            "share_of_geography",
-            "topic_rank",
-            "is_dominant_topic",
-        ),
+        columns=TOPIC_SUMMARY_COLUMNS,
     )
 
 
@@ -194,16 +167,7 @@ def gaps_to_dataframe(gaps: list[ResolutionGapSummary]) -> pd.DataFrame:
             }
             for gap in gaps
         ],
-        columns=(
-            "geography",
-            "geography_value",
-            "complaint_type",
-            "total_request_count",
-            "resolved_request_count",
-            "unresolved_request_count",
-            "unresolved_share",
-            "resolution_rate",
-        ),
+        columns=RESOLUTION_GAP_COLUMNS,
     )
 
 
@@ -228,20 +192,7 @@ def anomalies_to_dataframe(anomalies: list[AnomalyResult]) -> pd.DataFrame:
             }
             for anomaly in anomalies
         ],
-        columns=(
-            "geography",
-            "geography_value",
-            "complaint_type",
-            "topic",
-            "complaint_count",
-            "geography_total_count",
-            "share_of_geography",
-            "topic_rank",
-            "z_score",
-            "is_anomaly",
-            "window_days",
-            "anomaly_threshold",
-        ),
+        columns=ANOMALY_COLUMNS,
     )
 
 
@@ -262,12 +213,5 @@ def coverage_to_dataframe(
             }
             for report in reports
         ],
-        columns=(
-            "complaint_type",
-            "total_records",
-            "matched_records",
-            "other_records",
-            "coverage_rate",
-            "top_unmatched_descriptors",
-        ),
+        columns=TOPIC_COVERAGE_COLUMNS,
     )

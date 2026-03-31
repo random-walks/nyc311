@@ -16,6 +16,7 @@ from typing import Final
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from ._tabular import SERVICE_REQUEST_CSV_COLUMNS
 from .boundaries import load_boundary_collection
 from .models import (
     BoundaryCollection,
@@ -32,14 +33,7 @@ _COMMUNITY_DISTRICT_ALIASES: Final[tuple[str, ...]] = (
     "community_district",
     "community_board",
 )
-REQUIRED_SERVICE_REQUEST_COLUMNS: Final[tuple[str, ...]] = (
-    "unique_key",
-    "created_date",
-    "complaint_type",
-    "descriptor",
-    "borough",
-    "community_district",
-)
+REQUIRED_SERVICE_REQUEST_COLUMNS: Final[tuple[str, ...]] = SERVICE_REQUEST_CSV_COLUMNS
 
 _SOCRATA_FIELD_ALIASES: Final[dict[str, tuple[str, ...]]] = {
     "unique_key": ("unique_key",),
