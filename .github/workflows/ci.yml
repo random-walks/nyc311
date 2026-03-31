@@ -66,6 +66,28 @@ jobs:
 
       - uses: hynek/build-and-inspect-python-package@v2
 
+  docs:
+    name: Build docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        with:
+          enable-cache: true
+
+      - name: Install docs dependencies
+        run: uv sync --frozen --group docs
+
+      - name: Build docs with strict checks
+        run: uv run --frozen mkdocs build --strict
+
   tests:
     name: Test base install (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
@@ -150,7 +172,7 @@ jobs:
 
   pass:
     if: always()
-    needs: [lint, build, tests, tests-optional]
+    needs: [lint, build, docs, tests, tests-optional]
     runs-on: ubuntu-slim
     timeout-minutes: 2
     steps:

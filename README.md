@@ -206,7 +206,11 @@ The current public package surface includes:
 
 ## Documentation
 
-The main user-facing docs now live in `docs/`:
+The hosted docs site is the canonical reference:
+
+- [nyc311.readthedocs.io](https://nyc311.readthedocs.io/)
+
+If you are browsing in GitHub, the docs source lives in `docs/`:
 
 - `docs/index.md`
 - `docs/getting-started.md`
@@ -219,15 +223,12 @@ The main user-facing docs now live in `docs/`:
 
 Runnable examples live in `examples/`, including scripts and notebooks.
 
-The original planning docs are preserved under `docs/og-context/` for historical
-context.
+For local preview:
 
-## Archived context
-
-- `docs/og-context/notes/original-spec.md`
-- `docs/og-context/notes/gap-explination.md`
-- `docs/og-context/mvp-roadmap.md`
-- `docs/og-context/agent-kickoff-todo.md`
+```bash
+make docs
+make docs-build
+```
 
 ## Development
 
@@ -240,6 +241,7 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy
 uv run mkdocs serve
+uv run mkdocs build --strict
 uv run python scripts/audit_implementation.py
 uv run pytest -m "fetch and not integration"
 ```
