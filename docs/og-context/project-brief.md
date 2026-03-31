@@ -1,5 +1,9 @@
 # Project Brief
 
+> Archived planning note: this page reflects the original `v0.1` project brief.
+> For the active release framing, use the main docs for the upcoming `0.2.0a1`
+> alpha.
+
 ## Problem
 
 NYC 311 has huge public value, but the most important signal often lives in

@@ -1,7 +1,9 @@
 # Getting Started
 
-This guide shows the fastest path to a useful `nyc311` run as either a CLI
-user or a Python user.
+This guide shows the fastest path to a useful `nyc311` run as either a CLI user
+or a Python user.
+
+It reflects the upcoming `0.2.0a1` alpha surface on this branch.
 
 ## Install
 
@@ -43,10 +45,10 @@ The implemented loader expects NYC 311-style records with these columns:
 
 ## Optional dataframe helpers
 
-`records_to_dataframe()`, `assignments_to_dataframe()`, `summaries_to_dataframe()`,
-`gaps_to_dataframe()`, `anomalies_to_dataframe()`, `coverage_to_dataframe()`,
-and `dataframe_to_records()` require the `dataframes` extra (or the broader
-`science` extra) because they depend on pandas.
+`records_to_dataframe()`, `assignments_to_dataframe()`,
+`summaries_to_dataframe()`, `gaps_to_dataframe()`, `anomalies_to_dataframe()`,
+`coverage_to_dataframe()`, and `dataframe_to_records()` require the `dataframes`
+extra (or the broader `science` extra) because they depend on pandas.
 
 ## First Snapshot Run
 

@@ -3,6 +3,8 @@
 `nyc311` currently implements a narrow but end-to-end pipeline for deterministic
 topic summarization over NYC 311-style complaint data.
 
+This architecture snapshot reflects the branch state heading into `0.2.0a1`.
+
 ## Pipeline
 
 ```mermaid
@@ -26,15 +28,15 @@ flowchart LR
 
 ## Module Responsibilities
 
-| Module | Responsibility |
-| --- | --- |
-| `nyc311.models` | Typed dataclasses and package-level constants |
-| `nyc311.loaders` | CSV and Socrata ingestion, filter application, boundary-loading entry point |
-| `nyc311.processors` | Deterministic topic extraction and geography aggregation |
-| `nyc311.exporters` | CSV and GeoJSON output generation |
-| `nyc311.boundaries` | GeoJSON parsing into boundary models |
-| `nyc311.pipeline` | High-level SDK helper that mirrors the CLI happy path |
-| `nyc311.cli` | Argparse-powered fetch and analysis entry points |
+| Module              | Responsibility                                                              |
+| ------------------- | --------------------------------------------------------------------------- |
+| `nyc311.models`     | Typed dataclasses and package-level constants                               |
+| `nyc311.loaders`    | CSV and Socrata ingestion, filter application, boundary-loading entry point |
+| `nyc311.processors` | Deterministic topic extraction and geography aggregation                    |
+| `nyc311.exporters`  | CSV and GeoJSON output generation                                           |
+| `nyc311.boundaries` | GeoJSON parsing into boundary models                                        |
+| `nyc311.pipeline`   | High-level SDK helper that mirrors the CLI happy path                       |
+| `nyc311.cli`        | Argparse-powered fetch and analysis entry points                            |
 
 ## Design Principles
 
@@ -42,7 +44,8 @@ flowchart LR
 - Prefer typed inputs and outputs over implicit dictionaries.
 - Make the SDK composable for workflows and notebooks.
 - Keep the CLI thin by delegating real work to importable functions.
-- Keep optional dependency boundaries explicit for dataframe and notebook helpers.
+- Keep optional dependency boundaries explicit for dataframe and notebook
+  helpers.
 
 ## Implemented Scope
 

@@ -48,30 +48,13 @@ jobs:
 
       - name: Run repository hygiene hooks
         run: >-
-          uvx nox -s lint --
-          blacken-docs
-          check-added-large-files
-          check-case-conflict
-          check-merge-conflict
-          check-symlinks
-          check-yaml
-          debug-statements
-          end-of-file-fixer
-          mixed-line-ending
-          name-tests-test
-          requirements-txt-fixer
-          trailing-whitespace
-          rst-backticks
-          rst-directive-colons
-          rst-inline-touching-normal
-          prettier
-          codespell
-          shellcheck
-          disallow-caps
-          validate-pyproject
-          check-dependabot
-          check-github-workflows
-          check-readthedocs
+          uvx nox -s lint -- blacken-docs check-added-large-files
+          check-case-conflict check-merge-conflict check-symlinks check-yaml
+          debug-statements end-of-file-fixer mixed-line-ending name-tests-test
+          requirements-txt-fixer trailing-whitespace rst-backticks
+          rst-directive-colons rst-inline-touching-normal prettier codespell
+          shellcheck disallow-caps validate-pyproject check-dependabot
+          check-github-workflows check-readthedocs
 
   build:
     name: Build distribution
@@ -112,10 +95,9 @@ jobs:
 
       - name: Run base test suite
         run: >-
-          uv run --frozen pytest -m "not integration and not optional" -ra
-          --cov --cov-report=xml --cov-report=term
-          --junitxml="junit/base-${{ matrix.python-version }}.xml"
-          --durations=20
+          uv run --frozen pytest -m "not integration and not optional" -ra --cov
+          --cov-report=xml --cov-report=term --junitxml="junit/base-${{
+          matrix.python-version }}.xml" --durations=20
 
       - name: Publish test results
         if: always()
@@ -156,8 +138,7 @@ jobs:
       - name: Run optional-feature test suite
         run: >-
           uv run --frozen --extra dataframes pytest -m optional -ra
-          --junitxml="junit/optional-extras.xml"
-          --durations=20
+          --junitxml="junit/optional-extras.xml" --durations=20
 
       - name: Publish optional test results
         if: always()

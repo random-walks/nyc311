@@ -1,9 +1,16 @@
-# nyc311
+# nyc311 Archived Context
 
 `nyc311` is a Python-first toolkit for turning NYC 311 complaint records into
 reusable complaint-intelligence outputs.
 
-## v0.1 status
+This section preserves the original planning documents from the earlier `v0.1`
+phase of the project.
+
+Those pages intentionally use older scope language and do not describe the
+current `0.2.0a1` alpha target. For current behavior, use the main docs in the
+root `docs/` tree.
+
+## Archived `v0.1` status
 
 The repository now includes several real, fully tested workflows:
 

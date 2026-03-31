@@ -1,5 +1,9 @@
 # `311-nlp` — NYC 311 Complaint Intelligence
 
+> Archived planning note: this spec preserves the original `v0.1` product
+> framing. For the active release framing, use the main docs for the upcoming
+> `0.2.0a1` alpha.
+
 ## Resume variants: 🏛️ Civic (primary), 🧠 Frontier (secondary), 📊 Econ (secondary)
 
 ---

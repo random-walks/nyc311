@@ -98,6 +98,16 @@ docs tree instead.
 
 The repo also includes runnable scripts and notebooks under `examples/`.
 
+## Release Target
+
+This branch is currently being prepared for a `0.2.0a1` alpha prerelease.
+
+- Use `0.2.0a1` as the docs/release framing for the next cut from this branch.
+- Follow normal prerelease progression after that: `0.2.0a2`, `0.2.0a3`, and so
+  on.
+- The project version remains VCS-derived through Hatch, so the actual package
+  version will come from the eventual git tag rather than a hardcoded file edit.
+
 ## Contribution Expectations
 
 - keep the implemented surface narrow and explicit

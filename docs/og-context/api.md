@@ -1,9 +1,12 @@
-# Python API
+# Archived Python API Notes
 
-The public API now mixes a small implemented v0.1 slice with planned placeholder
-surfaces.
+This page captures the original API planning notes from the earlier `v0.1`
+phase.
 
-## Implemented in v0.1
+It is intentionally archival and does not reflect the current `0.2.0a1` alpha
+surface. Use the primary API docs in `docs/api.md` for the current public API.
+
+## Original `v0.1` implementation notes
 
 - `nyc311.loaders.load_service_requests`
 - `nyc311.loaders.load_boundaries`

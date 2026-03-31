@@ -10,10 +10,14 @@ Python toolkit for building reproducible complaint-intelligence outputs from NYC
 
 ## Status
 
-`nyc311` now ships an **early alpha release** with a complete first-pass toolkit
-for loading, analyzing, and exporting NYC 311 complaint data.
+`nyc311` is currently being prepared for a `0.2.0a1` alpha prerelease with a
+complete first-pass toolkit for loading, analyzing, and exporting NYC 311
+complaint data.
 
-### Implemented today
+The `0.2.0a1` tag shape better matches the current scope than the older `v0.1`
+foundation framing that the project started from.
+
+### Implemented in the planned `0.2.0a1` alpha
 
 - load filtered NYC 311-style records from local CSV extracts or the live
   Socrata API
@@ -57,7 +61,7 @@ implemented today.
 
 ## Core workflow
 
-The current release focuses on a deterministic, testable workflow:
+The planned `0.2.0a1` release focuses on a deterministic, testable workflow:
 
 1. read a local CSV extract of NYC 311-style records or load a filtered slice
    from Socrata

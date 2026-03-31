@@ -1,5 +1,9 @@
 # MVP Roadmap
 
+> Archived planning note: this roadmap preserves the original `v0.1` scope
+> discussion. For the active release framing, use the main docs for the upcoming
+> `0.2.0a1` alpha.
+
 ## v0.1 Goals
 
 - load date- and geography-filtered 311 records

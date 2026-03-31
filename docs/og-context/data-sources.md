@@ -1,5 +1,9 @@
 # Data Sources
 
+> Archived planning note: this page reflects the original `v0.1` data-source
+> framing. For the active release framing, use the main docs for the upcoming
+> `0.2.0a1` alpha.
+
 ## Implemented now
 
 The current release supports two real service-request input paths:

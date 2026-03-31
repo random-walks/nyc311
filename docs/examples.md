@@ -2,6 +2,8 @@
 
 The repository ships quickstart scripts and notebooks in `examples/`.
 
+These examples match the upcoming `0.2.0a1` alpha surface on this branch.
+
 ## Included Examples
 
 - `examples/scripts/quickstart_csv.py`
