@@ -1,9 +1,8 @@
 """Load NYC 311-style records and boundary data into typed nyc311 models.
 
 This module contains the implemented ingestion paths for local CSV extracts,
-live Socrata queries, and boundary GeoJSON files. It also retains placeholder
-entry points for planned resolution-data workflows so the public surface stays
-stable as the package grows.
+live Socrata queries, boundary GeoJSON files, and resolution-data loading used
+by the analysis and reporting helpers.
 """
 
 from __future__ import annotations

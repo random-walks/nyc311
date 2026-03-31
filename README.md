@@ -10,32 +10,40 @@ Python toolkit for building reproducible complaint-intelligence outputs from NYC
 
 ## Status
 
-`nyc311` now ships a **real but still intentionally narrow v0.1 foundation**.
+`nyc311` now ships an **early alpha release** with a complete first-pass toolkit
+for loading, analyzing, and exporting NYC 311 complaint data.
 
-### Implemented now in v0.1
+### Implemented today
 
-- load filtered NYC 311-style records from a **local CSV extract**
-- load filtered NYC 311-style records from the **live Socrata API**
-- derive a deterministic **first-pass topic label** for supported complaint
-  types
-- aggregate complaint topics by **borough** or **community district**
-- export useful outputs as:
-  - a **CSV topic summary table**
-  - a **boundary-backed GeoJSON feature collection**
-- run one thin CLI workflow for the happy path
-- compose the same workflow through a **one-call SDK helper**
-- fetch filtered live Socrata slices into reproducible local CSV snapshots
+- load filtered NYC 311-style records from local CSV extracts or the live
+  Socrata API
+- stage filtered live slices as reproducible local CSV snapshots
+- derive deterministic first-pass topic labels for supported complaint types
+- aggregate complaint topics by borough or community district
+- measure topic-rule coverage and summarize resolution gaps
+- score anomalies over aggregated topic summaries
+- export CSV tables, boundary-backed GeoJSON, and markdown report cards
+- run the workflow through both a thin CLI and a composable functional SDK
 
-### Still planned later
+## Install
 
-- anomaly detection
-- richer resolution-gap analysis and reporting
-- report-card generation
-- broader report-generation and notebook workflows
-- richer CLI coverage beyond the single happy-path command
+Choose the dependency footprint that matches your workflow:
 
-Anything in the public package surface that is still planned remains importable
-and raises a consistent `NotImplementedError`.
+```bash
+pip install nyc311
+```
+
+For pandas-backed conversion helpers:
+
+```bash
+pip install "nyc311[dataframes]"
+```
+
+For notebook and plotting workflows:
+
+```bash
+pip install "nyc311[science]"
+```
 
 ## Why this exists
 
@@ -47,9 +55,9 @@ This project aims to turn those records into reusable outputs for civic
 analysis, journalism, and research while staying honest about what is truly
 implemented today.
 
-## v0.1 happy path
+## Core workflow
 
-The current release focuses on one deterministic, testable workflow:
+The current release focuses on a deterministic, testable workflow:
 
 1. read a local CSV extract of NYC 311-style records or load a filtered slice
    from Socrata
@@ -58,7 +66,7 @@ The current release focuses on one deterministic, testable workflow:
 4. aggregate counts by borough or community district
 5. export the result as a CSV summary table or boundary-backed GeoJSON
 
-### Supported v0.1 topic extraction
+### Supported topic extraction
 
 The current rules-based topic extractor is implemented only for:
 
@@ -145,7 +153,7 @@ nyc311 fetch \
   --max-pages 1
 ```
 
-## Data assumptions in v0.1
+## Data assumptions
 
 `load_service_requests()` currently supports:
 
@@ -161,12 +169,13 @@ CSV inputs use these columns:
 - `borough`
 - `community_district` or `community_board`
 
-`resolution_description` is optional and loaded when present, but it is not yet
-used in the v0.1 topic rules.
+`resolution_description` is optional and loaded when present. It is currently
+used by the resolution-gap and report-card helpers, while topic extraction
+remains descriptor-driven.
 
 ## Public package surface
 
-### Implemented now
+The current public package surface includes:
 
 - `nyc311.load_service_requests`
 - `nyc311.fetch_service_requests`
@@ -174,19 +183,23 @@ used in the v0.1 topic rules.
 - `nyc311.load_boundaries`
 - `nyc311.extract_topics`
 - `nyc311.aggregate_by_geography`
+- `nyc311.analyze_topic_coverage`
 - `nyc311.analyze_resolution_gaps`
+- `nyc311.detect_anomalies`
 - `nyc311.export_topic_table`
+- `nyc311.export_anomalies`
 - `nyc311.export_geojson`
+- `nyc311.export_report_card`
 - `nyc311.export_service_requests_csv`
+- `nyc311.records_to_dataframe`
+- `nyc311.assignments_to_dataframe`
+- `nyc311.summaries_to_dataframe`
+- `nyc311.gaps_to_dataframe`
+- `nyc311.anomalies_to_dataframe`
+- `nyc311.coverage_to_dataframe`
 - `nyc311.run_topic_pipeline`
 - `nyc311.main` with the `topics` and `fetch` subcommands
 - typed models for filters, records, assignments, and summary rows
-
-### Planned placeholders
-
-- `nyc311.detect_anomalies`
-- `nyc311.export_anomalies`
-- `nyc311.export_report_card`
 
 ## Documentation
 
@@ -216,14 +229,16 @@ context.
 ## Development
 
 ```bash
-uv sync --group docs
-uv run pytest
+uv sync
+uv sync --all-groups --all-extras
+uv run pytest -m "not integration and not optional"
+uv run --extra dataframes pytest -m optional
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy
 uv run mkdocs serve
 uv run python scripts/audit_implementation.py
-uv run pytest -m fetch
+uv run pytest -m "fetch and not integration"
 ```
 
 ## License

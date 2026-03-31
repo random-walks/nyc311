@@ -7,8 +7,10 @@ basic anomaly scoring over aggregated outputs.
 
 from __future__ import annotations
 
+import math
 import re
 from collections import Counter, defaultdict
+from importlib import import_module
 from statistics import mean, pstdev
 from typing import Final
 
@@ -231,9 +233,7 @@ def extract_topics(
     """Extract deterministic first-pass topics for one complaint type."""
     complaint_type = query.complaint_type
     matching_records = [
-        record
-        for record in service_requests
-        if record.complaint_type == complaint_type
+        record for record in service_requests if record.complaint_type == complaint_type
     ]
     if not matching_records:
         return []
@@ -264,7 +264,9 @@ def analyze_topic_coverage(
         query,
         custom_rules=custom_rules,
     )
-    matched_records = sum(assignment.topic != _OTHER_TOPIC for assignment in assignments)
+    matched_records = sum(
+        assignment.topic != _OTHER_TOPIC for assignment in assignments
+    )
     other_records = len(assignments) - matched_records
     unmatched_descriptors = Counter(
         _normalize_value(assignment.record.descriptor) or _UNSPECIFIED_TEXT
@@ -399,7 +401,7 @@ def _compute_z_scores(values: list[int]) -> list[float]:
         return [0.0 for _value in values]
 
     try:
-        from scipy.stats import zscore
+        zscore = import_module("scipy.stats").zscore
     except ImportError:
         average = mean(values)
         std_dev = pstdev(values)
@@ -408,7 +410,7 @@ def _compute_z_scores(values: list[int]) -> list[float]:
         return [(value - average) / std_dev for value in values]
 
     z_scores = zscore(values)
-    return [0.0 if score != score else float(score) for score in z_scores]
+    return [0.0 if math.isnan(float(score)) else float(score) for score in z_scores]
 
 
 def analyze_resolution_gaps(

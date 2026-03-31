@@ -18,7 +18,10 @@ def main() -> None:
 
     records_df = nyc311.records_to_dataframe(records)
     complaint_distribution = (
-        records_df["complaint_type"].value_counts().rename_axis("complaint_type").reset_index(name="count")
+        records_df["complaint_type"]
+        .value_counts()
+        .rename_axis("complaint_type")
+        .reset_index(name="count")
     )
     print("Complaint type distribution:")
     print(complaint_distribution.head(10).to_string(index=False))
@@ -101,7 +104,11 @@ def main() -> None:
             "topic_summaries": noise_summaries,
             "resolution_gaps": nyc311.analyze_resolution_gaps(
                 records,
-                [record for record in records if record.resolution_description is not None],
+                [
+                    record
+                    for record in records
+                    if record.resolution_description is not None
+                ],
             ),
             "anomalies": anomalies,
         },

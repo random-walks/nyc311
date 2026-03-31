@@ -136,6 +136,26 @@ nyc311.export_service_requests_csv(
 
 That keeps notebook iteration reproducible and avoids repeated live API fetches.
 
+## Optional DataFrame helpers
+
+The pandas-backed helpers live behind an optional extra so the base package can
+stay lightweight:
+
+```bash
+pip install "nyc311[dataframes]"
+```
+
+Or install the broader notebook stack:
+
+```bash
+pip install "nyc311[science]"
+```
+
+Once installed, the SDK exposes helpers such as `records_to_dataframe()`,
+`assignments_to_dataframe()`, `summaries_to_dataframe()`, `gaps_to_dataframe()`,
+`anomalies_to_dataframe()`, `coverage_to_dataframe()`, and
+`dataframe_to_records()`.
+
 ## Borough Constants
 
 The public SDK includes canonical borough constants and normalization helpers:
@@ -180,20 +200,23 @@ Boundary files must currently include:
 - `load_boundaries`
 - `extract_topics`
 - `aggregate_by_geography`
+- `analyze_topic_coverage`
 - `analyze_resolution_gaps`
+- `detect_anomalies`
 - `export_topic_table`
+- `export_anomalies`
 - `export_geojson`
+- `export_report_card`
 - `export_service_requests_csv`
+- `records_to_dataframe`
+- `assignments_to_dataframe`
+- `summaries_to_dataframe`
+- `gaps_to_dataframe`
+- `anomalies_to_dataframe`
+- `coverage_to_dataframe`
+- `dataframe_to_records`
 - `run_topic_pipeline`
 - typed models such as `ServiceRequestFilter`, `TopicQuery`, and `ExportTarget`
-
-### Planned placeholders
-
-These remain importable but raise `NotImplementedError`:
-
-- `detect_anomalies`
-- `export_anomalies`
-- `export_report_card`
 
 ## When To Use The CLI Instead
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 from .models import (
@@ -15,21 +16,21 @@ from .models import (
 )
 
 if TYPE_CHECKING:
-    import pandas as pd
+    import pandas as pd  # type: ignore[import-untyped]
 
 
 def _require_pandas() -> Any:
     try:
-        import pandas as pd
+        return import_module("pandas")
     except ImportError as exc:  # pragma: no cover - exercised in tests via monkeypatch
         raise ImportError(
             "pandas is required for nyc311.dataframes helpers. Install it with "
-            "`pip install nyc311[science]` or `pip install pandas`."
+            "`pip install nyc311[dataframes]`, `pip install nyc311[science]`, "
+            "or `pip install pandas`."
         ) from exc
-    return pd
 
 
-def records_to_dataframe(records: list[ServiceRequestRecord]) -> "pd.DataFrame":
+def records_to_dataframe(records: list[ServiceRequestRecord]) -> pd.DataFrame:
     """Convert service-request records into a notebook-friendly DataFrame."""
     pd = _require_pandas()
     dataframe = pd.DataFrame.from_records(
@@ -60,7 +61,7 @@ def records_to_dataframe(records: list[ServiceRequestRecord]) -> "pd.DataFrame":
     return dataframe
 
 
-def dataframe_to_records(dataframe: "pd.DataFrame") -> list[ServiceRequestRecord]:
+def dataframe_to_records(dataframe: pd.DataFrame) -> list[ServiceRequestRecord]:
     """Convert a DataFrame back into typed service-request records."""
     required_columns = {
         "service_request_id",
@@ -107,7 +108,7 @@ def dataframe_to_records(dataframe: "pd.DataFrame") -> list[ServiceRequestRecord
     return records
 
 
-def assignments_to_dataframe(assignments: list[TopicAssignment]) -> "pd.DataFrame":
+def assignments_to_dataframe(assignments: list[TopicAssignment]) -> pd.DataFrame:
     """Convert topic assignments into a DataFrame."""
     pd = _require_pandas()
     dataframe = pd.DataFrame.from_records(
@@ -144,7 +145,7 @@ def assignments_to_dataframe(assignments: list[TopicAssignment]) -> "pd.DataFram
 
 def summaries_to_dataframe(
     summaries: list[GeographyTopicSummary],
-) -> "pd.DataFrame":
+) -> pd.DataFrame:
     """Convert geography-topic summaries into a DataFrame."""
     pd = _require_pandas()
     return pd.DataFrame.from_records(
@@ -176,7 +177,7 @@ def summaries_to_dataframe(
     )
 
 
-def gaps_to_dataframe(gaps: list[ResolutionGapSummary]) -> "pd.DataFrame":
+def gaps_to_dataframe(gaps: list[ResolutionGapSummary]) -> pd.DataFrame:
     """Convert resolution-gap summaries into a DataFrame."""
     pd = _require_pandas()
     return pd.DataFrame.from_records(
@@ -206,7 +207,7 @@ def gaps_to_dataframe(gaps: list[ResolutionGapSummary]) -> "pd.DataFrame":
     )
 
 
-def anomalies_to_dataframe(anomalies: list[AnomalyResult]) -> "pd.DataFrame":
+def anomalies_to_dataframe(anomalies: list[AnomalyResult]) -> pd.DataFrame:
     """Convert anomaly results into a DataFrame."""
     pd = _require_pandas()
     return pd.DataFrame.from_records(
@@ -246,7 +247,7 @@ def anomalies_to_dataframe(anomalies: list[AnomalyResult]) -> "pd.DataFrame":
 
 def coverage_to_dataframe(
     reports: list[TopicCoverageReport],
-) -> "pd.DataFrame":
+) -> pd.DataFrame:
     """Convert topic-coverage reports into a DataFrame."""
     pd = _require_pandas()
     return pd.DataFrame.from_records(

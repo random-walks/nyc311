@@ -2,9 +2,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 import nyc311
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"
+pytest.importorskip(
+    "pandas",
+    reason="Install nyc311[dataframes] or nyc311[science] to run dataframe helper tests.",
+)
+pytestmark = pytest.mark.optional
 
 
 def test_records_dataframe_round_trip_preserves_core_fields() -> None:

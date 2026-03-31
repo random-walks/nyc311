@@ -14,7 +14,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
@@ -41,9 +41,14 @@ Discussions = "https://github.com/random-walks/nyc311/discussions"
 Changelog = "https://github.com/random-walks/nyc311/releases"
 
 [project.optional-dependencies]
+dataframes = [
+    "pandas>=2.3.3",
+]
+plotting = [
+    "matplotlib>=3.10.8",
+]
 science = [
     "matplotlib>=3.10.8",
-    "numpy>=2.2.6",
     "pandas>=2.3.3",
     "scipy>=1.15.3",
 ]
@@ -73,6 +78,9 @@ notebooks = [
     "ipykernel>=7.2.0",
 ]
 
+[tool.uv]
+default-groups = ["dev"]
+
 
 [tool.hatch]
 version.source = "vcs"
@@ -95,6 +103,7 @@ markers = [
   "fetch: tests focused on CSV or Socrata data fetching behavior",
   "integration: heavier workflow or live-service tests",
   "network: tests that reach external services",
+  "optional: tests that exercise optional dependency-backed features",
 ]
 filterwarnings = [
   "error",
@@ -187,6 +196,7 @@ ignore = [
 "tests/**" = ["T20"]
 "noxfile.py" = ["EXE001", "T20"]
 "examples/scripts/**" = ["T20"]
+"examples/notebooks/*.ipynb" = ["T20"]
 "docs/examples/**" = ["T20"]
 
 

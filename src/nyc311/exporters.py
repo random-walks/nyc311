@@ -1,9 +1,7 @@
 """Write complaint-intelligence artifacts such as CSV tables and GeoJSON maps.
 
-The current release includes export helpers for tabular summaries and
-boundary-backed GeoJSON output. Placeholder exporters for later analysis
-artifacts stay in this module so the public API can expand without a breaking
-reorganization.
+The current release includes exporters for tabular summaries, anomaly tables,
+boundary-backed GeoJSON output, and markdown report cards.
 """
 
 from __future__ import annotations
@@ -245,16 +243,21 @@ def export_report_card(data: object, target: ExportTarget) -> Path:
 
         dominant_topics = sorted(
             dominant_topics_by_geography.get(geography_value, []),
-            key=lambda summary: (-summary.geography_total_count, summary.complaint_type),
+            key=lambda summary: (
+                -summary.geography_total_count,
+                summary.complaint_type,
+            ),
         )
         if dominant_topics:
             sections.append("Dominant topic")
-            for dominant_topic in dominant_topics[:5]:
-                sections.append(
+            sections.extend(
+                [
                     f"- {dominant_topic.complaint_type}: {dominant_topic.topic} "
                     f"({dominant_topic.complaint_count}/{dominant_topic.geography_total_count}, "
                     f"{dominant_topic.share_of_geography:.1%})"
-                )
+                    for dominant_topic in dominant_topics[:5]
+                ]
+            )
         else:
             sections.append("Dominant topic")
             sections.append("- No topic summaries available.")
@@ -266,11 +269,13 @@ def export_report_card(data: object, target: ExportTarget) -> Path:
             key=lambda gap: (-gap.total_request_count, gap.complaint_type),
         )
         if geography_gaps:
-            for gap in geography_gaps[:5]:
-                sections.append(
+            sections.extend(
+                [
                     f"- {gap.complaint_type}: resolution rate {gap.resolution_rate:.1%}, "
                     f"unresolved {gap.unresolved_request_count}/{gap.total_request_count}"
-                )
+                    for gap in geography_gaps[:5]
+                ]
+            )
         else:
             sections.append("- No resolution gap summaries available.")
         sections.append("")
@@ -289,11 +294,13 @@ def export_report_card(data: object, target: ExportTarget) -> Path:
             if anomaly.is_anomaly
         ]
         if flagged_anomalies:
-            for anomaly in flagged_anomalies[:5]:
-                sections.append(
+            sections.extend(
+                [
                     f"- {anomaly.complaint_type} / {anomaly.topic}: "
                     f"count={anomaly.complaint_count}, z={anomaly.z_score:.2f}"
-                )
+                    for anomaly in flagged_anomalies[:5]
+                ]
+            )
         else:
             sections.append("- No anomaly flags above the configured threshold.")
         sections.append("")
@@ -304,7 +311,9 @@ def export_report_card(data: object, target: ExportTarget) -> Path:
 
 def _coerce_report_card_data(
     data: object,
-) -> tuple[list[GeographyTopicSummary], list[ResolutionGapSummary], list[AnomalyResult]]:
+) -> tuple[
+    list[GeographyTopicSummary], list[ResolutionGapSummary], list[AnomalyResult]
+]:
     if not isinstance(data, Mapping):
         raise TypeError(
             "export_report_card() expects a mapping with topic_summaries, "

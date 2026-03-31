@@ -8,7 +8,13 @@ what is implemented today and improve the usefulness of the SDK, CLI, or docs.
 The fastest full setup is:
 
 ```bash
-uv sync --all-groups
+uv sync --all-groups --all-extras
+```
+
+For a leaner edit-test loop without optional extras:
+
+```bash
+uv sync
 ```
 
 You can also use `uvx nox` for session-based development.
@@ -19,7 +25,9 @@ If you use the provided Makefile:
 
 ```bash
 make install
+make install-dev
 make test
+make test-optional
 make test-fetch
 make test-integration
 make lint
@@ -30,8 +38,9 @@ make audit
 If you prefer direct commands:
 
 ```bash
-uv run pytest
-uv run pytest -m fetch
+uv run pytest -m "not integration and not optional"
+uv run --extra dataframes pytest -m optional
+uv run pytest -m "fetch and not integration"
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy
@@ -46,6 +55,7 @@ uv run mkdocs serve
 ```bash
 uvx nox -s lint
 uvx nox -s tests
+uvx nox -s tests_optional
 uvx nox -s tests_integration
 uvx nox -s docs
 uvx nox -s build
@@ -60,6 +70,8 @@ uvx nox -s build
 
 The default local and CI path stays fast. Live fetch checks are available
 through the dedicated integration session instead of running on every commit.
+Optional pandas-backed checks live in `make test-optional` and
+`uvx nox -s tests_optional`.
 
 ## Pre-commit
 
@@ -91,7 +103,7 @@ The repo also includes runnable scripts and notebooks under `examples/`.
 - keep the implemented surface narrow and explicit
 - add or update tests for meaningful behavior changes
 - update docs when CLI or SDK behavior changes
-- avoid presenting planned placeholders as shipped features
+- keep install guidance aligned with optional dependency boundaries
 
 ## Release Quality Checks
 

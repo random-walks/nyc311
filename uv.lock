@@ -1698,10 +1698,15 @@ name = "nyc311"
 source = { editable = "." }
 
 [package.optional-dependencies]
+dataframes = [
+    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pandas", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+]
+plotting = [
+    { name = "matplotlib" },
+]
 science = [
     { name = "matplotlib" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -1736,12 +1741,13 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "matplotlib", marker = "extra == 'plotting'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'science'", specifier = ">=3.10.8" },
-    { name = "numpy", marker = "extra == 'science'", specifier = ">=2.2.6" },
+    { name = "pandas", marker = "extra == 'dataframes'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'science'", specifier = ">=2.3.3" },
     { name = "scipy", marker = "extra == 'science'", specifier = ">=1.15.3" },
 ]
-provides-extras = ["science"]
+provides-extras = ["dataframes", "plotting", "science"]
 
 [package.metadata.requires-dev]
 dev = [

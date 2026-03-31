@@ -22,12 +22,12 @@ def main() -> None:
     records_with_resolution = [
         record for record in records if record.resolution_description is not None
     ]
-    resolution_summaries = nyc311.analyze_resolution_gaps(records, records_with_resolution)
+    resolution_summaries = nyc311.analyze_resolution_gaps(
+        records, records_with_resolution
+    )
 
     noise_records = [
-        record
-        for record in records
-        if record.complaint_type == "Noise - Residential"
+        record for record in records if record.complaint_type == "Noise - Residential"
     ]
     assignments = nyc311.extract_topics(
         noise_records,

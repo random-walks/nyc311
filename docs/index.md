@@ -8,18 +8,32 @@ It is designed for two complementary use cases:
 - a thin CLI for repeatable batch runs
 - a functional SDK for notebooks, scripts, and data workflows
 
-The current release ships a deliberately narrow but real v0.1 foundation:
+The current release ships an early alpha foundation with a complete first-pass
+analysis workflow:
 
 - loading filtered NYC 311-style records from local CSV extracts
 - loading filtered records from the live NYC Socrata API
 - deterministic first-pass topic extraction for supported complaint types
 - aggregation by borough or community district
-- CSV and boundary-backed GeoJSON export
+- topic-coverage, resolution-gap, and anomaly analysis helpers
+- CSV, boundary-backed GeoJSON, and markdown report exports
 
 ## Install
 
 ```bash
 pip install nyc311
+```
+
+For pandas-backed conversion helpers:
+
+```bash
+pip install "nyc311[dataframes]"
+```
+
+For notebook and plotting workflows:
+
+```bash
+pip install "nyc311[science]"
 ```
 
 ## Quickstart
@@ -70,24 +84,18 @@ pip install nyc311
   - `Noise - Residential`
   - `Rodent`
 - `aggregate_by_geography()`
+- `analyze_topic_coverage()` for descriptor coverage summaries
 - `analyze_resolution_gaps()` for first-pass borough-level unresolved-share
   summaries
+- `detect_anomalies()` for z-score-based anomaly flags over aggregated summaries
 - `export_topic_table()`
+- `export_anomalies()`
 - `export_geojson()`
+- `export_report_card()`
 - `export_service_requests_csv()` for local snapshot staging
+- optional pandas-backed dataframe helpers such as `records_to_dataframe()`
 - `run_topic_pipeline()` for a one-call workflow
 - `nyc311 fetch` and `nyc311 topics` for the current CLI workflows
-
-### Still Planned
-
-- anomaly detection
-- richer resolution-gap analysis and reporting
-- report-card generation
-- richer multi-step reporting and notebook workflows
-- broader CLI coverage beyond the current export flow
-
-Planned symbols remain importable and raise a consistent `NotImplementedError`
-so the package surface can grow without pretending those features already exist.
 
 ## Choose Your Path
 

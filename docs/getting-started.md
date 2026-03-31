@@ -9,10 +9,23 @@ user or a Python user.
 pip install nyc311
 ```
 
-For development installs, use:
+For pandas-backed dataframe helpers, install:
 
 ```bash
-uv sync --all-groups
+pip install "nyc311[dataframes]"
+```
+
+For notebook and plotting workflows, install:
+
+```bash
+pip install "nyc311[science]"
+```
+
+For development installs, use a lean or full environment:
+
+```bash
+uv sync
+uv sync --all-groups --all-extras
 ```
 
 ## Input Data
@@ -27,6 +40,13 @@ The implemented loader expects NYC 311-style records with these columns:
 - `community_district` or `community_board`
 
 `resolution_description` is optional.
+
+## Optional dataframe helpers
+
+`records_to_dataframe()`, `assignments_to_dataframe()`, `summaries_to_dataframe()`,
+`gaps_to_dataframe()`, `anomalies_to_dataframe()`, `coverage_to_dataframe()`,
+and `dataframe_to_records()` require the `dataframes` extra (or the broader
+`science` extra) because they depend on pandas.
 
 ## First Snapshot Run
 

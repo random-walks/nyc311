@@ -7,8 +7,10 @@ The repository ships quickstart scripts and notebooks in `examples/`.
 - `examples/scripts/quickstart_csv.py`
 - `examples/scripts/fetch_filtered_snapshot.py`
 - `examples/scripts/community_district_case_study.py`
+- `examples/scripts/topic_eda.py`
 - `examples/notebooks/quickstart_sdk.ipynb`
 - `examples/notebooks/community_district_case_study.ipynb`
+- `examples/notebooks/topic_eda.ipynb`
 
 ## Recommended Workflow For Large Datasets
 
@@ -53,7 +55,12 @@ nyc311 topics \
 From the repo root:
 
 ```bash
+uv sync --all-groups --all-extras
 uv run python examples/scripts/quickstart_csv.py
 uv run python examples/scripts/community_district_case_study.py
 uv run python examples/scripts/fetch_filtered_snapshot.py
+uv run python examples/scripts/topic_eda.py
 ```
+
+The dataframe and notebook-oriented examples rely on the optional `dataframes`
+or `science` extras. `make install` already includes them for contributors.

@@ -2,7 +2,7 @@
 
 These dataclasses and constants provide the shared vocabulary used by the CLI,
 the functional SDK, and the documentation. They make the implemented pipeline
-explicit while leaving room for planned surfaces to remain importable and typed.
+explicit and keep the public contract stable across the CLI, SDK, and exports.
 """
 
 from __future__ import annotations
@@ -217,7 +217,7 @@ class TopicCoverageReport:
 
 @dataclass(frozen=True)
 class ExportTarget:
-    """Destination metadata for implemented and planned exporters."""
+    """Destination metadata for supported exporters."""
 
     format: str
     output_path: Path

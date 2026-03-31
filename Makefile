@@ -1,9 +1,11 @@
-.PHONY: help install test test-fetch test-integration lint format docs docs-build audit clean ci
+.PHONY: help install install-dev test test-optional test-fetch test-integration lint format docs docs-build audit clean ci
 
 help:
 	@echo "Available targets:"
-	@echo "  install      Sync all dependency groups with uv"
+	@echo "  install      Sync the full contributor environment"
+	@echo "  install-dev  Sync the default dev environment without extras"
 	@echo "  test         Run the default fast pytest suite"
+	@echo "  test-optional Run pandas-backed optional-feature tests"
 	@echo "  test-fetch   Run fetch-focused tests"
 	@echo "  test-integration Run the live/integration test session"
 	@echo "  lint         Run Ruff and mypy"
@@ -15,13 +17,19 @@ help:
 	@echo "  ci           Run the local CI-equivalent checks"
 
 install:
-	uv sync --all-groups
+	uv sync --all-groups --all-extras
+
+install-dev:
+	uv sync
 
 test:
-	uv run pytest -m "not integration"
+	uv run pytest -m "not integration and not optional"
+
+test-optional:
+	uv run --extra dataframes pytest -m optional
 
 test-fetch:
-	uv run pytest -m fetch
+	uv run pytest -m "fetch and not integration"
 
 test-integration:
 	uvx nox -s tests_integration
@@ -44,4 +52,4 @@ audit:
 clean:
 	uv run python scripts/clean.py
 
-ci: lint test
+ci: lint test test-optional

@@ -65,7 +65,9 @@ def test_extract_topics_assigns_deterministic_rodent_labels() -> None:
     }
 
 
-def test_extract_topics_falls_back_to_descriptor_grouping_for_unknown_complaint_type() -> None:
+def test_extract_topics_falls_back_to_descriptor_grouping_for_unknown_complaint_type() -> (
+    None
+):
     water_records = [
         ServiceRequestRecord(
             service_request_id="fallback-1",
@@ -93,7 +95,9 @@ def test_extract_topics_falls_back_to_descriptor_grouping_for_unknown_complaint_
         ),
     ]
 
-    assignments = extract_topics(water_records, TopicQuery(complaint_type="Water System"))
+    assignments = extract_topics(
+        water_records, TopicQuery(complaint_type="Water System")
+    )
 
     assert [assignment.topic for assignment in assignments] == [
         "low water pressure in kitchen sink",

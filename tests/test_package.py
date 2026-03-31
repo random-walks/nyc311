@@ -19,7 +19,7 @@ def test_version() -> None:
     assert m.__version__.startswith(importlib.metadata.version("nyc311"))
 
 
-def test_public_surface_exposes_v0_1_contract() -> None:
+def test_public_surface_exposes_current_alpha_contract() -> None:
     window = AnalysisWindow(days=30)
     anomaly = AnomalyResult(
         geography="borough",
@@ -63,9 +63,18 @@ def test_public_surface_exposes_v0_1_contract() -> None:
     assert callable(m.aggregate_by_geography)
     assert callable(m.analyze_topic_coverage)
     assert callable(m.analyze_resolution_gaps)
+    assert callable(m.detect_anomalies)
     assert callable(m.register_topic_rules)
+    assert callable(m.export_anomalies)
+    assert callable(m.export_report_card)
     assert callable(m.export_topic_table)
     assert callable(m.export_service_requests_csv)
+    assert callable(m.assignments_to_dataframe)
+    assert callable(m.anomalies_to_dataframe)
+    assert callable(m.coverage_to_dataframe)
+    assert callable(m.dataframe_to_records)
+    assert callable(m.gaps_to_dataframe)
     assert callable(m.records_to_dataframe)
     assert callable(m.run_topic_pipeline)
+    assert callable(m.summaries_to_dataframe)
     assert "Noise - Residential" in m.supported_topic_queries()
