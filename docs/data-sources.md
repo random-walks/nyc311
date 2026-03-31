@@ -1,30 +1,69 @@
 # Data Sources
 
-## Primary Inputs
+## Implemented now
 
-- NYC 311 Service Requests dataset via Socrata
-- supporting geographic boundary files for borough, tract, district, or neighborhood aggregation
-- optional demographic overlays for contextual analysis
+The current release supports two real service-request input paths:
 
-## Initial Data Principles
+- **local CSV extracts**
+- **live Socrata loading** via the NYC 311 dataset
 
-- prefer direct documented pulls from the public dataset
-- cache filtered extracts locally for reproducibility
-- keep data-loading logic transparent and easy to audit
-- separate raw dataset access from downstream topic-model outputs
+The CSV loader expects these columns:
 
-## Early Technical Notes
+- `unique_key`
+- `created_date`
+- `complaint_type`
+- `descriptor`
+- `borough`
+- `community_district` (or `community_board`)
 
-- the text fields are short and noisy
-- some useful fields may vary in completeness across years
-- spatial joins and geography standardization should be explicit
-- large extracts should stay out of git
+An optional `resolution_description` column is also accepted and preserved on
+loaded records, but it is not yet used for shipped analysis.
 
-## Documentation Follow-Up
+## Current loader scope
 
-As implementation starts, this page should grow to include:
+`load_service_requests(...)` supports:
 
-- exact dataset identifiers and URLs
-- field notes for the first supported workflow
-- geography assumptions
-- caveats about text cleanliness and missingness
+- loading from a local CSV path
+- loading from a `SocrataConfig(...)` source
+- filtering by created-date range
+- filtering by `borough`
+- filtering by `community_district`
+- filtering by complaint type
+
+The live Socrata path intentionally keeps the projection and filter set narrow
+so the implementation remains transparent and easy to validate.
+
+## Implemented boundary support
+
+`load_boundaries(...)` now supports loading a GeoJSON FeatureCollection for
+supported geographies.
+
+Current boundary support is still intentionally narrow:
+
+- field-backed joins only
+- boundary features must include:
+  - `geography`
+  - `geography_value`
+- currently useful for boundary-backed GeoJSON export of aggregated results
+
+## Planned later
+
+The following inputs are still planned:
+
+- caching/downloading workflows for large public extracts
+- broader spatial joins for tract- or district-level geography derivation
+- demographic overlay inputs
+- richer live-ingestion ergonomics beyond the current focused Socrata path
+
+## Data principles
+
+- keep raw data access explicit and easy to audit
+- prefer stable local extracts for reproducible tests and examples
+- avoid hidden geocoding or fuzzy geography standardization
+- keep large real-world extracts out of git
+
+## Notes on text fields
+
+The descriptor text is short, noisy, and inconsistent. The current release
+therefore uses a documented deterministic ruleset for first-pass topic labeling
+instead of claiming broader NLP coverage than is actually implemented today.
