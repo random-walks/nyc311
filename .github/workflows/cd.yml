@@ -2,6 +2,12 @@ name: CD
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish built distributions to the configured package index
+        required: true
+        type: boolean
+        default: false
   release:
     types:
       - published
@@ -35,7 +41,13 @@ jobs:
       attestations: write
       contents: read
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: >-
+      vars.PYPI_PUBLISH_ENABLED == 'true' && (
+        (github.event_name == 'release' && github.event.action == 'published')
+      ||
+        (github.event_name == 'workflow_dispatch' && inputs.publish == true &&
+        startsWith(github.ref, 'refs/tags/'))
+      )
 
     steps:
       - uses: actions/download-artifact@v8
@@ -51,6 +63,6 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Remember to tell (test-)pypi about this repo before publishing
-          # Remove this line to publish to PyPI
+          # Default to TestPyPI until the project is ready for real PyPI.
+          # Once trusted publishing is configured for PyPI, remove this line.
           repository-url: https://test.pypi.org/legacy/

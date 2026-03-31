@@ -108,6 +108,35 @@ This branch is now on the `0.2` alpha prerelease line.
 - The project version remains VCS-derived through Hatch, so the actual package
   version will come from the eventual git tag rather than a hardcoded file edit.
 
+## Package Publishing
+
+Distribution builds are always enabled in `.github/workflows/cd.yml`, but
+package publishing is intentionally opt-in.
+
+By default:
+
+- GitHub releases and manual `CD` runs build and inspect the package artifacts.
+- The publish job is skipped unless publishing is explicitly enabled.
+- Artifact attestations are skipped automatically on private repositories,
+  because GitHub does not support them there.
+
+To switch publishing on later:
+
+1. Configure trusted publishing on TestPyPI or PyPI for this repository. The
+   current workflow claims use repository `random-walks/nyc311`, workflow
+   `.github/workflows/cd.yml`, and environment `pypi`.
+2. Set the repository variable `PYPI_PUBLISH_ENABLED=true`.
+3. Keep `repository-url: https://test.pypi.org/legacy/` in
+   `.github/workflows/cd.yml` while validating against TestPyPI.
+4. When you are ready for real PyPI, remove the `repository-url` override so
+   `pypa/gh-action-pypi-publish` targets PyPI.
+5. Publish by either: `a.` creating a GitHub release from a tag after enabling
+   the variable, or `b.` running the `CD` workflow manually from the target tag
+   with `publish=true`.
+
+The manual dispatch path is useful when you want to keep iterating on the branch
+and only publish a selected tag later.
+
 ## Contribution Expectations
 
 - keep the implemented surface narrow and explicit
