@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 import nyc311
 
 
@@ -108,7 +110,9 @@ def test_boundaries_to_geojson_preserves_feature_collection_shape() -> None:
     boundaries = nyc311.load_nyc_boundaries("borough", values="Queens")
 
     payload = nyc311.boundaries_to_geojson(boundaries)
+    features = cast(list[dict[str, object]], payload["features"])
+    properties = cast(dict[str, object], features[0]["properties"])
 
     assert payload["type"] == "FeatureCollection"
-    assert len(payload["features"]) == 1
-    assert payload["features"][0]["properties"]["geography_value"] == "QUEENS"
+    assert len(features) == 1
+    assert properties["geography_value"] == "QUEENS"

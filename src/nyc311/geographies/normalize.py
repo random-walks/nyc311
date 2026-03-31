@@ -134,7 +134,7 @@ def normalize_boundary_value(layer: str, value: str) -> str:
             raise ValueError(
                 f"ZCTA values must contain exactly one 5-digit ZIP code. Got {value!r}."
             )
-        return matches[0]
+        return str(matches[0])
 
     if normalized_layer == "council_district":
         council_matches = _COUNCIL_DISTRICT_RE.findall(normalized_value)

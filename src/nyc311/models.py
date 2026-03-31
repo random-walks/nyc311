@@ -82,6 +82,9 @@ def _coerce_optional_coordinate(value: object, *, name: str) -> float | None:
             return None
         value = normalized_value
 
+    if not isinstance(value, (int, float, str)):
+        raise ValueError(f"{name} must be numeric when provided.")
+
     try:
         coordinate = float(value)
     except (TypeError, ValueError) as exc:

@@ -212,6 +212,7 @@ ignore-paths = [".*/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
 messages_control.disable = [
+  "duplicate-code",
   "design",
   "fixme",
   "line-too-long",
