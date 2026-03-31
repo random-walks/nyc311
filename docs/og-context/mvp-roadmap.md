@@ -1,8 +1,8 @@
 # MVP Roadmap
 
 > Archived planning note: this roadmap preserves the original `v0.1` scope
-> discussion. For the active release framing, use the main docs for the upcoming
-> `0.2.0a1` alpha.
+> discussion. For the active release framing, use the main docs for the current
+> `0.2` alpha line.
 
 ## v0.1 Goals
 

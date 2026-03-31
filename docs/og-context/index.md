@@ -7,8 +7,8 @@ This section preserves the original planning documents from the earlier `v0.1`
 phase of the project.
 
 Those pages intentionally use older scope language and do not describe the
-current `0.2.0a1` alpha target. For current behavior, use the main docs in the
-root `docs/` tree.
+current `0.2` alpha target. For current behavior, use the main docs in the root
+`docs/` tree.
 
 ## Archived `v0.1` status
 

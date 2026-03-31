@@ -2,7 +2,7 @@
 
 The repository ships quickstart scripts and notebooks in `examples/`.
 
-These examples match the upcoming `0.2.0a1` alpha surface on this branch.
+These examples match the current `0.2` alpha prerelease surface on this branch.
 
 ## Included Examples
 

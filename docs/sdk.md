@@ -3,7 +3,8 @@
 `nyc311` is usable as a functional SDK for notebooks, scripts, scheduled jobs,
 and data-processing workflows.
 
-This guide describes the SDK surface planned for the `0.2.0a1` alpha release.
+This guide describes the SDK surface for the current `0.2` alpha prerelease
+line.
 
 The current SDK is built around small, typed steps:
 
@@ -194,7 +195,7 @@ Boundary files must currently include:
 
 ## Public Surface
 
-### Implemented in `0.2.0a1`
+### Implemented in the `0.2` alpha line
 
 - `load_service_requests`
 - `fetch_service_requests`

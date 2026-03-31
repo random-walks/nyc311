@@ -1,16 +1,14 @@
 # Changelog
 
-## Upcoming
+## Current Alpha Line
 
-### `0.2.0a1`
+`nyc311` is now on the `0.2` alpha prerelease line.
 
-The next prerelease target for this branch is `0.2.0a1`.
-
-- This retires the older `v0.1` framing in favor of an explicit alpha release.
-- The alpha scope includes the implemented analysis surface: topic coverage,
-  resolution gaps, anomaly detection, report-card export, and dataframe helpers.
-- It also includes the refreshed `uv` extras/groups model and clearer CI test
-  annotations for optional-feature failures.
+- `0.2.0a1`: first alpha prerelease that retires the older `v0.1` framing in
+  favor of an explicit `0.2` release line.
+- The `0.2` alpha scope includes topic coverage, resolution gaps, anomaly
+  detection, report-card export, dataframe helpers, and the refreshed `uv`
+  extras/groups and CI setup.
 
 ## Release history
 

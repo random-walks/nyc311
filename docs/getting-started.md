@@ -3,7 +3,7 @@
 This guide shows the fastest path to a useful `nyc311` run as either a CLI user
 or a Python user.
 
-It reflects the upcoming `0.2.0a1` alpha surface on this branch.
+It reflects the current `0.2` alpha prerelease surface on this branch.
 
 ## Install
 

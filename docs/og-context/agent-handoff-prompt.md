@@ -1,6 +1,6 @@
 > Archived planning note: this prompt preserves the earlier `v0.1`
 > implementation handoff. For the active release framing, use the main docs for
-> the upcoming `0.2.0a1` alpha.
+> the current `0.2` alpha line.
 
 Open the `nyc311` repo and treat the seeded docs as the source of truth,
 especially `docs/notes/original-spec.md`, `docs/notes/gap-explination.md`,

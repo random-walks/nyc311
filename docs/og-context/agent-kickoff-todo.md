@@ -1,8 +1,8 @@
 # Agent Kickoff TODO
 
 > Archived planning note: this page captures the original `v0.1` kickoff plan.
-> For the active release framing, use the main docs for the upcoming `0.2.0a1`
-> alpha.
+> For the active release framing, use the main docs for the current `0.2` alpha
+> line.
 
 ## Goal
 

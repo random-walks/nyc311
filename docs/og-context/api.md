@@ -3,7 +3,7 @@
 This page captures the original API planning notes from the earlier `v0.1`
 phase.
 
-It is intentionally archival and does not reflect the current `0.2.0a1` alpha
+It is intentionally archival and does not reflect the current `0.2` alpha
 surface. Use the primary API docs in `docs/api.md` for the current public API.
 
 ## Original `v0.1` implementation notes

@@ -3,7 +3,7 @@
 `nyc311` currently implements a narrow but end-to-end pipeline for deterministic
 topic summarization over NYC 311-style complaint data.
 
-This architecture snapshot reflects the branch state heading into `0.2.0a1`.
+This architecture snapshot reflects the current `0.2` alpha prerelease line.
 
 ## Pipeline
 

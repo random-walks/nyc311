@@ -1,8 +1,8 @@
 # Project Brief
 
 > Archived planning note: this page reflects the original `v0.1` project brief.
-> For the active release framing, use the main docs for the upcoming `0.2.0a1`
-> alpha.
+> For the active release framing, use the main docs for the current `0.2` alpha
+> line.
 
 ## Problem
 

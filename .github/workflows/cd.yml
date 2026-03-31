@@ -43,7 +43,8 @@ jobs:
           name: Packages
           path: dist
 
-      - name: Generate artifact attestation for sdist and wheel
+      - name: Generate artifact attestation for public releases
+        if: github.event.repository.private == false
         uses: actions/attest-build-provenance@v4
         with:
           subject-path: "dist/*"
