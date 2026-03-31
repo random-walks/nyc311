@@ -1,0 +1,105 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "geography": "borough",
+        "geography_value": "BROOKLYN",
+        "name": "Brooklyn"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-74.01, 40.66],
+            [-73.9, 40.66],
+            [-73.9, 40.76],
+            [-74.01, 40.76],
+            [-74.01, 40.66]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "geography": "borough",
+        "geography_value": "MANHATTAN",
+        "name": "Manhattan"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-73.97, 40.79],
+            [-73.92, 40.79],
+            [-73.92, 40.84],
+            [-73.97, 40.84],
+            [-73.97, 40.79]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "geography": "borough",
+        "geography_value": "QUEENS",
+        "name": "Queens"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-73.96, 40.73],
+            [-73.88, 40.73],
+            [-73.88, 40.79],
+            [-73.96, 40.79],
+            [-73.96, 40.73]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "geography": "borough",
+        "geography_value": "BRONX",
+        "name": "Bronx"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-73.95, 40.82],
+            [-73.88, 40.82],
+            [-73.88, 40.88],
+            [-73.95, 40.88],
+            [-73.95, 40.82]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "geography": "borough",
+        "geography_value": "STATEN ISLAND",
+        "name": "Staten Island"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-74.25, 40.48],
+            [-74.05, 40.48],
+            [-74.05, 40.66],
+            [-74.25, 40.66],
+            [-74.25, 40.48]
+          ]
+        ]
+      }
+    }
+  ]
+}

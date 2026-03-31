@@ -10,6 +10,7 @@ from ._tabular import (
     ANOMALY_COLUMNS,
     RESOLUTION_GAP_COLUMNS,
     SERVICE_REQUEST_DATAFRAME_COLUMNS,
+    SERVICE_REQUEST_REQUIRED_DATAFRAME_COLUMNS,
     TOPIC_ASSIGNMENT_COLUMNS,
     TOPIC_COVERAGE_COLUMNS,
     TOPIC_SUMMARY_COLUMNS,
@@ -51,6 +52,8 @@ def records_to_dataframe(records: list[ServiceRequestRecord]) -> pd.DataFrame:
                 "borough": record.borough,
                 "community_district": record.community_district,
                 "resolution_description": record.resolution_description,
+                "latitude": record.latitude,
+                "longitude": record.longitude,
             }
             for record in records
         ],
@@ -63,7 +66,8 @@ def records_to_dataframe(records: list[ServiceRequestRecord]) -> pd.DataFrame:
 
 def dataframe_to_records(dataframe: pd.DataFrame) -> list[ServiceRequestRecord]:
     """Convert a DataFrame back into typed service-request records."""
-    required_columns = set(SERVICE_REQUEST_DATAFRAME_COLUMNS[:-1])
+    pd = _require_pandas()
+    required_columns = set(SERVICE_REQUEST_REQUIRED_DATAFRAME_COLUMNS)
     missing_columns = sorted(required_columns.difference(dataframe.columns))
     if missing_columns:
         missing = ", ".join(missing_columns)
@@ -84,9 +88,11 @@ def dataframe_to_records(dataframe: pd.DataFrame) -> list[ServiceRequestRecord]:
         resolution_description = row.get("resolution_description")
         normalized_resolution = (
             None
-            if resolution_description in (None, "")
+            if resolution_description in (None, "") or pd.isna(resolution_description)
             else str(resolution_description)
         )
+        latitude = row.get("latitude")
+        longitude = row.get("longitude")
         records.append(
             ServiceRequestRecord(
                 service_request_id=str(row["service_request_id"]),
@@ -96,6 +102,8 @@ def dataframe_to_records(dataframe: pd.DataFrame) -> list[ServiceRequestRecord]:
                 borough=str(row["borough"]),
                 community_district=str(row["community_district"]),
                 resolution_description=normalized_resolution,
+                latitude=None if latitude is None or pd.isna(latitude) else latitude,
+                longitude=None if longitude is None or pd.isna(longitude) else longitude,
             )
         )
     return records
@@ -114,6 +122,8 @@ def assignments_to_dataframe(assignments: list[TopicAssignment]) -> pd.DataFrame
                 "borough": assignment.record.borough,
                 "community_district": assignment.record.community_district,
                 "resolution_description": assignment.record.resolution_description,
+                "latitude": assignment.record.latitude,
+                "longitude": assignment.record.longitude,
                 "topic": assignment.topic,
                 "normalized_text": assignment.normalized_text,
             }

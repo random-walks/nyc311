@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+import math
 from pathlib import Path
 from typing import Any, Final
 
@@ -44,6 +45,8 @@ _BOROUGH_ALIASES: Final[dict[str, BoroughName]] = {
     "si": BOROUGH_STATEN_ISLAND,
     "richmond": BOROUGH_STATEN_ISLAND,
 }
+_NYC_LATITUDE_RANGE: Final[tuple[float, float]] = (40.4, 41.0)
+_NYC_LONGITUDE_RANGE: Final[tuple[float, float]] = (-74.3, -73.6)
 
 
 def _normalize_value(value: str) -> str:
@@ -58,6 +61,56 @@ def _normalize_borough_or_passthrough(value: str) -> str:
         return normalized
 
     return _BOROUGH_ALIASES.get(normalized.casefold(), normalized.upper())
+
+
+def _coerce_optional_coordinate(value: object, *, name: str) -> float | None:
+    """Normalize an optional coordinate value to a finite float."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        normalized_value = value.strip()
+        if not normalized_value:
+            return None
+        value = normalized_value
+
+    try:
+        coordinate = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be numeric when provided.") from exc
+
+    if not math.isfinite(coordinate):
+        return None
+    return coordinate
+
+
+def _normalize_coordinate_pair(
+    latitude: object, longitude: object
+) -> tuple[float | None, float | None]:
+    """Normalize an optional latitude/longitude pair for NYC point records."""
+    normalized_latitude = _coerce_optional_coordinate(latitude, name="latitude")
+    normalized_longitude = _coerce_optional_coordinate(longitude, name="longitude")
+
+    if normalized_latitude is None and normalized_longitude is None:
+        return None, None
+    if normalized_latitude == 0 and normalized_longitude == 0:
+        return None, None
+    if normalized_latitude is None or normalized_longitude is None:
+        raise ValueError("latitude and longitude must be provided together.")
+
+    min_latitude, max_latitude = _NYC_LATITUDE_RANGE
+    min_longitude, max_longitude = _NYC_LONGITUDE_RANGE
+    if not min_latitude <= normalized_latitude <= max_latitude:
+        raise ValueError(
+            "latitude must fall within the supported NYC bounds "
+            f"{_NYC_LATITUDE_RANGE}."
+        )
+    if not min_longitude <= normalized_longitude <= max_longitude:
+        raise ValueError(
+            "longitude must fall within the supported NYC bounds "
+            f"{_NYC_LONGITUDE_RANGE}."
+        )
+
+    return normalized_latitude, normalized_longitude
 
 
 def normalize_borough_name(value: str) -> str:
@@ -241,6 +294,8 @@ class ServiceRequestRecord:
     borough: str
     community_district: str
     resolution_description: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
 
     def __post_init__(self) -> None:
         if not _normalize_value(self.service_request_id):
@@ -266,15 +321,23 @@ class ServiceRequestRecord:
             self, "community_district", _normalize_value(self.community_district)
         )
 
-        if self.resolution_description is None:
-            return
-
-        normalized_resolution = _normalize_value(self.resolution_description)
+        normalized_resolution = (
+            None
+            if self.resolution_description is None
+            else _normalize_value(self.resolution_description)
+        )
         object.__setattr__(
             self,
             "resolution_description",
             normalized_resolution if normalized_resolution else None,
         )
+
+        latitude, longitude = _normalize_coordinate_pair(
+            self.latitude,
+            self.longitude,
+        )
+        object.__setattr__(self, "latitude", latitude)
+        object.__setattr__(self, "longitude", longitude)
 
     def geography_value(self, geography: str) -> str:
         """Return the value for a supported geography key."""

@@ -6,13 +6,22 @@ These examples match the current `0.2` alpha prerelease surface on this branch.
 
 ## Included Examples
 
+- `examples/data/service_requests_fixture.csv`
+- `examples/data/community_district_boundaries.geojson`
+- `examples/data/borough_boundaries.geojson`
 - `examples/scripts/quickstart_csv.py`
 - `examples/scripts/fetch_filtered_snapshot.py`
 - `examples/scripts/community_district_case_study.py`
 - `examples/scripts/topic_eda.py`
+- `examples/scripts/borough_choropleth.py`
+- `examples/scripts/point_to_boundary_join.py`
 - `examples/notebooks/quickstart_sdk.ipynb`
 - `examples/notebooks/community_district_case_study.ipynb`
 - `examples/notebooks/topic_eda.ipynb`
+- `examples/notebooks/community_district_choropleth.ipynb`
+- `examples/notebooks/spatial_topic_comparison.ipynb`
+- `examples/notebooks/boundary_qa.ipynb`
+- `examples/utils/`
 
 ## Recommended Workflow For Large Datasets
 
@@ -62,7 +71,12 @@ uv run python examples/scripts/quickstart_csv.py
 uv run python examples/scripts/community_district_case_study.py
 uv run python examples/scripts/fetch_filtered_snapshot.py
 uv run python examples/scripts/topic_eda.py
+uv run python examples/scripts/borough_choropleth.py
+uv run python examples/scripts/point_to_boundary_join.py
 ```
 
 The dataframe and notebook-oriented examples rely on the optional `dataframes`
-or `science` extras. `make install` already includes them for contributors.
+or `science` extras. The new geography-forward examples additionally rely on
+the `spatial` extra. `make install` already includes the core contributor
+dependencies; add `uv sync --extra spatial --extra science` when you want to run
+the mapping notebooks and scripts.

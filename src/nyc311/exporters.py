@@ -14,7 +14,7 @@ from typing import TypeVar
 
 from ._tabular import (
     ANOMALY_COLUMNS,
-    SERVICE_REQUEST_CSV_COLUMNS,
+    SERVICE_REQUEST_EXPORT_COLUMNS,
     TOPIC_SUMMARY_COLUMNS,
 )
 from .models import (
@@ -128,7 +128,7 @@ def export_service_requests_csv(
     with output_path.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(
             csv_file,
-            fieldnames=(*SERVICE_REQUEST_CSV_COLUMNS, "resolution_description"),
+            fieldnames=SERVICE_REQUEST_EXPORT_COLUMNS,
         )
         writer.writeheader()
         for row in data:
@@ -141,6 +141,8 @@ def export_service_requests_csv(
                     "borough": row.borough,
                     "community_district": row.community_district,
                     "resolution_description": row.resolution_description or "",
+                    "latitude": "" if row.latitude is None else row.latitude,
+                    "longitude": "" if row.longitude is None else row.longitude,
                 }
             )
 

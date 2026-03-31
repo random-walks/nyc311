@@ -16,6 +16,8 @@ def test_load_service_requests_without_filters_returns_all_fixture_rows() -> Non
 
     assert len(records) == 18
     assert records[0].service_request_id == "1001"
+    assert records[0].latitude == pytest.approx(40.73)
+    assert records[0].longitude == pytest.approx(-73.96)
     assert records[-1].community_district == "MANHATTAN 10"
 
 
@@ -54,3 +56,22 @@ def test_load_service_requests_requires_expected_columns(tmp_path: Path) -> None
 
     with pytest.raises(ValueError, match="community-district column"):
         load_service_requests(invalid_csv)
+
+
+def test_load_service_requests_allows_csvs_without_coordinate_columns(
+    tmp_path: Path,
+) -> None:
+    csv_path = tmp_path / "no_coordinates.csv"
+    csv_path.write_text(
+        (
+            "unique_key,created_date,complaint_type,descriptor,borough,community_district,resolution_description\n"
+            "1,2025-01-01,Rodent,Rats in alley,BROOKLYN,BROOKLYN 01,Inspection completed\n"
+        ),
+        encoding="utf-8",
+    )
+
+    records = load_service_requests(csv_path)
+
+    assert len(records) == 1
+    assert records[0].latitude is None
+    assert records[0].longitude is None

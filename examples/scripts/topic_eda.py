@@ -1,19 +1,29 @@
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
+import sys
 
 import nyc311
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from examples.utils import (  # noqa: E402
+    brooklyn_borough_filter,
+    brooklyn_socrata_config,
+    output_path,
+    print_section,
+)
 
 
 def main() -> None:
     records = nyc311.fetch_service_requests(
-        filters=nyc311.ServiceRequestFilter(
-            start_date=date(2025, 1, 1),
-            end_date=date(2025, 3, 31),
-            geography=nyc311.GeographyFilter("borough", nyc311.BOROUGH_BROOKLYN),
+        filters=brooklyn_borough_filter(
+            start_date="2025-01-01",
+            end_date="2025-03-31",
         ),
-        socrata_config=nyc311.SocrataConfig(page_size=1000, max_pages=5),
+        socrata_config=brooklyn_socrata_config(page_size=1000, max_pages=5),
     )
 
     records_df = nyc311.records_to_dataframe(records)
@@ -98,7 +108,7 @@ def main() -> None:
         nyc311.AnalysisWindow(days=30),
         z_threshold=1.5,
     )
-    report_card_path = Path("examples/output/topic-eda-report.md")
+    report_card_path = output_path("topic-eda-report.md")
     nyc311.export_report_card(
         {
             "topic_summaries": noise_summaries,
@@ -114,6 +124,7 @@ def main() -> None:
         },
         nyc311.ExportTarget("md", report_card_path),
     )
+    print_section("Topic EDA")
     print(f"\nWrote report card to: {report_card_path}")
 
 

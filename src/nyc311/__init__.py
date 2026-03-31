@@ -61,6 +61,12 @@ from .processors import (
     extract_topics,
     register_topic_rules,
 )
+from .spatial import (
+    load_boundaries_geodataframe,
+    records_to_geodataframe,
+    spatial_join_records_to_boundaries,
+    summaries_to_geodataframe,
+)
 
 __all__ = [
     "__version__",
@@ -104,13 +110,17 @@ __all__ = [
     "extract_topics",
     "gaps_to_dataframe",
     "load_boundaries",
+    "load_boundaries_geodataframe",
     "load_resolution_data",
     "load_service_requests",
     "main",
     "normalize_borough_name",
     "records_to_dataframe",
+    "records_to_geodataframe",
     "register_topic_rules",
     "run_topic_pipeline",
+    "spatial_join_records_to_boundaries",
     "summaries_to_dataframe",
+    "summaries_to_geodataframe",
     "supported_topic_queries",
 ]

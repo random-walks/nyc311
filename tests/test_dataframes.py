@@ -28,6 +28,8 @@ def test_records_dataframe_round_trip_preserves_core_fields() -> None:
         "borough",
         "community_district",
         "resolution_description",
+        "latitude",
+        "longitude",
     ]
     assert str(dataframe["created_date"].dtype).startswith("datetime64")
     assert round_tripped_records == records

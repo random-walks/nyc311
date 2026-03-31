@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import argparse
-from datetime import date
 from pathlib import Path
+import sys
 
 import nyc311
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from examples.utils import build_filter, brooklyn_socrata_config, output_path  # noqa: E402
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -13,7 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output",
-        default="examples/output/rodent_snapshot.csv",
+        default=str(output_path("rodent_snapshot.csv")),
         help="Where to write the fetched CSV snapshot.",
     )
     parser.add_argument(
@@ -57,13 +63,14 @@ def main() -> None:
     args = parser.parse_args()
     complaint_types = args.complaint_type or ["Rodent"]
     records = nyc311.fetch_service_requests(
-        filters=nyc311.ServiceRequestFilter(
-            start_date=date.fromisoformat(args.start_date),
-            end_date=date.fromisoformat(args.end_date),
-            geography=nyc311.GeographyFilter(args.geography, args.geography_value),
+        filters=build_filter(
+            start_date=args.start_date,
+            end_date=args.end_date,
+            geography=args.geography,
+            geography_value=args.geography_value,
             complaint_types=tuple(complaint_types),
         ),
-        socrata_config=nyc311.SocrataConfig(
+        socrata_config=brooklyn_socrata_config(
             app_token=args.app_token,
             page_size=int(args.page_size),
             max_pages=int(args.max_pages) if args.max_pages else None,

@@ -17,10 +17,25 @@ SERVICE_REQUEST_CSV_COLUMNS: Final[tuple[str, ...]] = (
     *COMMON_COMPLAINT_RECORD_COLUMNS,
 )
 
-SERVICE_REQUEST_DATAFRAME_COLUMNS: Final[tuple[str, ...]] = (
+SERVICE_REQUEST_OPTIONAL_COLUMNS: Final[tuple[str, ...]] = (
+    "resolution_description",
+    "latitude",
+    "longitude",
+)
+
+SERVICE_REQUEST_EXPORT_COLUMNS: Final[tuple[str, ...]] = (
+    *SERVICE_REQUEST_CSV_COLUMNS,
+    *SERVICE_REQUEST_OPTIONAL_COLUMNS,
+)
+
+SERVICE_REQUEST_REQUIRED_DATAFRAME_COLUMNS: Final[tuple[str, ...]] = (
     "service_request_id",
     *COMMON_COMPLAINT_RECORD_COLUMNS,
-    "resolution_description",
+)
+
+SERVICE_REQUEST_DATAFRAME_COLUMNS: Final[tuple[str, ...]] = (
+    *SERVICE_REQUEST_REQUIRED_DATAFRAME_COLUMNS,
+    *SERVICE_REQUEST_OPTIONAL_COLUMNS,
 )
 
 TOPIC_ASSIGNMENT_COLUMNS: Final[tuple[str, ...]] = (

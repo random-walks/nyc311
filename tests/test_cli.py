@@ -71,6 +71,8 @@ def test_cli_fetch_command_exports_filtered_socrata_snapshot(
                     "borough": "BROOKLYN",
                     "community_district": "BROOKLYN 01",
                     "resolution_description": "Inspection scheduled",
+                    "latitude": "40.73",
+                    "longitude": "-73.96",
                 }
             ]
         )
@@ -114,6 +116,8 @@ def test_cli_fetch_command_exports_filtered_socrata_snapshot(
             "borough": "BROOKLYN",
             "community_district": "BROOKLYN 01",
             "resolution_description": "Inspection scheduled",
+            "latitude": "40.73",
+            "longitude": "-73.96",
         }
     ]
 

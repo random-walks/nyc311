@@ -44,6 +44,8 @@ def test_load_service_requests_supports_socrata_json(
             "borough": "BROOKLYN",
             "community_board": "BROOKLYN 01",
             "resolution_description": "Warning issued",
+            "latitude": "40.73",
+            "longitude": "-73.96",
         },
         {
             "unique_key": "2002",
@@ -52,6 +54,8 @@ def test_load_service_requests_supports_socrata_json(
             "descriptor": "Rat seen near garbage bags",
             "borough": "BROOKLYN",
             "community_district": "BROOKLYN 01",
+            "latitude": "40.731",
+            "longitude": "-73.961",
         },
     ]
 
@@ -71,6 +75,11 @@ def test_load_service_requests_supports_socrata_json(
     assert parsed.scheme == "https"
     assert parsed.netloc == "data.cityofnewyork.us"
     assert parsed.path.endswith("/resource/erm2-nwe9.json")
+    query_string = parse_qs(parsed.query)
+    assert "latitude" in query_string["$select"][0]
+    assert "longitude" in query_string["$select"][0]
+    assert records[0].latitude == pytest.approx(40.73)
+    assert records[0].longitude == pytest.approx(-73.96)
 
 
 def test_load_service_requests_builds_filtered_socrata_query(
