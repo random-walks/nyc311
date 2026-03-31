@@ -19,6 +19,12 @@ The `0.2` alpha line ships a complete first-pass analysis workflow:
 - topic-coverage, resolution-gap, and anomaly analysis helpers
 - CSV, boundary-backed GeoJSON, and markdown report exports
 
+## Docs Paths
+
+- Hosted docs: [nyc311.readthedocs.io](https://nyc311.readthedocs.io/)
+- Local preview: `make docs`
+- Strict docs build: `make docs-build`
+
 ## Install
 
 ```bash
@@ -109,9 +115,3 @@ pip install "nyc311[science]"
 - Use [API Reference](api.md) for the complete public package surface.
 - Use [Architecture](architecture.md) if you are maintaining or extending the
   project.
-
-## Archived Context
-
-The original planning and product-shaping docs live under `docs/og-context/`.
-They are kept as historical context and are not the primary user-facing
-documentation for the current package.

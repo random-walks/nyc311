@@ -48,6 +48,7 @@ uvx nox -s lint
 uvx nox -s pylint
 uvx nox -s tests_integration
 uv run mkdocs serve
+uv run mkdocs build --strict
 ```
 
 ## Nox Sessions
@@ -92,11 +93,25 @@ pre-commit run --all-files
 
 Docs are built with MkDocs Material and live in `docs/`.
 
-The archived context in `docs/og-context/` is intentionally preserved as
-historical reference. New user-facing documentation should be added to the root
-docs tree instead.
+The hosted site is [nyc311.readthedocs.io](https://nyc311.readthedocs.io/), and
+the source for that site lives in `docs/`.
 
-The repo also includes runnable scripts and notebooks under `examples/`.
+The repo also includes runnable scripts and notebooks under `examples/`, but the
+canonical narrative docs live in `docs/`.
+
+For local docs work:
+
+```bash
+make docs
+make docs-build
+```
+
+`make docs` runs `mkdocs serve` for local preview, and `make docs-build` runs a
+strict build equivalent to the hosted site and CI checks.
+
+`docs/api.md` is generated with `mkdocstrings` from the public package surface.
+Prefer updating source docstrings and exported symbols in `src/nyc311/` rather
+than hand-editing generated API content.
 
 ## Release Target
 

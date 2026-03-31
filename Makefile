@@ -52,4 +52,4 @@ audit:
 clean:
 	uv run python scripts/clean.py
 
-ci: lint test test-optional
+ci: lint test test-optional docs-build

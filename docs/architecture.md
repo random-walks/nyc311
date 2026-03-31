@@ -79,6 +79,5 @@ layer yet.
 
 ## Maintainer Notes
 
-- `docs/og-context/` contains archived planning and original product framing.
-- The primary source of truth for public package behavior is the tested code in
-  `src/nyc311/` and the user-facing docs in this folder.
+The primary source of truth for public package behavior is the tested code in
+`src/nyc311/` and the user-facing docs in this folder.
