@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from nyc311.models import ServiceRequestRecord
+from nyc311.models import BoundaryCollection, BoundaryFeature, ServiceRequestRecord
 
 
 def _build_record(
@@ -61,3 +61,17 @@ def test_service_request_record_rejects_partial_coordinate_pair() -> None:
 def test_service_request_record_rejects_coordinates_outside_nyc_bounds() -> None:
     with pytest.raises(ValueError, match="NYC bounds"):
         _build_record(latitude=39.9, longitude=-73.96)
+
+
+def test_boundary_models_accept_packaged_zcta_geography() -> None:
+    feature = BoundaryFeature(
+        geography="zcta",
+        geography_value="10001",
+        geometry={"type": "Polygon", "coordinates": []},
+        properties={"name": "MODZCTA 10001"},
+    )
+
+    collection = BoundaryCollection(geography="zcta", features=(feature,))
+
+    assert collection.geography == "zcta"
+    assert collection.features[0].geography_value == "10001"

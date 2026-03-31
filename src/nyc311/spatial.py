@@ -9,7 +9,11 @@ from typing import TYPE_CHECKING, Any
 from ._tabular import SERVICE_REQUEST_DATAFRAME_COLUMNS
 from .boundaries import load_boundary_collection
 from .dataframes import records_to_dataframe, summaries_to_dataframe
-from .models import GeographyTopicSummary, ServiceRequestRecord
+from .geographies.loaders import (
+    _boundary_collection_to_geodataframe,
+    load_nyc_boundaries_geodataframe as _load_nyc_boundaries_geodataframe,
+)
+from .models import BoundaryCollection, GeographyTopicSummary, ServiceRequestRecord
 
 if TYPE_CHECKING:
     import geopandas as gpd  # type: ignore[import-untyped]
@@ -55,21 +59,27 @@ def records_to_geodataframe(records: list[ServiceRequestRecord]) -> gpd.GeoDataF
     )
 
 
-def load_boundaries_geodataframe(source: str | Path) -> gpd.GeoDataFrame:
-    """Load supported boundary polygons into a GeoDataFrame."""
-    geopandas, shapely_geometry = _require_geospatial_stack()
-    boundary_collection = load_boundary_collection(source)
+def load_boundaries_geodataframe(
+    source: str | Path | BoundaryCollection | None = None,
+    *,
+    layer: str | None = None,
+) -> gpd.GeoDataFrame:
+    """Load supported boundaries from a path, collection, or packaged layer."""
+    if layer is not None:
+        if source is not None:
+            raise ValueError("Pass either source or layer, not both.")
+        return _load_nyc_boundaries_geodataframe(layer)
 
-    rows = [
-        {
-            "geography": feature.geography,
-            "geography_value": feature.geography_value,
-            **feature.properties,
-            "geometry": shapely_geometry.shape(feature.geometry),
-        }
-        for feature in boundary_collection.features
-    ]
-    return geopandas.GeoDataFrame(rows, geometry="geometry", crs="EPSG:4326")
+    if source is None:
+        raise TypeError("load_boundaries_geodataframe() requires source or layer.")
+    if isinstance(source, BoundaryCollection):
+        return _boundary_collection_to_geodataframe(source)
+    if isinstance(source, Path) or Path(source).exists():
+        return _boundary_collection_to_geodataframe(load_boundary_collection(source))
+    try:
+        return _load_nyc_boundaries_geodataframe(str(source))
+    except ValueError:
+        return _boundary_collection_to_geodataframe(load_boundary_collection(source))
 
 
 def spatial_join_records_to_boundaries(
@@ -103,10 +113,21 @@ def spatial_join_records_to_boundaries(
 
 def summaries_to_geodataframe(
     summaries: list[GeographyTopicSummary],
-    boundaries_gdf: gpd.GeoDataFrame,
+    boundaries_gdf: gpd.GeoDataFrame | None = None,
+    *,
+    layer: str | None = None,
 ) -> gpd.GeoDataFrame:
     """Merge aggregated geography summaries onto boundary geometries."""
     geopandas, _ = _require_geospatial_stack()
+    if boundaries_gdf is None:
+        if layer is None:
+            if not summaries:
+                raise ValueError(
+                    "summaries_to_geodataframe() requires boundaries_gdf or layer "
+                    "when summaries is empty."
+                )
+            layer = summaries[0].geography
+        boundaries_gdf = _load_nyc_boundaries_geodataframe(layer)
     if "geography" not in boundaries_gdf.columns:
         raise ValueError("boundaries_gdf must include a geography column.")
     if "geography_value" not in boundaries_gdf.columns:

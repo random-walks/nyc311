@@ -19,7 +19,7 @@ flowchart LR
     aggregate --> summaries[GeographyTopicSummaryList]
     summaries --> anomalies[detect_anomalies]
     summaries --> csvExport[export_topic_table]
-    summaries --> geojsonPrep[load_boundaries]
+    summaries --> geojsonPrep[load_boundaries / load_nyc_boundaries]
     geojsonPrep --> geojsonExport[export_geojson]
     summaries --> report[export_report_card]
     gaps --> report
@@ -32,9 +32,11 @@ flowchart LR
 | ------------------- | --------------------------------------------------------------------------- |
 | `nyc311.models`     | Typed dataclasses and package-level constants                               |
 | `nyc311.loaders`    | CSV and Socrata ingestion, filter application, boundary-loading entry point |
+| `nyc311.geographies` | Packaged NYC boundary layers, sample loaders, and geography conversions     |
 | `nyc311.processors` | Deterministic topic extraction and geography aggregation                    |
 | `nyc311.exporters`  | CSV and GeoJSON output generation                                           |
 | `nyc311.boundaries` | GeoJSON parsing into boundary models                                        |
+| `nyc311.plotting`   | Optional in-memory plotting helpers for packaged boundary layers            |
 | `nyc311.pipeline`   | High-level SDK helper that mirrors the CLI happy path                       |
 | `nyc311.cli`        | Argparse-powered fetch and analysis entry points                            |
 
@@ -43,6 +45,7 @@ flowchart LR
 - Keep the implemented surface honest and narrow.
 - Prefer typed inputs and outputs over implicit dictionaries.
 - Make the SDK composable for workflows and notebooks.
+- Ship turnkey NYC geography layers as library-owned packaged resources.
 - Keep the CLI thin by delegating real work to importable functions.
 - Keep optional dependency boundaries explicit for dataframe and notebook
   helpers.
@@ -60,22 +63,35 @@ flowchart LR
 - boundary-backed GeoJSON export
 - markdown report-card export
 - optional pandas dataframe conversion helpers
+- packaged NYC borough, community-district, council-district, NTA, ZCTA, and census-tract boundary layers
+- packaged sample service-request and boundary loaders for notebook workflows
+- optional in-memory boundary plotting helpers
 - a one-call SDK pipeline helper
 - thin CLI fetch and export paths
 
 The repository includes `scripts/audit_implementation.py` to summarize the
-current public surface and keep docs aligned with shipped behavior.
+current public surface and keep docs aligned with shipped behavior. Planned
+symbols are declared in `src/nyc311/planned_surface.json` rather than as dead
+runtime placeholders.
 
 ## Boundaries
 
-GeoJSON export is intentionally narrow today. Boundary files must provide
-feature properties with both:
+Boundary-backed exports still expect feature properties with both:
 
 - `geography`
 - `geography_value`
 
-This keeps export behavior deterministic without adding a larger spatial join
-layer yet.
+`nyc311` now also ships packaged, library-owned canonical boundary layers for:
+
+- `borough`
+- `community_district`
+- `council_district`
+- `neighborhood_tabulation_area`
+- `zcta`
+- `census_tract`
+
+These packaged layers are the preferred notebook and SDK path. File-backed
+boundary loading remains available for scripts and custom workflows.
 
 ## Maintainer Notes
 

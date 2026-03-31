@@ -15,7 +15,16 @@ from typing import Any, Final
 
 BoroughName = str
 
-SUPPORTED_GEOGRAPHIES: Final[tuple[str, ...]] = ("borough", "community_district")
+SUPPORTED_RECORD_GEOGRAPHIES: Final[tuple[str, ...]] = ("borough", "community_district")
+SUPPORTED_BOUNDARY_GEOGRAPHIES: Final[tuple[str, ...]] = (
+    "borough",
+    "community_district",
+    "council_district",
+    "neighborhood_tabulation_area",
+    "census_tract",
+    "zcta",
+)
+SUPPORTED_GEOGRAPHIES: Final[tuple[str, ...]] = SUPPORTED_RECORD_GEOGRAPHIES
 SOCRATA_DATASET_IDENTIFIER: Final[str] = "erm2-nwe9"
 BOROUGH_BRONX: Final[BoroughName] = "BRONX"
 BOROUGH_BROOKLYN: Final[BoroughName] = "BROOKLYN"
@@ -535,10 +544,10 @@ class BoundaryFeature:
 
     def __post_init__(self) -> None:
         normalized_geography = self.geography.strip().lower()
-        if normalized_geography not in SUPPORTED_GEOGRAPHIES:
+        if normalized_geography not in SUPPORTED_BOUNDARY_GEOGRAPHIES:
             msg = (
                 "Unsupported boundary geography. "
-                f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
+                f"Expected one of {SUPPORTED_BOUNDARY_GEOGRAPHIES}, got {self.geography!r}."
             )
             raise ValueError(msg)
         if not _normalize_value(self.geography_value):
@@ -558,10 +567,10 @@ class BoundaryCollection:
 
     def __post_init__(self) -> None:
         normalized_geography = self.geography.strip().lower()
-        if normalized_geography not in SUPPORTED_GEOGRAPHIES:
+        if normalized_geography not in SUPPORTED_BOUNDARY_GEOGRAPHIES:
             msg = (
                 "Unsupported boundary collection geography. "
-                f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
+                f"Expected one of {SUPPORTED_BOUNDARY_GEOGRAPHIES}, got {self.geography!r}."
             )
             raise ValueError(msg)
         if not self.features:
