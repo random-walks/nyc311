@@ -10,6 +10,7 @@ from .filters import (
     manhattan_borough_filter,
 )
 from .geo import load_boundary_frame, merge_summary_map, save_choropleth
+from .geo import save_boundary_preview
 from .paths import (
     DATA_DIR,
     EXAMPLES_ROOT,
@@ -40,6 +41,7 @@ __all__ = [
     "print_lines",
     "print_section",
     "require_matplotlib",
+    "save_boundary_preview",
     "save_choropleth",
     "save_current_figure",
 ]

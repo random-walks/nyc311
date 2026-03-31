@@ -48,6 +48,7 @@ plotting = [
     "matplotlib>=3.10.8",
 ]
 spatial = [
+    "contextily>=1.6.2",
     "geopandas>=1.1",
     "shapely>=2.1",
 ]
