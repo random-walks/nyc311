@@ -1,12 +1,23 @@
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 
 import pytest
 
 from nyc311.loaders import load_service_requests
-from nyc311.models import TopicQuery
-from nyc311.processors import aggregate_by_geography, extract_topics
+from nyc311.models import (
+    AnalysisWindow,
+    GeographyTopicSummary,
+    ServiceRequestRecord,
+    TopicQuery,
+)
+from nyc311.processors import (
+    aggregate_by_geography,
+    analyze_topic_coverage,
+    detect_anomalies,
+    extract_topics,
+)
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"
 
@@ -54,11 +65,62 @@ def test_extract_topics_assigns_deterministic_rodent_labels() -> None:
     }
 
 
-def test_extract_topics_rejects_unsupported_complaint_type() -> None:
-    records = load_service_requests(FIXTURE_PATH)
+def test_extract_topics_falls_back_to_descriptor_grouping_for_unknown_complaint_type() -> None:
+    water_records = [
+        ServiceRequestRecord(
+            service_request_id="fallback-1",
+            created_date=date(2025, 1, 1),
+            complaint_type="Water System",
+            descriptor="Low water pressure in kitchen sink",
+            borough="BROOKLYN",
+            community_district="BROOKLYN 01",
+        ),
+        ServiceRequestRecord(
+            service_request_id="fallback-2",
+            created_date=date(2025, 1, 2),
+            complaint_type="Water System",
+            descriptor="Low water pressure in kitchen sink",
+            borough="BROOKLYN",
+            community_district="BROOKLYN 01",
+        ),
+        ServiceRequestRecord(
+            service_request_id="fallback-3",
+            created_date=date(2025, 1, 3),
+            complaint_type="Water System",
+            descriptor="Leaking hydrant on corner",
+            borough="BROOKLYN",
+            community_district="BROOKLYN 01",
+        ),
+    ]
 
-    with pytest.raises(NotImplementedError, match="Water System"):
-        extract_topics(records, TopicQuery(complaint_type="Water System"))
+    assignments = extract_topics(water_records, TopicQuery(complaint_type="Water System"))
+
+    assert [assignment.topic for assignment in assignments] == [
+        "low water pressure in kitchen sink",
+        "low water pressure in kitchen sink",
+        "leaking hydrant on corner",
+    ]
+
+
+def test_extract_topics_handles_missing_descriptor_as_other() -> None:
+    records = [
+        ServiceRequestRecord(
+            service_request_id="blank-descriptor",
+            created_date=date(2025, 1, 1),
+            complaint_type="Noise - Residential",
+            descriptor="",
+            borough="BROOKLYN",
+            community_district="BROOKLYN 01",
+        )
+    ]
+
+    assignments = extract_topics(
+        records, TopicQuery(complaint_type="Noise - Residential")
+    )
+
+    assert len(assignments) == 1
+    assert assignments[0].topic == "other"
+    assert assignments[0].normalized_text == "unspecified"
 
 
 def test_aggregate_by_geography_returns_ranked_counts_for_community_district() -> None:
@@ -113,3 +175,67 @@ def test_aggregate_by_geography_rejects_unsupported_geography() -> None:
 
     with pytest.raises(ValueError, match="postal_code"):
         aggregate_by_geography(assignments, geography="postal_code")
+
+
+def test_analyze_topic_coverage_reports_other_bucket_descriptors() -> None:
+    records = load_service_requests(FIXTURE_PATH)
+
+    coverage = analyze_topic_coverage(records, TopicQuery("Illegal Parking"))
+
+    assert coverage.complaint_type == "Illegal Parking"
+    assert coverage.total_records == 3
+    assert coverage.matched_records == 2
+    assert coverage.other_records == 1
+    assert coverage.coverage_rate == pytest.approx(2 / 3)
+    assert coverage.top_unmatched_descriptors == (
+        ("Truck blocking driveway entrance", 1),
+    )
+
+
+def test_detect_anomalies_returns_scored_results() -> None:
+    summaries = [
+        GeographyTopicSummary(
+            geography="borough",
+            geography_value="BROOKLYN",
+            complaint_type="Noise - Residential",
+            topic="party_music",
+            complaint_count=5,
+            geography_total_count=5,
+            share_of_geography=1.0,
+            topic_rank=1,
+            is_dominant_topic=True,
+        ),
+        GeographyTopicSummary(
+            geography="borough",
+            geography_value="MANHATTAN",
+            complaint_type="Noise - Residential",
+            topic="party_music",
+            complaint_count=6,
+            geography_total_count=6,
+            share_of_geography=1.0,
+            topic_rank=1,
+            is_dominant_topic=True,
+        ),
+        GeographyTopicSummary(
+            geography="borough",
+            geography_value="QUEENS",
+            complaint_type="Noise - Residential",
+            topic="party_music",
+            complaint_count=25,
+            geography_total_count=25,
+            share_of_geography=1.0,
+            topic_rank=1,
+            is_dominant_topic=True,
+        ),
+    ]
+
+    anomalies = detect_anomalies(
+        summaries,
+        AnalysisWindow(days=30),
+        z_threshold=1.4,
+    )
+
+    assert len(anomalies) == 3
+    assert anomalies[0].geography == "borough"
+    assert anomalies[0].window_days == 30
+    assert anomalies[0].is_anomaly is True

@@ -1,4 +1,10 @@
-"""Loader entry points for implemented and planned NYC 311 data sources."""
+"""Load NYC 311-style records and boundary data into typed nyc311 models.
+
+This module contains the implemented ingestion paths for local CSV extracts,
+live Socrata queries, and boundary GeoJSON files. It also retains placeholder
+entry points for planned resolution-data workflows so the public surface stays
+stable as the package grows.
+"""
 
 from __future__ import annotations
 
@@ -11,7 +17,6 @@ from typing import Final
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from ._not_implemented import planned_surface
 from .boundaries import load_boundary_collection
 from .models import (
     BoundaryCollection,
@@ -171,6 +176,9 @@ def _normalize_socrata_row(raw_row: dict[str, object]) -> dict[str, str]:
                 break
 
         if matched_value is None:
+            if canonical_field == "descriptor":
+                normalized_row[canonical_field] = ""
+                continue
             if canonical_field == "resolution_description":
                 continue
             missing_fields.append(canonical_field)
@@ -188,7 +196,7 @@ def _normalize_socrata_row(raw_row: dict[str, object]) -> dict[str, str]:
 def _socrata_select_fields() -> str:
     return (
         "unique_key, created_date, complaint_type, descriptor, borough, "
-        "community_district, community_board, resolution_description"
+        "community_board, resolution_description"
     )
 
 
@@ -206,9 +214,7 @@ def _socrata_where_clauses(service_request_filter: ServiceRequestFilter) -> list
         field = service_request_filter.geography.geography
         value = service_request_filter.geography.value.replace("'", "''")
         if field == "community_district":
-            clauses.append(
-                f"(community_district = '{value}' OR community_board = '{value}')"
-            )
+            clauses.append(f"community_board = '{value}'")
         else:
             clauses.append(f"{field} = '{value}'")
     if service_request_filter.complaint_types:
@@ -330,10 +336,16 @@ def load_service_requests(
     return _apply_filters(loaded_records, service_request_filter)
 
 
-def load_resolution_data(source: str | Path) -> list[object]:
-    """Load or derive resolution-related fields for gap analysis."""
-    del source
-    planned_surface("load_resolution_data()")
+def load_resolution_data(
+    source: str | Path | SocrataConfig,
+    *,
+    filters: ServiceRequestFilter | None = None,
+) -> list[ServiceRequestRecord]:
+    """Load the subset of service requests that already include resolution text."""
+    loaded_records = load_service_requests(source, filters=filters)
+    return [
+        record for record in loaded_records if record.resolution_description is not None
+    ]
 
 
 def load_boundaries(source: str | Path) -> BoundaryCollection:

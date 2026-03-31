@@ -6,7 +6,7 @@
 [![PyPI platforms][pypi-platforms]][pypi-link]
 
 Python toolkit for building reproducible complaint-intelligence outputs from NYC
-311 service-request data.
+311 service-request data through both a thin CLI and a functional SDK.
 
 ## Status
 
@@ -23,11 +23,13 @@ Python toolkit for building reproducible complaint-intelligence outputs from NYC
   - a **CSV topic summary table**
   - a **boundary-backed GeoJSON feature collection**
 - run one thin CLI workflow for the happy path
+- compose the same workflow through a **one-call SDK helper**
+- fetch filtered live Socrata slices into reproducible local CSV snapshots
 
 ### Still planned later
 
 - anomaly detection
-- resolution-gap analysis
+- richer resolution-gap analysis and reporting
 - report-card generation
 - broader report-generation and notebook workflows
 - richer CLI coverage beyond the single happy-path command
@@ -68,50 +70,79 @@ The current rules-based topic extractor is implemented only for:
 This is intentionally described as **first-pass topic extraction**, not
 clustering or advanced NLP.
 
+## Quick links
+
+- Docs home: [`docs/index.md`](docs/index.md)
+- Getting started: [`docs/getting-started.md`](docs/getting-started.md)
+- CLI reference: [`docs/cli.md`](docs/cli.md)
+- SDK guide: [`docs/sdk.md`](docs/sdk.md)
+- Examples: [`docs/examples.md`](docs/examples.md)
+- Architecture: [`docs/architecture.md`](docs/architecture.md)
+- Contributing: [`docs/contributing.md`](docs/contributing.md)
+
 ## Example
 
 ```python
 from datetime import date
 from pathlib import Path
 
-from nyc311 import (
-    ExportTarget,
-    GeographyFilter,
-    ServiceRequestFilter,
-    TopicQuery,
-    aggregate_by_geography,
-    export_topic_table,
-    extract_topics,
-    load_service_requests,
-)
+import nyc311
 
-records = load_service_requests(
-    "tests/fixtures/service_requests_fixture.csv",
-    filters=ServiceRequestFilter(
+records = nyc311.fetch_service_requests(
+    filters=nyc311.ServiceRequestFilter(
         start_date=date(2025, 1, 1),
-        end_date=date(2025, 3, 31),
-        geography=GeographyFilter("community_district", "BROOKLYN 01"),
+        end_date=date(2025, 1, 31),
+        geography=nyc311.GeographyFilter("borough", nyc311.BOROUGH_BROOKLYN),
         complaint_types=("Noise - Residential",),
     ),
+    socrata_config=nyc311.SocrataConfig(page_size=250, max_pages=1),
 )
 
-assignments = extract_topics(records, TopicQuery("Noise - Residential"))
-summary = aggregate_by_geography(assignments, geography="community_district")
+nyc311.export_service_requests_csv(
+    records,
+    nyc311.ExportTarget("csv", Path("brooklyn-noise-snapshot.csv")),
+)
 
-export_topic_table(
+assignments = nyc311.extract_topics(records, nyc311.TopicQuery("Noise - Residential"))
+summary = nyc311.aggregate_by_geography(assignments, geography="community_district")
+nyc311.export_topic_table(
     summary,
-    ExportTarget(format="csv", output_path=Path("brooklyn-noise-topics.csv")),
+    nyc311.ExportTarget("csv", Path("brooklyn-noise-topics.csv")),
 )
 ```
 
 CLI equivalent:
 
 ```bash
+nyc311 fetch \
+  --output brooklyn-noise-snapshot.csv \
+  --complaint-type "Noise - Residential" \
+  --geography borough \
+  --geography-value BROOKLYN \
+  --start-date 2025-01-01 \
+  --end-date 2025-01-31 \
+  --page-size 250 \
+  --max-pages 1
+
 nyc311 topics \
-  --source tests/fixtures/service_requests_fixture.csv \
+  --source brooklyn-noise-snapshot.csv \
   --complaint-type "Noise - Residential" \
   --geography community_district \
   --output brooklyn-noise-topics.csv
+```
+
+Live-data snapshot workflow:
+
+```bash
+nyc311 fetch \
+  --output brooklyn-rodent-snapshot.csv \
+  --complaint-type "Rodent" \
+  --geography borough \
+  --geography-value BROOKLYN \
+  --start-date 2025-01-01 \
+  --end-date 2025-01-31 \
+  --page-size 500 \
+  --max-pages 1
 ```
 
 ## Data assumptions in v0.1
@@ -138,28 +169,49 @@ used in the v0.1 topic rules.
 ### Implemented now
 
 - `nyc311.load_service_requests`
+- `nyc311.fetch_service_requests`
+- `nyc311.load_resolution_data`
 - `nyc311.load_boundaries`
 - `nyc311.extract_topics`
 - `nyc311.aggregate_by_geography`
+- `nyc311.analyze_resolution_gaps`
 - `nyc311.export_topic_table`
 - `nyc311.export_geojson`
-- `nyc311.main` with the `topics` subcommand
+- `nyc311.export_service_requests_csv`
+- `nyc311.run_topic_pipeline`
+- `nyc311.main` with the `topics` and `fetch` subcommands
 - typed models for filters, records, assignments, and summary rows
 
 ### Planned placeholders
 
-- `nyc311.load_resolution_data`
 - `nyc311.detect_anomalies`
-- `nyc311.analyze_resolution_gaps`
 - `nyc311.export_anomalies`
 - `nyc311.export_report_card`
 
-## Seeded sources of truth
+## Documentation
 
-- `docs/notes/original-spec.md`
-- `docs/notes/gap-explination.md`
-- `docs/mvp-roadmap.md`
-- `docs/agent-kickoff-todo.md`
+The main user-facing docs now live in `docs/`:
+
+- `docs/index.md`
+- `docs/getting-started.md`
+- `docs/cli.md`
+- `docs/sdk.md`
+- `docs/examples.md`
+- `docs/api.md`
+- `docs/architecture.md`
+- `docs/contributing.md`
+
+Runnable examples live in `examples/`, including scripts and notebooks.
+
+The original planning docs are preserved under `docs/og-context/` for historical
+context.
+
+## Archived context
+
+- `docs/og-context/notes/original-spec.md`
+- `docs/og-context/notes/gap-explination.md`
+- `docs/og-context/mvp-roadmap.md`
+- `docs/og-context/agent-kickoff-todo.md`
 
 ## Development
 
@@ -170,6 +222,8 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy
 uv run mkdocs serve
+uv run python scripts/audit_implementation.py
+uv run pytest -m fetch
 ```
 
 ## License

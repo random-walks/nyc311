@@ -1,13 +1,23 @@
-"""Top-level package for the implemented v0.1 ``nyc311`` surface."""
+"""Public package surface for the nyc311 CLI and functional SDK."""
 
 from __future__ import annotations
 
 from ._version import version as __version__
 from .cli import main
+from .dataframes import (
+    anomalies_to_dataframe,
+    assignments_to_dataframe,
+    coverage_to_dataframe,
+    dataframe_to_records,
+    gaps_to_dataframe,
+    records_to_dataframe,
+    summaries_to_dataframe,
+)
 from .exporters import (
     export_anomalies,
     export_geojson,
     export_report_card,
+    export_service_requests_csv,
     export_topic_table,
 )
 from .loaders import (
@@ -17,30 +27,51 @@ from .loaders import (
     load_service_requests,
 )
 from .models import (
+    BOROUGH_BRONX,
+    BOROUGH_BROOKLYN,
+    BOROUGH_MANHATTAN,
+    BOROUGH_QUEENS,
+    BOROUGH_STATEN_ISLAND,
+    SUPPORTED_BOROUGHS,
     AnalysisWindow,
+    AnomalyResult,
     BoundaryCollection,
     BoundaryFeature,
     BoundaryGeoJSONExport,
     ExportTarget,
     GeographyFilter,
     GeographyTopicSummary,
+    ResolutionGapSummary,
     ServiceRequestFilter,
     ServiceRequestRecord,
     SocrataConfig,
     TopicAssignment,
+    TopicCoverageReport,
     TopicQuery,
+    normalize_borough_name,
     supported_topic_queries,
 )
+from .pipeline import fetch_service_requests, run_topic_pipeline
 from .processors import (
+    DEFAULT_TOPIC_RULES,
     aggregate_by_geography,
     analyze_resolution_gaps,
+    analyze_topic_coverage,
     detect_anomalies,
     extract_topics,
+    register_topic_rules,
 )
 
 __all__ = [
     "__version__",
     "AnalysisWindow",
+    "AnomalyResult",
+    "DEFAULT_TOPIC_RULES",
+    "BOROUGH_BRONX",
+    "BOROUGH_BROOKLYN",
+    "BOROUGH_MANHATTAN",
+    "BOROUGH_QUEENS",
+    "BOROUGH_STATEN_ISLAND",
     "BoundaryCollection",
     "BoundaryFeature",
     "BoundaryGeoJSONExport",
@@ -48,22 +79,38 @@ __all__ = [
     "GeographyFilter",
     "GeographyTopicSummary",
     "REQUIRED_SERVICE_REQUEST_COLUMNS",
+    "ResolutionGapSummary",
     "SocrataConfig",
     "ServiceRequestFilter",
     "ServiceRequestRecord",
+    "SUPPORTED_BOROUGHS",
     "TopicAssignment",
+    "TopicCoverageReport",
     "TopicQuery",
     "aggregate_by_geography",
+    "analyze_topic_coverage",
     "analyze_resolution_gaps",
+    "anomalies_to_dataframe",
+    "assignments_to_dataframe",
+    "coverage_to_dataframe",
+    "dataframe_to_records",
     "detect_anomalies",
     "export_anomalies",
     "export_geojson",
     "export_report_card",
+    "export_service_requests_csv",
     "export_topic_table",
+    "fetch_service_requests",
     "extract_topics",
+    "gaps_to_dataframe",
     "load_boundaries",
     "load_resolution_data",
     "load_service_requests",
     "main",
+    "normalize_borough_name",
+    "records_to_dataframe",
+    "register_topic_rules",
+    "run_topic_pipeline",
+    "summaries_to_dataframe",
     "supported_topic_queries",
 ]

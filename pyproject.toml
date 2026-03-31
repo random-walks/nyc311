@@ -40,11 +40,20 @@ Homepage = "https://github.com/random-walks/nyc311"
 Discussions = "https://github.com/random-walks/nyc311/discussions"
 Changelog = "https://github.com/random-walks/nyc311/releases"
 
+[project.optional-dependencies]
+science = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "scipy>=1.15.3",
+]
+
 
 [dependency-groups]
 test = [
   "pytest >=9",
   "pytest-cov >=7",
+  "typing-extensions >=4.0",
 ]
 dev = [
   { include-group = "test" },
@@ -59,6 +68,9 @@ docs = [
     "mkdocs>=1.1.2",
     "mkdocstrings-python>=1.18.2",
     "pyyaml>=6.0.1",
+]
+notebooks = [
+    "ipykernel>=7.2.0",
 ]
 
 
@@ -78,6 +90,12 @@ env-vars.PYTHONWARNDEFAULTENCODING = "1"
 minversion = "9.0"
 addopts = ["-ra", "--showlocals"]
 strict = true
+markers = [
+  "unit: fast local tests for package development",
+  "fetch: tests focused on CSV or Socrata data fetching behavior",
+  "integration: heavier workflow or live-service tests",
+  "network: tests that reach external services",
+]
 filterwarnings = [
   "error",
 ]
@@ -168,6 +186,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]
 "noxfile.py" = ["EXE001", "T20"]
+"examples/scripts/**" = ["T20"]
 "docs/examples/**" = ["T20"]
 
 
