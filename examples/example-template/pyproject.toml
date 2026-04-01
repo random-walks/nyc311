@@ -1,0 +1,13 @@
+[project]
+name = "nyc311-example-template"
+version = "0.0.0"
+description = "Bootstrap template for self-contained nyc311 examples."
+requires-python = ">=3.10"
+# Replace `nyc311` with the extras your copied example actually needs, such as:
+# - `nyc311[dataframes]`
+# - `nyc311[plotting]`
+# - `nyc311[spatial,plotting]`
+dependencies = ["nyc311"]
+
+[tool.uv.sources]
+nyc311 = { path = "../..", editable = true }

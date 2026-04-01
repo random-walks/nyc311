@@ -13,12 +13,17 @@ Every example follows the same structure:
 - one local `README.md`
 - one local `.gitignore`
 - one `main.py` entrypoint
-- local `cache/` and `artifacts/` directories created on demand
+- local `cache/` and ignored `artifacts/` directories created on demand
+- optional tracked `reports/` for markdown and report figures that should ship
+  with the example
 
 Each example imports only `nyc311.*`, so it exercises the package the same way
 an external user would. In the repo, that happens through a local editable path
 dependency. Outside the repo, the same scripts work after installing `nyc311`
 from PyPI with the listed extras.
+
+The canonical bootstrap starting point for new examples is
+`examples/example-template/`.
 
 ## Overview
 
@@ -57,6 +62,16 @@ uv run python main.py
 
 Examples are intentionally not executed in the main CI or test matrix. The
 package itself remains the tested release surface.
+
+## Bootstrap Template
+
+When adding a new example, start from `examples/example-template/`. It captures
+the current conventions for:
+
+- uv path-dependency setup
+- ignored `cache/` and `artifacts/`
+- tracked `reports/` and `reports/figures/`
+- explicit relative markdown image paths like `./figures/example-chart.png`
 
 ## Snapshot-First Pattern
 

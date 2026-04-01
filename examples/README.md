@@ -9,6 +9,8 @@ directory.
 Every example lives in its own semantic-slug folder such as
 `examples/quickstart-sdk/`.
 
+The canonical starting point for new work is `examples/example-template/`.
+
 Each example must:
 
 - include its own `pyproject.toml`
@@ -16,7 +18,10 @@ Each example must:
 - include its own `.gitignore`
 - provide a single `main.py` entrypoint
 - import only `nyc311.*` as an installed package
-- keep caches under `cache/` and rendered outputs under `artifacts/`
+- keep caches under `cache/`
+- keep scratch and intermediate outputs under ignored `artifacts/`
+- use an optional tracked `reports/` folder for markdown and report figures that
+  should stay in git
 - avoid shared cross-example `utils/`, `data/`, or `output/` directories
 - run in memory by default, with local cache reuse for heavier live-fetch flows
 
@@ -42,6 +47,16 @@ They are consumer references, not package fixtures.
 - `examples/spatial-topic-comparison/`: grouped complaint comparison after
   spatial enrichment
 - `examples/boundary-qa/`: boundary geometry QA and join-coverage sanity check
+
+## Bootstrap Template
+
+Use `examples/example-template/` when creating a new example folder. It
+captures the current conventions for:
+
+- local editable uv wiring
+- `cache/` vs `artifacts/` vs tracked `reports/`
+- report figure path conventions
+- question-driven example design
 
 ## Local Repo Usage
 
