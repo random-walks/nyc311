@@ -1,0 +1,9 @@
+[project]
+name = "nyc311-example-quickstart-sdk"
+version = "0.0.0"
+description = "Self-contained nyc311 SDK quickstart example."
+requires-python = ">=3.10"
+dependencies = ["nyc311"]
+
+[tool.uv.sources]
+nyc311 = { path = "../..", editable = true }

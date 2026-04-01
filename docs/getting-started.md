@@ -23,7 +23,7 @@ For pandas-backed dataframe helpers, install:
 pip install "nyc311[dataframes]"
 ```
 
-For notebook and plotting workflows without the geospatial stack, install:
+For plotting and exploratory analysis without the geospatial stack, install:
 
 ```bash
 pip install "nyc311[science]"
@@ -219,5 +219,5 @@ Use `nyc311.models.supported_topic_queries()` to inspect that list from code.
 
 - Use [CLI Reference](cli.md) to see every current flag and option.
 - Use [SDK Guide](sdk.md) to compose custom workflows.
-- Use [Examples](examples.md) for copy-paste scripts and notebooks.
+- Use [Examples](examples.md) for self-contained consumer projects.
 - Use [Architecture](architecture.md) if you are extending the package.

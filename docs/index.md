@@ -6,7 +6,7 @@ reproducible complaint-intelligence outputs.
 It is designed for two complementary use cases:
 
 - a thin CLI for repeatable batch runs
-- a functional SDK for notebooks, scripts, and data workflows
+- a functional SDK for scripts, interactive analysis, and data workflows
 
 These docs track the current `0.2` alpha prerelease line for the branch.
 
@@ -43,7 +43,7 @@ For pandas-backed conversion helpers:
 pip install "nyc311[dataframes]"
 ```
 
-For notebook and plotting workflows without the geospatial stack:
+For plotting and exploratory analysis without the geospatial stack:
 
 ```bash
 pip install "nyc311[science]"
@@ -115,9 +115,9 @@ pip install "nyc311[science]"
 - Start with [Getting Started](getting-started.md) for installation and first
   runs.
 - Use [CLI Reference](cli.md) for repeatable command-line usage.
-- Use [SDK Guide](sdk.md) for notebook and workflow-oriented usage.
-- Use [Examples](examples.md) for scripts, notebooks, and staged fetch
-  workflows.
+- Use [SDK Guide](sdk.md) for script and workflow-oriented usage.
+- Use [Examples](examples.md) for self-contained consumer projects and staged
+  fetch workflows.
 - Use [API Reference](api.md) for the complete public package surface.
 - Use [Architecture](architecture.md) if you are maintaining or extending the
   project.

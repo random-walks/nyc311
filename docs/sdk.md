@@ -1,7 +1,7 @@
 # SDK Guide
 
-`nyc311` is usable as a functional SDK for notebooks, scripts, scheduled jobs,
-and data-processing workflows.
+`nyc311` is usable as a functional SDK for scripts, scheduled jobs, interactive
+analysis, and data-processing workflows.
 
 This guide describes the SDK surface for the current `0.2` alpha prerelease
 line.
@@ -220,6 +220,7 @@ Boundary files must currently include:
 - `nyc311.dataframes`
 - `nyc311.spatial`
 - `nyc311.plotting`
+- `nyc311.presets`
 
 ## When To Use The CLI Instead
 
@@ -232,6 +233,6 @@ Use the CLI when you want:
 Use the SDK when you want:
 
 - Socrata ingestion
-- notebooks or workflow orchestration
+- interactive analysis or workflow orchestration
 - custom filtering, branching, or intermediate inspection
 - direct access to typed objects instead of files alone

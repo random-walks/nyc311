@@ -1,76 +1,74 @@
 # Examples
 
-This folder contains copy-paste starting points for the `nyc311` CLI and SDK.
+`examples/` now contains self-contained consumer projects instead of a shared
+mix of scripts, notebooks, repo-local utilities, and one global output
+directory.
 
-## Layout
+## Contract
 
-- `data/`: small offline demo datasets for geography-forward examples
-- `scripts/quickstart_csv.py`: fetch live data, analyze it in memory, and write
-  a first topic-summary CSV
-- `scripts/fetch_filtered_snapshot.py`: fetch a filtered Socrata slice and save
-  it as a reproducible local CSV snapshot, or skip export and inspect records in
-  memory only
-- `scripts/community_district_case_study.py`: a small case study / EDA-style
-  workflow over a larger Brooklyn live sample
-- `scripts/topic_eda.py`: raw-data audit workflow for topic coverage, anomalies,
-  and report-card output
-- `scripts/borough_choropleth.py`: offline borough-level categorical choropleth
-  from the demo spatial dataset
-- `scripts/point_to_boundary_join.py`: offline point-in-polygon join example
-- `notebooks/quickstart_sdk.ipynb`: notebook version of the SDK quickstart
-- `notebooks/community_district_case_study.ipynb`: notebook Brooklyn EDA case
-  study
-- `notebooks/topic_eda.ipynb`: notebook version of the topic-coverage audit
-- `notebooks/community_district_choropleth.ipynb`: offline district-level map
-- `notebooks/spatial_topic_comparison.ipynb`: offline joined-topic comparison
-- `notebooks/boundary_qa.ipynb`: quick QA pass over the demo boundary files
-- `utils/`: shared helpers for paths, filters, plotting, display, and geo maps
+Every example lives in its own semantic-slug folder such as
+`examples/quickstart-sdk/`.
 
-## Best-Practice Workflow For Large Datasets
+Each example must:
 
-For larger datasets, the cleanest data-science workflow is:
+- include its own `pyproject.toml`
+- include its own `README.md`
+- include its own `.gitignore`
+- provide a single `main.py` entrypoint
+- import only `nyc311.*` as an installed package
+- keep caches under `cache/` and rendered outputs under `artifacts/`
+- avoid shared cross-example `utils/`, `data/`, or `output/` directories
+- run in memory by default, with local cache reuse for heavier live-fetch flows
 
-1. filter as early as possible at the source
-2. fetch a local snapshot for reproducibility
-3. keep large snapshots out of git
-4. do iterative EDA and modeling against the local snapshot, not the live API
+Examples are intentionally not part of the main test matrix or CI runtime path.
+They are consumer references, not package fixtures.
 
-In practical `nyc311` terms:
+## Inventory
 
-- use `nyc311.fetch_service_requests(...)` or `nyc311 fetch`
-- start with `--max-pages` during development
-- save the snapshot outside the repo or under an ignored local data directory
-- rerun the same CLI/SDK logic against the cached CSV when iterating
+- `examples/quickstart-sdk/`: zero-network SDK quickstart over packaged sample
+  records
+- `examples/fetch-filtered-snapshot/`: live fetch to a local example-owned CSV
+  cache
+- `examples/community-district-case-study/`: larger Brooklyn case study with a
+  reusable local cache
+- `examples/topic-eda/`: topic coverage, anomaly checks, and markdown report
+  generation
+- `examples/borough-choropleth/`: borough-level choropleth over packaged sample
+  records
+- `examples/point-to-boundary-join/`: raw point-in-polygon join preview with
+  local artifacts
+- `examples/community-district-choropleth/`: community-district dominant-topic
+  choropleth
+- `examples/spatial-topic-comparison/`: grouped complaint comparison after
+  spatial enrichment
+- `examples/boundary-qa/`: boundary geometry QA and join-coverage sanity check
 
-## Running The Scripts
+## Local Repo Usage
 
-From the repo root:
-
-```bash
-uv run python examples/scripts/quickstart_csv.py
-uv run python examples/scripts/community_district_case_study.py
-uv run python examples/scripts/topic_eda.py
-```
-
-To fetch a live snapshot:
+Each example is its own uv project. From an example folder:
 
 ```bash
-uv run python examples/scripts/fetch_filtered_snapshot.py --help
+uv sync
+uv run python main.py
 ```
 
-To run the offline spatial demos:
+The local `pyproject.toml` points to the repo root as an editable path
+dependency, so the example imports `nyc311` exactly the way an external
+consumer would while still tracking local source edits.
 
-```bash
-uv sync --extra spatial --extra science
-uv run python examples/scripts/borough_choropleth.py
-uv run python examples/scripts/point_to_boundary_join.py
-```
+## Public Consumer Shape
 
-## Notes
+These examples are written so the same `main.py` files also work outside the
+repo after installing `nyc311` from PyPI with the documented extras for that
+example.
 
-These examples intentionally start from no local data. They fetch a live Socrata
-slice first, then analyze that in memory or export a snapshot if needed.
+## Caching Policy
 
-The new geography-forward examples also ship with a tiny offline dataset under
-`examples/data/` so you can try the spatial helpers without relying on a live
-API call.
+The examples follow one runtime pattern:
+
+1. load packaged sample data directly when that is enough to teach the feature
+2. for heavier live-fetch stories, reuse an example-local cached snapshot when
+   present
+3. only refetch large inputs when the user explicitly asks to refresh the cache
+
+That keeps runs fast, reproducible, and self-contained.

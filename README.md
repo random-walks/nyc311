@@ -48,7 +48,7 @@ For pandas-backed conversion helpers:
 pip install "nyc311[dataframes]"
 ```
 
-For notebook and plotting workflows without the geospatial stack:
+For plotting and exploratory analysis without the geospatial stack:
 
 ```bash
 pip install "nyc311[science]"
@@ -196,6 +196,7 @@ The current public package surface is organized around explicit namespaces:
 - `nyc311.dataframes` for optional pandas conversions
 - `nyc311.spatial` for optional geopandas helpers
 - `nyc311.plotting` for optional plotting helpers
+- `nyc311.presets` for reusable filter and Socrata config builders
 - `nyc311.cli` with the `topics` and `fetch` subcommands
 
 ## Documentation
@@ -215,7 +216,7 @@ If you are browsing in GitHub, the docs source lives in `docs/`:
 - `docs/architecture.md`
 - `docs/contributing.md`
 
-Runnable examples live in `examples/`, including scripts and notebooks.
+Runnable examples live in `examples/` as self-contained consumer projects.
 
 For local preview:
 

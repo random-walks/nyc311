@@ -1,0 +1,9 @@
+[project]
+name = "nyc311-example-spatial-topic-comparison"
+version = "0.0.0"
+description = "Self-contained nyc311 spatial topic comparison example."
+requires-python = ">=3.10"
+dependencies = ["nyc311[spatial,plotting]"]
+
+[tool.uv.sources]
+nyc311 = { path = "../..", editable = true }

@@ -53,6 +53,10 @@ reference structure by hand.
 
 ::: nyc311.plotting
 
+## Presets
+
+::: nyc311.presets
+
 ## CLI
 
 ::: nyc311.cli

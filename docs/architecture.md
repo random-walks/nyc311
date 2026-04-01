@@ -39,6 +39,7 @@ flowchart LR
 | `nyc311.dataframes`  | Optional pandas conversions for typed nyc311 models                |
 | `nyc311.spatial`     | Optional geopandas spatial helpers and joins                       |
 | `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers   |
+| `nyc311.presets`     | Reusable filter and Socrata config builders for common workflows   |
 | `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path              |
 | `nyc311.cli`         | Argparse-powered fetch and analysis entry points                   |
 
@@ -46,7 +47,7 @@ flowchart LR
 
 - Keep the implemented surface explicit and namespaced.
 - Prefer typed inputs and outputs over implicit dictionaries.
-- Make the SDK composable for workflows and notebooks.
+- Make the SDK composable for scripts, workflows, and interactive analysis.
 - Ship turnkey NYC geography layers as library-owned packaged resources.
 - Keep the CLI thin by delegating real work to importable functions.
 - Keep optional dependency boundaries explicit for dataframe, spatial, and
@@ -67,7 +68,7 @@ flowchart LR
 - optional pandas dataframe conversion helpers
 - packaged NYC borough, community-district, council-district, NTA, ZCTA, and
   census-tract boundary layers
-- packaged sample service-request and boundary loaders for notebook workflows
+- packaged sample service-request and boundary loaders for example workflows
 - optional in-memory boundary plotting helpers
 - a one-call SDK pipeline helper
 - thin CLI fetch and export paths

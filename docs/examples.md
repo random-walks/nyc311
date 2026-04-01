@@ -1,56 +1,66 @@
 # Examples
 
-The repository ships quickstart scripts and notebooks in `examples/`.
+`nyc311` examples now live as self-contained consumer projects under
+`examples/`. There are no repo-level example notebooks, no shared
+`examples/utils/`, and no shared `examples/output/`.
 
-These examples match the current `0.2` alpha prerelease surface on this branch.
+## Contract
 
-## Included Examples
+Every example follows the same structure:
 
-- `examples/scripts/quickstart_csv.py`
-- `examples/scripts/fetch_filtered_snapshot.py`
-- `examples/scripts/community_district_case_study.py`
-- `examples/scripts/topic_eda.py`
-- `examples/scripts/borough_choropleth.py`
-- `examples/scripts/point_to_boundary_join.py`
-- `examples/notebooks/quickstart_sdk.ipynb`
-- `examples/notebooks/community_district_case_study.ipynb`
-- `examples/notebooks/topic_eda.ipynb`
-- `examples/notebooks/community_district_choropleth.ipynb`
-- `examples/notebooks/spatial_topic_comparison.ipynb`
-- `examples/notebooks/boundary_qa.ipynb`
+- one semantic-slug folder under `examples/`
+- one local `pyproject.toml`
+- one local `README.md`
+- one local `.gitignore`
+- one `main.py` entrypoint
+- local `cache/` and `artifacts/` directories created on demand
 
-The notebooks are now pure in-memory consumers of `nyc311` APIs. They use:
+Each example imports only `nyc311.*`, so it exercises the package the same way
+an external user would. In the repo, that happens through a local editable path
+dependency. Outside the repo, the same scripts work after installing `nyc311`
+from PyPI with the listed extras.
 
-- `nyc311.samples.load_sample_service_requests()`
-- `nyc311.samples.load_sample_boundaries()`
-- packaged NYC boundary layers exposed via
-  `nyc311.geographies.load_nyc_boundaries*()`
-- in-memory plotting helpers such as `nyc311.plotting.plot_boundary_preview()`
+## Overview
 
-The packaged geography catalog now includes boroughs, community districts, city
-council districts, neighborhood tabulation areas, MODZCTAs, and census tracts.
+| Example | Focus | Default data mode | Extra | Cache | Artifacts | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| `examples/quickstart-sdk/` | first in-memory SDK walkthrough | packaged sample records | base | no | CSV summary | implemented |
+| `examples/fetch-filtered-snapshot/` | filtered Socrata fetch and local snapshot reuse | live fetch with local cache reuse | base | yes | CSV snapshot | implemented |
+| `examples/community-district-case-study/` | Brooklyn case study with topic and resolution summaries | cache-backed live slice | base | yes | CSV summary | implemented |
+| `examples/topic-eda/` | coverage audit, anomalies, and markdown report card | cache-backed live slice | `dataframes` | yes | markdown report | implemented |
+| `examples/borough-choropleth/` | borough-level dominant-topic map | packaged sample records | `spatial,plotting` | no | PNG map | implemented |
+| `examples/point-to-boundary-join/` | raw point-to-boundary join preview | packaged sample records | `spatial,plotting` | no | CSV join + PNG preview | implemented |
+| `examples/community-district-choropleth/` | district-level dominant-topic map | packaged sample records | `spatial,plotting` | no | PNG map | implemented |
+| `examples/spatial-topic-comparison/` | grouped complaint comparison after spatial enrichment | packaged sample records | `spatial,plotting` | no | CSV comparison + PNG preview | implemented |
+| `examples/boundary-qa/` | boundary geometry QA and join coverage | packaged sample records | `spatial,plotting` | no | CSV summary + PNG preview | implemented |
 
-The file-oriented `examples/data/` and `examples/utils/` helpers remain
-available for scripts and ad hoc exploration, but notebooks no longer depend on
-them.
+## Data And Cache Strategy
 
-## Recommended Workflow For Large Datasets
+The examples follow one default runtime story:
 
-For larger data-science workflows:
+1. run in memory whenever packaged sample data is enough
+2. when a story needs more data, write a cache file inside that example folder
+3. reuse that local cache on later runs instead of refetching by default
+4. keep all rendered outputs inside the same example folder
 
-1. fetch a narrow live slice from Socrata
-2. save it as a local CSV snapshot
-3. iterate on analysis against the local file
-4. keep large artifacts out of git
+That pattern keeps examples reproducible without reintroducing one shared global
+dump directory.
 
-That pattern is easier to debug, easier to reproduce, and friendlier to the
-Socrata API than pulling large live datasets for every notebook run. The
-library-owned sample loaders provide the same reproducible workflow for notebook
-examples that should run without local file setup.
+## Local Repo Usage
 
-## Start With A Snapshot
+From any example folder:
 
-The CLI now supports:
+```bash
+uv sync
+uv run python main.py
+```
+
+Examples are intentionally not executed in the main CI or test matrix. The
+package itself remains the tested release surface.
+
+## Snapshot-First Pattern
+
+For larger workflows, fetch once and then iterate against a local snapshot:
 
 ```bash
 nyc311 fetch \
@@ -64,7 +74,7 @@ nyc311 fetch \
   --max-pages 2
 ```
 
-Then run your local analysis against that snapshot:
+Then point analysis at the saved file:
 
 ```bash
 nyc311 topics \
@@ -74,24 +84,4 @@ nyc311 topics \
   --output topics.csv
 ```
 
-## Running Repo Examples
-
-From the repo root:
-
-```bash
-uv sync --all-groups --all-extras
-uv run python examples/scripts/quickstart_csv.py
-uv run python examples/scripts/community_district_case_study.py
-uv run python examples/scripts/fetch_filtered_snapshot.py
-uv run python examples/scripts/topic_eda.py
-uv run python examples/scripts/borough_choropleth.py
-uv run python examples/scripts/point_to_boundary_join.py
-```
-
-The examples work best with the turnkey `all` extra:
-
-```bash
-pip install "nyc311[all]"
-```
-
-For contributor workflows, `make install` already syncs all groups and extras.
+That same pattern is mirrored inside the cache-backed example projects.

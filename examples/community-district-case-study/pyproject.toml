@@ -1,0 +1,9 @@
+[project]
+name = "nyc311-example-community-district-case-study"
+version = "0.0.0"
+description = "Self-contained nyc311 community district case study."
+requires-python = ">=3.10"
+dependencies = ["nyc311"]
+
+[tool.uv.sources]
+nyc311 = { path = "../..", editable = true }

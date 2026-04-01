@@ -14,6 +14,7 @@ from nyc311 import (
     models,
     pipeline,
     plotting,
+    presets,
     samples,
     spatial,
 )
@@ -113,6 +114,10 @@ def test_public_namespaces_expose_current_contract() -> None:
     assert callable(samples.load_sample_service_requests)
     assert callable(plotting.plot_boundary_choropleth)
     assert callable(plotting.plot_boundary_preview)
+    assert callable(presets.build_filter)
+    assert callable(presets.brooklyn_borough_filter)
+    assert callable(presets.manhattan_borough_filter)
+    assert callable(presets.small_socrata_config)
     assert callable(dataframes.records_to_dataframe)
     assert callable(spatial.records_to_geodataframe)
     assert callable(pipeline.run_topic_pipeline)

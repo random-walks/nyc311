@@ -97,8 +97,8 @@ Docs are built with MkDocs Material and live in `docs/`.
 The hosted site is [nyc311.readthedocs.io](https://nyc311.readthedocs.io/), and
 the source for that site lives in `docs/`.
 
-The repo also includes runnable scripts and notebooks under `examples/`, but the
-canonical narrative docs live in `docs/`.
+The repo also includes runnable self-contained consumer projects under
+`examples/`, but the canonical narrative docs live in `docs/`.
 
 For local docs work:
 

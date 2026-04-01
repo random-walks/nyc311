@@ -132,4 +132,4 @@ nyc311 fetch \
 
 - Use [Getting Started](getting-started.md) for the fastest happy-path run.
 - Use [SDK Guide](sdk.md) when you need workflow-style Python composition.
-- Use [Examples](examples.md) for copy-paste scripts and notebooks.
+- Use [Examples](examples.md) for self-contained consumer projects.
