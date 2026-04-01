@@ -57,12 +57,10 @@ def format_borough_list(values: list[str]) -> str:
     return f"{', '.join(values[:-1])}, and {values[-1]}"
 
 
-def sampled_snapshot_rows(snapshot_rows: list[dict[str, object]]) -> list[dict[str, object]]:
-    return [
-        row
-        for row in snapshot_rows
-        if int(row["geography_total_count"]) > 0
-    ]
+def sampled_snapshot_rows(
+    snapshot_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    return [row for row in snapshot_rows if int(row["geography_total_count"]) > 0]
 
 
 def build_report_rows() -> tuple[
@@ -102,8 +100,12 @@ def build_report_rows() -> tuple[
         dominant_summaries,
         boundaries_gdf=all_boroughs,
     )
-    dominant_map["complaint_count"] = dominant_map["complaint_count"].fillna(0).astype(int)
-    dominant_map["geography_total_count"] = dominant_map["geography_total_count"].fillna(0).astype(int)
+    dominant_map["complaint_count"] = (
+        dominant_map["complaint_count"].fillna(0).astype(int)
+    )
+    dominant_map["geography_total_count"] = (
+        dominant_map["geography_total_count"].fillna(0).astype(int)
+    )
     dominant_map["share_of_geography"] = dominant_map["share_of_geography"].fillna(0.0)
 
     topic_totals = Counter(summary.topic for summary in borough_summaries)
@@ -131,17 +133,31 @@ def build_report_rows() -> tuple[
             (summary for summary in borough_rows if summary.topic == "party_music"),
             None,
         )
-        topic_shares = {summary.topic: summary.share_of_geography for summary in borough_rows}
-        topic_counts = {summary.topic: summary.complaint_count for summary in borough_rows}
+        topic_shares = {
+            summary.topic: summary.share_of_geography for summary in borough_rows
+        }
+        topic_counts = {
+            summary.topic: summary.complaint_count for summary in borough_rows
+        }
         snapshot_rows.append(
             {
                 "geography_value": borough,
                 "geography_total_count": total_count,
-                "dominant_topic": dominant_row.topic if dominant_row is not None else None,
-                "dominant_count": dominant_row.complaint_count if dominant_row is not None else 0,
-                "dominant_share": dominant_row.share_of_geography if dominant_row is not None else 0.0,
-                "party_music_count": party_music_row.complaint_count if party_music_row is not None else 0,
-                "party_music_share": party_music_row.share_of_geography if party_music_row is not None else 0.0,
+                "dominant_topic": dominant_row.topic
+                if dominant_row is not None
+                else None,
+                "dominant_count": dominant_row.complaint_count
+                if dominant_row is not None
+                else 0,
+                "dominant_share": dominant_row.share_of_geography
+                if dominant_row is not None
+                else 0.0,
+                "party_music_count": party_music_row.complaint_count
+                if party_music_row is not None
+                else 0,
+                "party_music_share": party_music_row.share_of_geography
+                if party_music_row is not None
+                else 0.0,
                 "topic_shares": topic_shares,
                 "topic_counts": topic_counts,
             }
@@ -212,7 +228,9 @@ def build_map_figure(dominant_map: object) -> object:
     return figure
 
 
-def build_party_music_intensity_figure(snapshot_rows: list[dict[str, object]]) -> object:
+def build_party_music_intensity_figure(
+    snapshot_rows: list[dict[str, object]],
+) -> object:
     plt = require_matplotlib()
     percent_formatter = import_module("matplotlib.ticker").PercentFormatter
     plot_rows = sorted(
@@ -276,11 +294,7 @@ def build_topic_mix_facets_figure(
     axes_list = [axes] if len(sampled_rows) == 1 else list(axes)
     colormap = require_matplotlib().get_cmap("Set2", len(topic_order))
     topic_colors = {
-        topic: (
-            "#7c3aed"
-            if topic == "party_music"
-            else colormap(index)
-        )
+        topic: ("#7c3aed" if topic == "party_music" else colormap(index))
         for index, topic in enumerate(topic_order)
     }
 
@@ -348,11 +362,15 @@ def write_report(
     ]
     top_party_share = max(float(row["party_music_share"]) for row in sampled_rows)
     top_party_rows = [
-        row for row in sampled_rows if float(row["party_music_share"]) == top_party_share
+        row
+        for row in sampled_rows
+        if float(row["party_music_share"]) == top_party_share
     ]
     bottom_party_share = min(float(row["party_music_share"]) for row in sampled_rows)
     bottom_party_rows = [
-        row for row in sampled_rows if float(row["party_music_share"]) == bottom_party_share
+        row
+        for row in sampled_rows
+        if float(row["party_music_share"]) == bottom_party_share
     ]
     strongest_dominance = max(
         sampled_rows,

@@ -922,7 +922,7 @@ test = [
 ]
 
 [[package]]
-name = "nyc311-example-boundary-qa"
+name = "nyc311-example-spatial-join-qa"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [

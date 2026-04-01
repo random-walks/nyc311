@@ -73,25 +73,25 @@ def write_report(
         "| District | Total complaints | Dominant topic | Dominant share |",
         "| --- | --- | --- | --- |",
     ]
-    for summary in sorted(
-        dominant_topics,
-        key=lambda item: (
-            -item.geography_total_count,
-            item.geography_value,
-        ),
-    ):
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    summary.geography_value,
-                    str(summary.geography_total_count),
-                    format_topic_name(summary.topic),
-                    f"{summary.share_of_geography:.1%}",
-                ]
-            )
-            + " |"
+    lines.extend(
+        "| "
+        + " | ".join(
+            [
+                summary.geography_value,
+                str(summary.geography_total_count),
+                format_topic_name(summary.topic),
+                f"{summary.share_of_geography:.1%}",
+            ]
         )
+        + " |"
+        for summary in sorted(
+            dominant_topics,
+            key=lambda item: (
+                -item.geography_total_count,
+                item.geography_value,
+            ),
+        )
+    )
     report_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return report_file
 

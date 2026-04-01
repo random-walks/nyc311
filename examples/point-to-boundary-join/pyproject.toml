@@ -1,9 +1,0 @@
-[project]
-name = "nyc311-example-point-to-boundary-join"
-version = "0.0.0"
-description = "Self-contained nyc311 point to boundary join example."
-requires-python = ">=3.10"
-dependencies = ["nyc311[spatial,plotting]"]
-
-[tool.uv.sources]
-nyc311 = { path = "../..", editable = true }

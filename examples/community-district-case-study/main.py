@@ -161,7 +161,9 @@ def build_resolution_rows(
 def build_noise_snapshot_rows(
     summaries: list[models.GeographyTopicSummary],
 ) -> list[dict[str, object]]:
-    summaries_by_district: dict[str, list[models.GeographyTopicSummary]] = defaultdict(list)
+    summaries_by_district: dict[str, list[models.GeographyTopicSummary]] = defaultdict(
+        list
+    )
     for summary in summaries:
         summaries_by_district[summary.geography_value].append(summary)
 
@@ -188,7 +190,9 @@ def build_noise_snapshot_rows(
                 "dominant_count": dominant_summary.complaint_count,
                 "dominant_share": dominant_summary.share_of_geography,
                 "party_music_count": (
-                    0 if party_music_summary is None else party_music_summary.complaint_count
+                    0
+                    if party_music_summary is None
+                    else party_music_summary.complaint_count
                 ),
                 "party_music_share": (
                     0.0
@@ -207,7 +211,9 @@ def build_noise_snapshot_rows(
     )
 
 
-def build_district_volume_figure(district_volume_rows: list[dict[str, object]]) -> object:
+def build_district_volume_figure(
+    district_volume_rows: list[dict[str, object]],
+) -> object:
     plt = require_matplotlib()
     plot_rows = sorted(
         district_volume_rows[:10],
@@ -367,10 +373,7 @@ def write_report(
             f"`{weakest_complaint_resolution['complaint_type']}` at "
             f"`{float(weakest_complaint_resolution['unresolved_share']):.1%}` unresolved."
         ),
-        (
-            f"- Report source: `{source}` using cache file "
-            f"`cache/{snapshot_path.name}`."
-        ),
+        (f"- Report source: `{source}` using cache file `cache/{snapshot_path.name}`."),
         "",
         "## District Volume",
         "",
@@ -389,10 +392,10 @@ def write_report(
         "| Complaint type | Count | Share of slice |",
         "| --- | --- | --- |",
     ]
-    for row in complaint_type_rows[:10]:
-        lines.append(
-            f"| {row['complaint_type']} | {int(row['count'])} | {float(row['share']):.1%} |"
-        )
+    lines.extend(
+        f"| {row['complaint_type']} | {int(row['count'])} | {float(row['share']):.1%} |"
+        for row in complaint_type_rows[:10]
+    )
     lines.extend(
         [
             "",
@@ -430,19 +433,19 @@ def write_report(
             "| --- | --- | --- | --- |",
         ]
     )
-    for row in district_resolution_rows[:10]:
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    str(row["district"]),
-                    str(int(row["unresolved_count"])),
-                    str(int(row["total_count"])),
-                    f"{float(row['unresolved_share']):.1%}",
-                ]
-            )
-            + " |"
+    lines.extend(
+        "| "
+        + " | ".join(
+            [
+                str(row["district"]),
+                str(int(row["unresolved_count"])),
+                str(int(row["total_count"])),
+                f"{float(row['unresolved_share']):.1%}",
+            ]
         )
+        + " |"
+        for row in district_resolution_rows[:10]
+    )
     report_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return report_file
 
@@ -482,7 +485,9 @@ def main() -> None:
         record for record in records if record.complaint_type == "Noise - Residential"
     ]
     if not noise_records:
-        raise RuntimeError("The case-study slice did not contain Noise - Residential rows.")
+        raise RuntimeError(
+            "The case-study slice did not contain Noise - Residential rows."
+        )
 
     assignments = analysis.extract_topics(
         noise_records,
@@ -587,7 +592,9 @@ def main() -> None:
     print(f"Wrote district resolution summary: {district_resolution_path}")
     print(f"Wrote complaint resolution summary: {complaint_resolution_path}")
     if report_file is None:
-        print("Skipped tracked report generation. Re-run with --publish-report to update reports/.")
+        print(
+            "Skipped tracked report generation. Re-run with --publish-report to update reports/."
+        )
     else:
         print(f"Wrote tracked volume chart: {volume_chart_path}")
         print(f"Wrote tracked party-music chart: {party_chart_path}")

@@ -30,8 +30,8 @@ They are consumer references, not package fixtures.
 
 ## Start Here
 
-If you just want the smoothest first run across the report-rich examples, install
-the full optional stack once:
+If you just want the smoothest first run across the report-rich examples,
+install the full optional stack once:
 
 ```bash
 pip install "nyc311[all]"
@@ -46,17 +46,16 @@ users who want a leaner install.
 The folders stay flat on disk, but the examples group naturally into a few
 learning tracks. Use the table below as the fast GitHub skim.
 
-| Example | Skill level | Track | Best for | Default data mode |
-| --- | --- | --- | --- | --- |
-| `examples/quickstart-sdk/` | Easy | first run | smallest end-to-end SDK walkthrough | packaged sample records |
-| `examples/borough-choropleth/` | Easy | visual intro | first polished geospatial tearsheet | packaged sample records |
-| `examples/fetch-filtered-snapshot/` | Easy | live data | first cache-backed fetch pattern | live fetch with local cache reuse |
-| `examples/community-district-choropleth/` | Intermediate | geospatial storytelling | full-city district choropleth with no-data context | packaged sample records |
-| `examples/point-to-boundary-join/` | Intermediate | spatial QA | basic point-in-polygon join diagnostics | packaged sample records |
-| `examples/boundary-qa/` | Intermediate | spatial QA | boundary coverage and raw-vs-spatial sanity checks | packaged sample records |
-| `examples/spatial-topic-comparison/` | Intermediate | spatial comparison | how the story changes after a full spatial join | packaged sample records |
-| `examples/community-district-case-study/` | Advanced | live analysis | larger Brooklyn slice with publish-gated reporting | cache-backed live slice |
-| `examples/topic-eda/` | Advanced | live analysis | coverage audits, anomaly flags, and scratch exports | cache-backed live slice |
+| Example                                   | Skill level  | Track                   | Best for                                                            | Default data mode                 |
+| ----------------------------------------- | ------------ | ----------------------- | ------------------------------------------------------------------- | --------------------------------- |
+| `examples/quickstart-sdk/`                | Easy         | first run               | smallest end-to-end SDK walkthrough                                 | packaged sample records           |
+| `examples/borough-choropleth/`            | Easy         | visual intro            | first polished geospatial tearsheet                                 | packaged sample records           |
+| `examples/fetch-filtered-snapshot/`       | Easy         | live data               | first cache-backed fetch pattern                                    | live fetch with local cache reuse |
+| `examples/community-district-choropleth/` | Intermediate | geospatial storytelling | full-city district choropleth with no-data context                  | packaged sample records           |
+| `examples/spatial-join-qa/`               | Intermediate | spatial QA              | canonical join coverage, unmatched-row, and label-agreement example | packaged sample records           |
+| `examples/spatial-topic-comparison/`      | Intermediate | spatial comparison      | how the story changes after a full spatial join                     | packaged sample records           |
+| `examples/community-district-case-study/` | Advanced     | live analysis           | larger Brooklyn slice with publish-gated reporting                  | cache-backed live slice           |
+| `examples/topic-eda/`                     | Advanced     | live analysis           | coverage audits, anomaly flags, and scratch exports                 | cache-backed live slice           |
 
 ## Suggested Paths
 
@@ -69,8 +68,7 @@ learning tracks. Use the table below as the fast GitHub skim.
 
 ### Spatial QA path
 
-1. `examples/point-to-boundary-join/`
-2. `examples/boundary-qa/`
+1. `examples/spatial-join-qa/`
 
 ### Live snapshot path
 
@@ -80,15 +78,13 @@ learning tracks. Use the table below as the fast GitHub skim.
 
 ## Non-Example Helpers
 
-- `examples/example-template/`: canonical scaffold for new example folders, not a
-  finished tutorial
-- `examples/primitive-example-upgrade-handoff.md`: maintenance handoff note, not
-  a user-facing example
+- `examples/example-template/`: canonical scaffold for new example folders, not
+  a finished tutorial
 
 ## Bootstrap Template
 
-Use `examples/example-template/` when creating a new example folder. It
-captures the current conventions for:
+Use `examples/example-template/` when creating a new example folder. It captures
+the current conventions for:
 
 - local editable uv wiring
 - `cache/` vs `artifacts/` vs tracked `reports/`
@@ -105,8 +101,8 @@ uv run python main.py
 ```
 
 The local `pyproject.toml` points to the repo root as an editable path
-dependency, so the example imports `nyc311` exactly the way an external
-consumer would while still tracking local source edits.
+dependency, so the example imports `nyc311` exactly the way an external consumer
+would while still tracking local source edits.
 
 ## Public Consumer Shape
 

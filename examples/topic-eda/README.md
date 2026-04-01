@@ -67,6 +67,8 @@ When `--publish-report` is passed, it also writes:
 
 ## Notes
 
-- uses `dataframes` for local tabular inspection and `plotting` for report figures
+- uses `dataframes` for local tabular inspection and `plotting` for report
+  figures
 - keeps both cache and artifacts inside this example folder
-- treats the generic package-level report card as scratch, not the final tracked report
+- treats the generic package-level report card as scratch, not the final tracked
+  report

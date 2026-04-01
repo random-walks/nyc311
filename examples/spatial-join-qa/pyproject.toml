@@ -1,7 +1,7 @@
 [project]
-name = "nyc311-example-boundary-qa"
+name = "nyc311-example-spatial-join-qa"
 version = "0.0.0"
-description = "Self-contained nyc311 boundary QA example."
+description = "Self-contained nyc311 spatial join QA example."
 requires-python = ">=3.10"
 dependencies = ["nyc311[spatial,plotting]"]
 

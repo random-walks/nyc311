@@ -76,7 +76,9 @@ def plot_boundary_choropleth(
     plt.style.use("seaborn-v0_8-whitegrid")
     plot_gdf = _prepare_plot_frame(geodataframe, add_basemap=add_basemap)
     outline_frame = _prepare_plot_frame(outline_gdf, add_basemap=add_basemap)
-    figure, axes = plt.subplots(figsize=figsize)
+    if plot_gdf is None:
+        raise TypeError("plot_boundary_choropleth() requires a geodataframe.")
+    _figure, axes = plt.subplots(figsize=figsize)
     effective_legend_kwds = {
         "loc": "upper left",
         "bbox_to_anchor": (1.02, 1),
@@ -134,8 +136,10 @@ def plot_boundary_preview(
     plt.style.use("seaborn-v0_8-whitegrid")
     boundary_frame = _prepare_plot_frame(boundaries_gdf, add_basemap=add_basemap)
     point_frame = _prepare_plot_frame(points_gdf, add_basemap=add_basemap)
+    if boundary_frame is None:
+        raise TypeError("plot_boundary_preview() requires boundaries_gdf.")
 
-    figure, axes = plt.subplots(figsize=figsize)
+    _figure, axes = plt.subplots(figsize=figsize)
     boundary_frame.boundary.plot(
         ax=axes,
         color="#1f2937",
@@ -180,6 +184,8 @@ def plot_boundary_point_groups(
     outline_frame = _prepare_plot_frame(outline_gdf, add_basemap=add_basemap)
     matched_frame = _prepare_plot_frame(matched_points_gdf, add_basemap=add_basemap)
     unmatched_frame = _prepare_plot_frame(unmatched_points_gdf, add_basemap=add_basemap)
+    if boundary_frame is None:
+        raise TypeError("plot_boundary_point_groups() requires boundaries_gdf.")
 
     figure, axes = plt.subplots(figsize=figsize)
     if context_frame is not None and not context_frame.empty:

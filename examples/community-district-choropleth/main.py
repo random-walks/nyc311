@@ -47,10 +47,10 @@ def format_district_name(value: str) -> str:
     return value.title()
 
 
-def sampled_snapshot_rows(snapshot_rows: list[dict[str, object]]) -> list[dict[str, object]]:
-    return [
-        row for row in snapshot_rows if int(row["geography_total_count"]) > 0
-    ]
+def sampled_snapshot_rows(
+    snapshot_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    return [row for row in snapshot_rows if int(row["geography_total_count"]) > 0]
 
 
 def build_snapshot_rows(
@@ -73,7 +73,9 @@ def build_snapshot_rows(
             summaries_by_district.get(district, []),
             key=lambda summary: (summary.topic_rank, summary.topic),
         )
-        total_count = district_summaries[0].geography_total_count if district_summaries else 0
+        total_count = (
+            district_summaries[0].geography_total_count if district_summaries else 0
+        )
         dominant_summary = district_summaries[0] if district_summaries else None
         party_music_summary = next(
             (
@@ -102,7 +104,9 @@ def build_snapshot_rows(
                     else dominant_summary.share_of_geography
                 ),
                 "party_music_count": (
-                    0 if party_music_summary is None else party_music_summary.complaint_count
+                    0
+                    if party_music_summary is None
+                    else party_music_summary.complaint_count
                 ),
                 "party_music_share": (
                     0.0
@@ -151,7 +155,9 @@ def build_map_figure(dominant_map: object, *, borough_outlines: object) -> objec
     return figure
 
 
-def build_party_music_intensity_figure(snapshot_rows: list[dict[str, object]]) -> object:
+def build_party_music_intensity_figure(
+    snapshot_rows: list[dict[str, object]],
+) -> object:
     plt = require_matplotlib()
     percent_formatter = import_module("matplotlib.ticker").PercentFormatter
     plot_rows = sorted(
@@ -229,8 +235,7 @@ def build_topic_mix_figure(
             ],
         )
         axis.set_title(
-            f"{row['geography_value']}\n"
-            f"n={int(row['geography_total_count'])}"
+            f"{row['geography_value']}\nn={int(row['geography_total_count'])}"
         )
         axis.set_xticks(range(len(topic_order)))
         axis.set_xticklabels(
@@ -346,27 +351,27 @@ def write_report(
         "| District | Total complaints | Party music share | Dominant topic | Dominant share |",
         "| --- | --- | --- | --- | --- |",
     ]
-    for row in sorted(
-        sampled_rows,
-        key=lambda item: (
-            -float(item["party_music_share"]),
-            -int(item["geography_total_count"]),
-            str(item["geography_value"]),
-        ),
-    ):
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    str(row["geography_value"]),
-                    str(int(row["geography_total_count"])),
-                    f"{float(row['party_music_share']):.1%}",
-                    format_topic_name(str(row["dominant_topic"])),
-                    f"{float(row['dominant_share']):.1%}",
-                ]
-            )
-            + " |"
+    lines.extend(
+        "| "
+        + " | ".join(
+            [
+                str(row["geography_value"]),
+                str(int(row["geography_total_count"])),
+                f"{float(row['party_music_share']):.1%}",
+                format_topic_name(str(row["dominant_topic"])),
+                f"{float(row['dominant_share']):.1%}",
+            ]
         )
+        + " |"
+        for row in sorted(
+            sampled_rows,
+            key=lambda item: (
+                -float(item["party_music_share"]),
+                -int(item["geography_total_count"]),
+                str(item["geography_value"]),
+            ),
+        )
+    )
     report_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return report_file
 
@@ -400,13 +405,19 @@ def main() -> None:
         dominant_summaries,
         boundaries_gdf=all_districts_gdf,
     )
-    dominant_map["complaint_count"] = dominant_map["complaint_count"].fillna(0).astype(int)
-    dominant_map["geography_total_count"] = dominant_map["geography_total_count"].fillna(0).astype(int)
+    dominant_map["complaint_count"] = (
+        dominant_map["complaint_count"].fillna(0).astype(int)
+    )
+    dominant_map["geography_total_count"] = (
+        dominant_map["geography_total_count"].fillna(0).astype(int)
+    )
     dominant_map["share_of_geography"] = dominant_map["share_of_geography"].fillna(0.0)
 
     snapshot_rows, topic_order = build_snapshot_rows(all_districts_gdf, summaries)
     all_summary_path = artifact_path("community-district-topic-summaries.csv")
-    dominant_summary_path = artifact_path("community-district-dominant-topic-summaries.csv")
+    dominant_summary_path = artifact_path(
+        "community-district-dominant-topic-summaries.csv"
+    )
     export.export_topic_table(summaries, models.ExportTarget("csv", all_summary_path))
     export.export_topic_table(
         dominant_summaries,

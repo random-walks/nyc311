@@ -60,7 +60,9 @@ def aggregate_joined_topics(joined: object) -> list[models.GeographyTopicSummary
     for (district, topic), count in grouped_counts.items():
         district_topics[district].append((topic, count))
     for district, topic_counts in district_topics.items():
-        ordered_topic_counts = sorted(topic_counts, key=lambda item: (-item[1], item[0]))
+        ordered_topic_counts = sorted(
+            topic_counts, key=lambda item: (-item[1], item[0])
+        )
         total_count = geography_totals[district]
         for index, (topic, count) in enumerate(ordered_topic_counts, start=1):
             summaries.append(
@@ -94,7 +96,9 @@ def build_snapshot_rows(
         topic_totals,
         key=lambda topic: (topic != "party_music", -topic_totals[topic], topic),
     )
-    summaries_by_district: dict[str, list[models.GeographyTopicSummary]] = defaultdict(list)
+    summaries_by_district: dict[str, list[models.GeographyTopicSummary]] = defaultdict(
+        list
+    )
     for summary in summaries:
         summaries_by_district[summary.geography_value].append(summary)
 
@@ -106,11 +110,7 @@ def build_snapshot_rows(
         )
         dominant_summary = ordered[0]
         party_music_summary = next(
-            (
-                summary
-                for summary in ordered
-                if summary.topic == "party_music"
-            ),
+            (summary for summary in ordered if summary.topic == "party_music"),
             None,
         )
         snapshot_rows.append(
@@ -121,7 +121,9 @@ def build_snapshot_rows(
                 "dominant_count": dominant_summary.complaint_count,
                 "dominant_share": dominant_summary.share_of_geography,
                 "party_music_count": (
-                    0 if party_music_summary is None else party_music_summary.complaint_count
+                    0
+                    if party_music_summary is None
+                    else party_music_summary.complaint_count
                 ),
                 "party_music_share": (
                     0.0
@@ -149,30 +151,27 @@ def build_comparison_rows(
 ) -> list[dict[str, object]]:
     raw_rows, _ = build_snapshot_rows(raw_summaries)
     spatial_rows, _ = build_snapshot_rows(spatial_summaries)
-    comparison_rows: list[dict[str, object]] = []
-    for row in raw_rows:
-        comparison_rows.append(
-            {
-                "view": "Raw record label",
-                "district": row["district"],
-                "geography_total_count": row["geography_total_count"],
-                "dominant_topic": row["dominant_topic"],
-                "dominant_share": row["dominant_share"],
-                "party_music_share": row["party_music_share"],
-            }
-        )
-    for row in spatial_rows:
-        comparison_rows.append(
-            {
-                "view": "Spatial join",
-                "district": row["district"],
-                "geography_total_count": row["geography_total_count"],
-                "dominant_topic": row["dominant_topic"],
-                "dominant_share": row["dominant_share"],
-                "party_music_share": row["party_music_share"],
-            }
-        )
-    return comparison_rows
+    return [
+        {
+            "view": "Raw record label",
+            "district": row["district"],
+            "geography_total_count": row["geography_total_count"],
+            "dominant_topic": row["dominant_topic"],
+            "dominant_share": row["dominant_share"],
+            "party_music_share": row["party_music_share"],
+        }
+        for row in raw_rows
+    ] + [
+        {
+            "view": "Spatial join",
+            "district": row["district"],
+            "geography_total_count": row["geography_total_count"],
+            "dominant_topic": row["dominant_topic"],
+            "dominant_share": row["dominant_share"],
+            "party_music_share": row["party_music_share"],
+        }
+        for row in spatial_rows
+    ]
 
 
 def build_preview_map(
@@ -196,7 +195,9 @@ def build_preview_map(
     )
 
 
-def build_dominant_map_figure(dominant_map: object, *, borough_outlines: object) -> object:
+def build_dominant_map_figure(
+    dominant_map: object, *, borough_outlines: object
+) -> object:
     figure = plotting.plot_boundary_choropleth(
         dominant_map,
         column="topic",
@@ -293,10 +294,7 @@ def build_topic_mix_figure(
                 for topic, share in zip(topic_order, shares, strict=True)
             ],
         )
-        axis.set_title(
-            f"{row['district']}\n"
-            f"n={int(row['geography_total_count'])}"
-        )
+        axis.set_title(f"{row['district']}\nn={int(row['geography_total_count'])}")
         axis.set_xticks(range(len(topic_order)))
         axis.set_xticklabels(
             [format_topic_name(topic) for topic in topic_order],
@@ -403,21 +401,21 @@ def write_report(
         "| View | District | Total complaints | Dominant topic | Dominant share | Party music share |",
         "| --- | --- | --- | --- | --- | --- |",
     ]
-    for row in comparison_rows:
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    str(row["view"]),
-                    str(row["district"]),
-                    str(int(row["geography_total_count"])),
-                    format_topic_name(str(row["dominant_topic"])),
-                    f"{float(row['dominant_share']):.1%}",
-                    f"{float(row['party_music_share']):.1%}",
-                ]
-            )
-            + " |"
+    lines.extend(
+        "| "
+        + " | ".join(
+            [
+                str(row["view"]),
+                str(row["district"]),
+                str(int(row["geography_total_count"])),
+                format_topic_name(str(row["dominant_topic"])),
+                f"{float(row['dominant_share']):.1%}",
+                f"{float(row['party_music_share']):.1%}",
+            ]
         )
+        + " |"
+        for row in comparison_rows
+    )
     lines.extend(
         [
             "",
@@ -427,20 +425,20 @@ def write_report(
             "| --- | --- | --- | --- | --- |",
         ]
     )
-    for row in reassigned_rows:
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    str(row["service_request_id"]),
-                    str(row["raw_community_district"]),
-                    str(row["spatial_community_district"]),
-                    format_topic_name(str(row["topic"])),
-                    str(row["descriptor"]),
-                ]
-            )
-            + " |"
+    lines.extend(
+        "| "
+        + " | ".join(
+            [
+                str(row["service_request_id"]),
+                str(row["raw_community_district"]),
+                str(row["spatial_community_district"]),
+                format_topic_name(str(row["topic"])),
+                str(row["descriptor"]),
+            ]
         )
+        + " |"
+        for row in reassigned_rows
+    )
     lines.extend(
         [
             "",
@@ -450,20 +448,20 @@ def write_report(
             "| --- | --- | --- | --- | --- |",
         ]
     )
-    for row in spatial_rows:
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    str(row["district"]),
-                    str(int(row["geography_total_count"])),
-                    format_topic_name(str(row["dominant_topic"])),
-                    f"{float(row['dominant_share']):.1%}",
-                    f"{float(row['party_music_share']):.1%}",
-                ]
-            )
-            + " |"
+    lines.extend(
+        "| "
+        + " | ".join(
+            [
+                str(row["district"]),
+                str(int(row["geography_total_count"])),
+                format_topic_name(str(row["dominant_topic"])),
+                f"{float(row['dominant_share']):.1%}",
+                f"{float(row['party_music_share']):.1%}",
+            ]
         )
+        + " |"
+        for row in spatial_rows
+    )
     report_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return report_file
 
@@ -475,7 +473,9 @@ def main() -> None:
         )
     )
     if not records:
-        raise RuntimeError("The packaged sample slice did not return any noise records.")
+        raise RuntimeError(
+            "The packaged sample slice did not return any noise records."
+        )
 
     all_districts_gdf = spatial.load_boundaries_geodataframe(layer="community_district")
     borough_outlines = spatial.load_boundaries_geodataframe(layer="borough")
@@ -502,10 +502,11 @@ def main() -> None:
     )
     spatial_summaries = aggregate_joined_topics(matched)
     if not spatial_summaries:
-        raise RuntimeError("The spatial join did not produce any matched topic summaries.")
+        raise RuntimeError(
+            "The spatial join did not produce any matched topic summaries."
+        )
 
     spatial_rows, topic_order = build_snapshot_rows(spatial_summaries)
-    raw_rows, _ = build_snapshot_rows(raw_summaries)
     comparison_rows = build_comparison_rows(raw_summaries, spatial_summaries)
     reassigned_rows = [
         {
@@ -524,8 +525,12 @@ def main() -> None:
         dominant_spatial_summaries,
         boundaries_gdf=all_districts_gdf,
     )
-    dominant_map["complaint_count"] = dominant_map["complaint_count"].fillna(0).astype(int)
-    dominant_map["geography_total_count"] = dominant_map["geography_total_count"].fillna(0).astype(int)
+    dominant_map["complaint_count"] = (
+        dominant_map["complaint_count"].fillna(0).astype(int)
+    )
+    dominant_map["geography_total_count"] = (
+        dominant_map["geography_total_count"].fillna(0).astype(int)
+    )
     dominant_map["share_of_geography"] = dominant_map["share_of_geography"].fillna(0.0)
     sampled_district_names = {str(row["district"]) for row in spatial_rows}
     sampled_districts_gdf = all_districts_gdf[

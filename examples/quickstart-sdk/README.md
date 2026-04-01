@@ -1,7 +1,7 @@
 # Quickstart SDK
 
-This example shows the smallest in-memory `nyc311` workflow over packaged
-sample records:
+This example shows the smallest in-memory `nyc311` workflow over packaged sample
+records:
 
 1. load records
 2. extract deterministic topics

@@ -155,7 +155,9 @@ def build_coverage_rows(
     return coverage_rows, descriptor_rows
 
 
-def build_custom_rule_demo() -> tuple[models.TopicCoverageReport, models.TopicCoverageReport]:
+def build_custom_rule_demo() -> tuple[
+    models.TopicCoverageReport, models.TopicCoverageReport
+]:
     custom_rules = (
         ("hydrant_issue", ("hydrant", "low water pressure")),
         ("leak", ("leak", "leaking")),
@@ -226,7 +228,9 @@ def build_coverage_figure(coverage_rows: list[dict[str, object]]) -> object:
     return figure
 
 
-def build_unmatched_descriptor_figure(descriptor_rows: list[dict[str, object]]) -> object:
+def build_unmatched_descriptor_figure(
+    descriptor_rows: list[dict[str, object]],
+) -> object:
     plt = require_matplotlib()
     plot_rows = descriptor_rows[:10]
     figure, axes = plt.subplots(figsize=(10, 5.5))
@@ -405,20 +409,20 @@ def write_report(
         "| Complaint type | Matched | Total | Coverage rate | Top unmatched descriptor |",
         "| --- | --- | --- | --- | --- |",
     ]
-    for row in coverage_rows[:10]:
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    str(row["complaint_type"]),
-                    str(int(row["matched_records"])),
-                    str(int(row["total_records"])),
-                    f"{float(row['coverage_rate']):.1%}",
-                    str(row["top_unmatched_descriptor"]),
-                ]
-            )
-            + " |"
+    lines.extend(
+        "| "
+        + " | ".join(
+            [
+                str(row["complaint_type"]),
+                str(int(row["matched_records"])),
+                str(int(row["total_records"])),
+                f"{float(row['coverage_rate']):.1%}",
+                str(row["top_unmatched_descriptor"]),
+            ]
         )
+        + " |"
+        for row in coverage_rows[:10]
+    )
     lines.extend(
         [
             "",
@@ -428,19 +432,19 @@ def write_report(
             "| --- | --- | --- | --- |",
         ]
     )
-    for row in resolution_rows[:10]:
-        lines.append(
-            "| "
-            + " | ".join(
-                [
-                    row.complaint_type,
-                    str(row.unresolved_request_count),
-                    str(row.total_request_count),
-                    f"{row.unresolved_share:.1%}",
-                ]
-            )
-            + " |"
+    lines.extend(
+        "| "
+        + " | ".join(
+            [
+                row.complaint_type,
+                str(row.unresolved_request_count),
+                str(row.total_request_count),
+                f"{row.unresolved_share:.1%}",
+            ]
         )
+        + " |"
+        for row in resolution_rows[:10]
+    )
     lines.extend(
         [
             "",
@@ -477,7 +481,9 @@ def main() -> None:
     )
     coverage_rows, descriptor_rows = build_coverage_rows(records)
     if not coverage_rows:
-        raise RuntimeError("The topic EDA slice did not include supported topic query rows.")
+        raise RuntimeError(
+            "The topic EDA slice did not include supported topic query rows."
+        )
     if not descriptor_rows:
         descriptor_rows = [{"descriptor": "No unmatched descriptors", "count": 0}]
     before_coverage, after_coverage = build_custom_rule_demo()
@@ -486,7 +492,9 @@ def main() -> None:
         record for record in records if record.complaint_type == "Noise - Residential"
     ]
     if not noise_records:
-        raise RuntimeError("The topic EDA slice did not contain Noise - Residential rows.")
+        raise RuntimeError(
+            "The topic EDA slice did not contain Noise - Residential rows."
+        )
 
     noise_assignments = analysis.extract_topics(
         noise_records,
@@ -506,7 +514,9 @@ def main() -> None:
     ]
     resolution_rows = analysis.analyze_resolution_gaps(records, resolution_records)
     if not resolution_rows:
-        raise RuntimeError("The topic EDA slice did not produce any resolution-gap summaries.")
+        raise RuntimeError(
+            "The topic EDA slice did not produce any resolution-gap summaries."
+        )
 
     report_card_path = artifact_path("topic-eda-report.md")
     coverage_summary_path = artifact_path("topic-coverage-summary.csv")
@@ -635,7 +645,9 @@ def main() -> None:
     print(f"Wrote anomaly summary: {anomaly_path}")
     print(f"Wrote resolution summary: {resolution_path}")
     if report_file is None:
-        print("Skipped tracked report generation. Re-run with --publish-report to update reports/.")
+        print(
+            "Skipped tracked report generation. Re-run with --publish-report to update reports/."
+        )
     else:
         print(f"Wrote tracked coverage chart: {coverage_chart_path}")
         print(f"Wrote tracked unmatched-descriptor chart: {descriptor_chart_path}")

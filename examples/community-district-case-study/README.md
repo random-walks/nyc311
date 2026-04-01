@@ -44,7 +44,8 @@ to intentionally update the tracked report assets.
 ## Output Layout
 
 - `cache/`: ignored local live snapshot reused between runs
-- `artifacts/`: ignored scratch CSV summaries for topic, volume, and resolution work
+- `artifacts/`: ignored scratch CSV summaries for topic, volume, and resolution
+  work
 - `reports/`: tracked markdown tearsheet and tracked report figures
 
 Running the example writes or reuses:

@@ -276,7 +276,9 @@ def main() -> None:
     print("Recommended next step")
     print(f"- {next_step_command}")
     if report_file is None:
-        print("Skipped tracked report generation. Re-run with --publish-report to update reports/.")
+        print(
+            "Skipped tracked report generation. Re-run with --publish-report to update reports/."
+        )
     else:
         print(f"Wrote tracked report: {report_file}")
 

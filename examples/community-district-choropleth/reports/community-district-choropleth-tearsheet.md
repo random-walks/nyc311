@@ -6,11 +6,16 @@ polygons show where the packaged sample has no district-level coverage.
 
 ## Executive Summary
 
-- The packaged sample contains `9` noise complaints across `4` sampled districts.
-- The strongest party-music intensity appears in `QUEENS 02` at `66.7%` (2 of 3).
-- The sharpest dominant-topic signal appears in `QUEENS 02`, where `Party Music` accounts for `66.7%` of sampled district noise.
-- The flattest topic mix appears in `BROOKLYN 01`, where the leading topic reaches only `50.0%`.
-- The full district layer contains `55` no-data polygons that do not appear in the packaged sample.
+- The packaged sample contains `9` noise complaints across `4` sampled
+  districts.
+- The strongest party-music intensity appears in `QUEENS 02` at `66.7%` (2 of
+  3).
+- The sharpest dominant-topic signal appears in `QUEENS 02`, where `Party Music`
+  accounts for `66.7%` of sampled district noise.
+- The flattest topic mix appears in `BROOKLYN 01`, where the leading topic
+  reaches only `50.0%`.
+- The full district layer contains `55` no-data polygons that do not appear in
+  the packaged sample.
 
 ## Dominant Topic Map
 
@@ -26,9 +31,9 @@ polygons show where the packaged sample has no district-level coverage.
 
 ## District Metrics
 
-| District | Total complaints | Party music share | Dominant topic | Dominant share |
-| --- | --- | --- | --- | --- |
-| QUEENS 02 | 3 | 66.7% | Party Music | 66.7% |
-| BROOKLYN 01 | 2 | 50.0% | Banging | 50.0% |
-| MANHATTAN 10 | 2 | 50.0% | Banging | 50.0% |
-| BROOKLYN 03 | 2 | 0.0% | Construction | 50.0% |
+| District     | Total complaints | Party music share | Dominant topic | Dominant share |
+| ------------ | ---------------- | ----------------- | -------------- | -------------- |
+| QUEENS 02    | 3                | 66.7%             | Party Music    | 66.7%          |
+| BROOKLYN 01  | 2                | 50.0%             | Banging        | 50.0%          |
+| MANHATTAN 10 | 2                | 50.0%             | Banging        | 50.0%          |
+| BROOKLYN 03  | 2                | 0.0%              | Construction   | 50.0%          |

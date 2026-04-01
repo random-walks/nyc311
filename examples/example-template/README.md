@@ -42,7 +42,8 @@ Recommended report conventions:
 
 - name the markdown file `<example-slug>-tearsheet.md`
 - store report images in `reports/figures/`
-- reference figures with explicit relative paths like `./figures/example-chart.png`
+- reference figures with explicit relative paths like
+  `./figures/example-chart.png`
 - keep markdown narrative auto-generated from computed values
 - keep README narrative focused on how to run and understand the example
 
