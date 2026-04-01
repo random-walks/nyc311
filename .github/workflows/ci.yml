@@ -120,15 +120,16 @@ jobs:
 
       - name: Run full non-live test suite
         run: >-
-          uv run --frozen pytest -m "not integration" -ra --cov
-          --cov-report=xml --cov-report=term --junitxml="junit/base-${{
-          matrix.python-version }}.xml" --durations=20
+          uv run --frozen pytest -m "not integration" -ra --cov --cov-report=xml
+          --cov-report=term --junitxml="junit/base-${{ matrix.python-version
+          }}.xml" --durations=20
 
       - name: Publish test results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          check_name: Test Results (full non-live, Python ${{ matrix.python-version }})
+          check_name:
+            Test Results (full non-live, Python ${{ matrix.python-version }})
           comment_mode: off
           files: junit/base-${{ matrix.python-version }}.xml
 

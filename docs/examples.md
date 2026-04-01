@@ -23,7 +23,8 @@ The notebooks are now pure in-memory consumers of `nyc311` APIs. They use:
 
 - `nyc311.samples.load_sample_service_requests()`
 - `nyc311.samples.load_sample_boundaries()`
-- packaged NYC boundary layers exposed via `nyc311.geographies.load_nyc_boundaries*()`
+- packaged NYC boundary layers exposed via
+  `nyc311.geographies.load_nyc_boundaries*()`
 - in-memory plotting helpers such as `nyc311.plotting.plot_boundary_preview()`
 
 The packaged geography catalog now includes boroughs, community districts, city

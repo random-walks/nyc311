@@ -24,7 +24,9 @@ def main() -> None:
         records,
         models.TopicQuery("Noise - Residential"),
     )
-    borough_summaries = analysis.aggregate_by_geography(assignments, geography="borough")
+    borough_summaries = analysis.aggregate_by_geography(
+        assignments, geography="borough"
+    )
     borough_map = merge_summary_map(
         borough_summaries,
         boundaries_source=data_path("borough_boundaries.geojson"),

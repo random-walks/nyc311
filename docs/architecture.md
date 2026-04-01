@@ -90,8 +90,8 @@ Boundary-backed exports still expect feature properties with both:
 - `census_tract`
 
 These packaged layers are the preferred notebook and SDK path. File-backed
-boundary loading remains available through `nyc311.geographies.load_boundaries()`
-for scripts and custom workflows.
+boundary loading remains available through
+`nyc311.geographies.load_boundaries()` for scripts and custom workflows.
 
 ## Maintainer Notes
 

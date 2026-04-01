@@ -7,9 +7,7 @@ from typing import Any
 from ._deps import require_geospatial_stack
 
 
-def spatial_join_records_to_boundaries(
-    records_gdf: Any, boundaries_gdf: Any
-) -> Any:
+def spatial_join_records_to_boundaries(records_gdf: Any, boundaries_gdf: Any) -> Any:
     """Join point records to boundary polygons without clobbering record columns."""
     geopandas, _ = require_geospatial_stack()
     aligned_boundaries = boundaries_gdf

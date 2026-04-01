@@ -71,9 +71,9 @@ uvx nox -s build
 - `network`: tests that reach external services
 
 The default local and CI path now uses the full installed feature set and runs
-`pytest -m "not integration"` so pandas-backed and spatial coverage are
-included by default. Live fetch checks remain available through the dedicated
-integration session instead of running on every commit.
+`pytest -m "not integration"` so pandas-backed and spatial coverage are included
+by default. Live fetch checks remain available through the dedicated integration
+session instead of running on every commit.
 
 ## Pre-commit
 

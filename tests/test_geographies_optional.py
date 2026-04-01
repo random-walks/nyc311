@@ -107,7 +107,9 @@ def test_spatially_enrich_records_can_join_sample_records_to_new_layers() -> Non
         records,
         layer="neighborhood_tabulation_area",
     )
-    council_joined = geographies.spatially_enrich_records(records, layer="council_district")
+    council_joined = geographies.spatially_enrich_records(
+        records, layer="council_district"
+    )
 
     assert set(nta_joined["boundary_geography_value"]) == {
         "BK0101",

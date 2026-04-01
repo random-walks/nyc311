@@ -56,7 +56,9 @@ def test_load_boundaries_geodataframe_reads_geojson_fixture() -> None:
 
 
 def test_spatial_join_records_to_boundaries_assigns_boundary_columns() -> None:
-    records_gdf = spatial.records_to_geodataframe(io.load_service_requests(FIXTURE_PATH))
+    records_gdf = spatial.records_to_geodataframe(
+        io.load_service_requests(FIXTURE_PATH)
+    )
     boundaries_gdf = spatial.load_boundaries_geodataframe(BOUNDARIES_PATH)
 
     joined = spatial.spatial_join_records_to_boundaries(records_gdf, boundaries_gdf)

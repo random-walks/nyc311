@@ -17,7 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 PACKAGE_ROOT = SRC / "nyc311"
 API_DOC_PATH = ROOT / "docs" / "api.md"
-DOC_DIRECTIVE_RE: Final[re.Pattern[str]] = re.compile(r"^:::\s+(nyc311(?:\.[A-Za-z0-9_]+)?)\s*$")
+DOC_DIRECTIVE_RE: Final[re.Pattern[str]] = re.compile(
+    r"^:::\s+(nyc311(?:\.[A-Za-z0-9_]+)?)\s*$"
+)
 ALLOWED_DUPLICATE_EXPORTS: Final[frozenset[str]] = frozenset()
 ALLOWED_PRIVATE_EXPORTS: Final[frozenset[str]] = frozenset({"__version__"})
 
@@ -46,7 +48,11 @@ def discover_public_modules() -> tuple[str, ...]:
         if child.is_dir() and (child / "__init__.py").exists():
             discovered.append(f"nyc311.{child.name}")
             continue
-        if child.is_file() and child.suffix == ".py" and child.stem not in {"__init__", "__main__"}:
+        if (
+            child.is_file()
+            and child.suffix == ".py"
+            and child.stem not in {"__init__", "__main__"}
+        ):
             discovered.append(f"nyc311.{child.stem}")
     return tuple(discovered)
 
@@ -88,7 +94,9 @@ def parse_module_ast(module_name: str) -> ast.Module | None:
     return tree
 
 
-def resolve_relative_import(module_name: str, level: int, imported_module: str | None) -> str:
+def resolve_relative_import(
+    module_name: str, level: int, imported_module: str | None
+) -> str:
     """Resolve a relative import target to an absolute module path."""
     path = module_path(module_name)
     parent_parts = module_name.split(".")
@@ -117,7 +125,9 @@ def build_import_map(module_name: str) -> dict[str, str]:
     for node in tree.body:
         if isinstance(node, ast.ImportFrom):
             if node.level > 0:
-                origin_module = resolve_relative_import(module_name, node.level, node.module)
+                origin_module = resolve_relative_import(
+                    module_name, node.level, node.module
+                )
             elif node.module is not None:
                 origin_module = node.module
             else:
@@ -170,10 +180,14 @@ def build_definition_kinds(module_name: str) -> dict[str, str]:
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name):
-                    kinds[target.id] = "type_alias" if is_type_alias_expr(node.value) else "value"
+                    kinds[target.id] = (
+                        "type_alias" if is_type_alias_expr(node.value) else "value"
+                    )
             continue
         if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
-            kinds[node.target.id] = "type_alias" if is_type_alias_expr(node.value) else "value"
+            kinds[node.target.id] = (
+                "type_alias" if is_type_alias_expr(node.value) else "value"
+            )
 
     DEFINITION_KIND_CACHE[module_name] = kinds
     return kinds
@@ -189,9 +203,13 @@ def exported_names(module_name: str) -> list[str]:
         if not isinstance(symbol_name, str):
             raise ValueError(f"{module_name}.__all__ must contain only strings.")
         if symbol_name.startswith("_") and symbol_name not in ALLOWED_PRIVATE_EXPORTS:
-            raise ValueError(f"{module_name}.__all__ must not export private name {symbol_name!r}.")
+            raise ValueError(
+                f"{module_name}.__all__ must not export private name {symbol_name!r}."
+            )
         if not hasattr(module, symbol_name):
-            raise ValueError(f"{module_name}.__all__ references missing symbol {symbol_name!r}.")
+            raise ValueError(
+                f"{module_name}.__all__ references missing symbol {symbol_name!r}."
+            )
     return names
 
 
@@ -200,7 +218,11 @@ def symbol_origin_module(public_module: str, symbol_name: str, symbol: object) -
     import_map = build_import_map(public_module)
     if symbol_name in import_map:
         explicit_origin = getattr(symbol, "__module__", None)
-        if not isinstance(explicit_origin, str) or explicit_origin in {"builtins", "typing", "types"}:
+        if not isinstance(explicit_origin, str) or explicit_origin in {
+            "builtins",
+            "typing",
+            "types",
+        }:
             return import_map[symbol_name]
 
     explicit_origin = getattr(symbol, "__module__", None)
@@ -274,7 +296,9 @@ def validate_unique_public_locations(rows: list[AuditRow]) -> None:
             f"{symbol_name}: {sorted(locations)}"
             for symbol_name, locations in sorted(duplicates.items())
         )
-        raise ValueError(f"Public symbols must have unique locations. Duplicates: {formatted}")
+        raise ValueError(
+            f"Public symbols must have unique locations. Duplicates: {formatted}"
+        )
 
 
 def documented_public_modules() -> set[str]:
