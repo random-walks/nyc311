@@ -116,10 +116,14 @@ def sampled_snapshot_rows(
 
 
 def select_label_rows(dominant_map: object) -> object:
-    return dominant_map[dominant_map["complaint_count"] > 0].sort_values(
-        ["geography_total_count", "share_of_geography", "geography_value"],
-        ascending=[False, False, True],
-    ).head(MAP_LABEL_LIMIT)
+    return (
+        dominant_map[dominant_map["complaint_count"] > 0]
+        .sort_values(
+            ["geography_total_count", "share_of_geography", "geography_value"],
+            ascending=[False, False, True],
+        )
+        .head(MAP_LABEL_LIMIT)
+    )
 
 
 def build_snapshot_rows(
@@ -248,7 +252,9 @@ def build_party_music_intensity_figure(
     axes.invert_yaxis()
     axes.set_xlim(0, 1)
     axes.set_xlabel("Party music share of district noise complaints")
-    axes.set_title("Which districts in the cached slice skew hardest toward party music?")
+    axes.set_title(
+        "Which districts in the cached slice skew hardest toward party music?"
+    )
     axes.xaxis.set_major_formatter(percent_formatter(xmax=1))
     axes.grid(axis="x", alpha=0.25)
     for bar, row in zip(bars, plot_rows, strict=True):
@@ -326,7 +332,9 @@ def build_topic_mix_figure(
                 fontsize=8,
             )
     axes_list[0].set_ylabel("Share of district noise complaints")
-    figure.suptitle("Top districts in the cached slice by dominant-topic strength", y=1.02)
+    figure.suptitle(
+        "Top districts in the cached slice by dominant-topic strength", y=1.02
+    )
     return figure
 
 
@@ -458,7 +466,9 @@ def main() -> None:
     args = build_parser().parse_args()
     records, source, snapshot_path = load_records(args.refresh, args.app_token)
     if not records:
-        raise RuntimeError("The cached district choropleth slice did not return any records.")
+        raise RuntimeError(
+            "The cached district choropleth slice did not return any records."
+        )
 
     assignments = analysis.extract_topics(
         records,

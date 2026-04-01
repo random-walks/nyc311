@@ -231,7 +231,8 @@ def write_report(
         if int(row.matched_point_count) == 0
     ]
     matched_boundary_count = sum(
-        int(row.matched_point_count) > 0 for row in boundary_summary.itertuples(index=False)
+        int(row.matched_point_count) > 0
+        for row in boundary_summary.itertuples(index=False)
     )
     top_complaint_row = complaint_rows[0]
     top_joined_row = joined_counts[0]
@@ -380,7 +381,9 @@ def main() -> None:
     args = build_parser().parse_args()
     records, source, snapshot_path = load_records(args.refresh, args.app_token)
     if not records:
-        raise RuntimeError("The cached spatial-join QA slice did not return any records.")
+        raise RuntimeError(
+            "The cached spatial-join QA slice did not return any records."
+        )
     records_gdf = spatial.records_to_geodataframe(records)
     boundaries_gdf = spatial.load_boundaries_geodataframe(layer="community_district")
     borough_outlines = spatial.load_boundaries_geodataframe(layer="borough")
@@ -445,7 +448,9 @@ def main() -> None:
     )
     joined_counts = joined_counts_frame.to_dict(orient="records")
     if not joined_counts:
-        raise RuntimeError("The spatial join did not produce any matched district counts.")
+        raise RuntimeError(
+            "The spatial join did not produce any matched district counts."
+        )
 
     boundary_summary_path = artifact_path("spatial-join-qa-boundary-summary.csv")
     join_preview_path = artifact_path("spatial-join-qa-join-preview.csv")

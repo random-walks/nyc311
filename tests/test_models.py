@@ -69,7 +69,9 @@ def test_service_request_record_normalizes_number_first_community_district() -> 
     assert record.community_district == "BROOKLYN 01"
 
 
-def test_service_request_record_preserves_nonstandard_community_district_label() -> None:
+def test_service_request_record_preserves_nonstandard_community_district_label() -> (
+    None
+):
     record = _build_record(community_district="Unspecified BROOKLYN")
 
     assert record.community_district == "Unspecified BROOKLYN"

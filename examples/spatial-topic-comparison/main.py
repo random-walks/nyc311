@@ -112,10 +112,14 @@ def format_district_name(value: str) -> str:
 
 
 def select_label_rows(dominant_map: object) -> object:
-    return dominant_map[dominant_map["complaint_count"] > 0].sort_values(
-        ["geography_total_count", "share_of_geography", "geography_value"],
-        ascending=[False, False, True],
-    ).head(MAP_LABEL_LIMIT)
+    return (
+        dominant_map[dominant_map["complaint_count"] > 0]
+        .sort_values(
+            ["geography_total_count", "share_of_geography", "geography_value"],
+            ascending=[False, False, True],
+        )
+        .head(MAP_LABEL_LIMIT)
+    )
 
 
 def aggregate_joined_topics(joined: object) -> list[models.GeographyTopicSummary]:
@@ -567,7 +571,9 @@ def main() -> None:
     args = build_parser().parse_args()
     records, source, snapshot_path = load_records(args.refresh, args.app_token)
     if not records:
-        raise RuntimeError("The cached spatial-topic slice did not return any noise records.")
+        raise RuntimeError(
+            "The cached spatial-topic slice did not return any noise records."
+        )
 
     all_districts_gdf = spatial.load_boundaries_geodataframe(layer="community_district")
     borough_outlines = spatial.load_boundaries_geodataframe(layer="borough")
