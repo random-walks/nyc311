@@ -63,7 +63,7 @@ repos:
     rev: "v2.4.2"
     hooks:
       - id: codespell
-        args: ["--ignore-words-list=explination,astroid"]
+        args: ["--ignore-words-list=explination,astroid,Hart"]
         exclude: ^examples/notebooks/.*\.ipynb$
         additional_dependencies:
           - tomli; python_version<'3.11'

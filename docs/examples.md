@@ -88,7 +88,7 @@ uv run python examples/scripts/point_to_boundary_join.py
 ```
 
 The dataframe and notebook-oriented examples rely on the optional `dataframes`
-or `science` extras. The new geography-forward examples additionally rely on
-the `spatial` extra. `make install` already includes the core contributor
+or `science` extras. The new geography-forward examples additionally rely on the
+`spatial` extra. `make install` already includes the core contributor
 dependencies; add `uv sync --extra spatial --extra science` when you want to run
 the mapping notebooks and scripts.

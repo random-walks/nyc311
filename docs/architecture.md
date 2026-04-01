@@ -28,17 +28,17 @@ flowchart LR
 
 ## Module Responsibilities
 
-| Module              | Responsibility                                                              |
-| ------------------- | --------------------------------------------------------------------------- |
-| `nyc311.models`     | Typed dataclasses and package-level constants                               |
-| `nyc311.loaders`    | CSV and Socrata ingestion, filter application, boundary-loading entry point |
+| Module               | Responsibility                                                              |
+| -------------------- | --------------------------------------------------------------------------- |
+| `nyc311.models`      | Typed dataclasses and package-level constants                               |
+| `nyc311.loaders`     | CSV and Socrata ingestion, filter application, boundary-loading entry point |
 | `nyc311.geographies` | Packaged NYC boundary layers, sample loaders, and geography conversions     |
-| `nyc311.processors` | Deterministic topic extraction and geography aggregation                    |
-| `nyc311.exporters`  | CSV and GeoJSON output generation                                           |
-| `nyc311.boundaries` | GeoJSON parsing into boundary models                                        |
-| `nyc311.plotting`   | Optional in-memory plotting helpers for packaged boundary layers            |
-| `nyc311.pipeline`   | High-level SDK helper that mirrors the CLI happy path                       |
-| `nyc311.cli`        | Argparse-powered fetch and analysis entry points                            |
+| `nyc311.processors`  | Deterministic topic extraction and geography aggregation                    |
+| `nyc311.exporters`   | CSV and GeoJSON output generation                                           |
+| `nyc311.boundaries`  | GeoJSON parsing into boundary models                                        |
+| `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers            |
+| `nyc311.pipeline`    | High-level SDK helper that mirrors the CLI happy path                       |
+| `nyc311.cli`         | Argparse-powered fetch and analysis entry points                            |
 
 ## Design Principles
 
@@ -63,7 +63,8 @@ flowchart LR
 - boundary-backed GeoJSON export
 - markdown report-card export
 - optional pandas dataframe conversion helpers
-- packaged NYC borough, community-district, council-district, NTA, ZCTA, and census-tract boundary layers
+- packaged NYC borough, community-district, council-district, NTA, ZCTA, and
+  census-tract boundary layers
 - packaged sample service-request and boundary loaders for notebook workflows
 - optional in-memory boundary plotting helpers
 - a one-call SDK pipeline helper
