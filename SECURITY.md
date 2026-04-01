@@ -21,5 +21,5 @@ Instead, report security issues by emailing `blaise@buenaola.io` with:
 - reproduction steps or a proof of concept if available
 - any suggested mitigation or timeline constraints
 
-I will acknowledge receipt as quickly as possible, validate the report, and
-work with you on a coordinated disclosure timeline before any public write-up.
+I will acknowledge receipt as quickly as possible, validate the report, and work
+with you on a coordinated disclosure timeline before any public write-up.
