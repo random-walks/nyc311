@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.metadata
+import importlib.resources
 from pathlib import Path
 
 import nyc311 as root
@@ -42,6 +43,12 @@ def test_version() -> None:
 
 def test_root_package_is_minimal() -> None:
     assert root.__all__ == ["__version__"]
+
+
+def test_typed_package_marker_is_packaged() -> None:
+    typing_marker = importlib.resources.files("nyc311").joinpath("py.typed")
+
+    assert typing_marker.is_file()
 
 
 def test_public_namespaces_expose_current_contract() -> None:

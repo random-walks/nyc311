@@ -8,9 +8,10 @@ It is designed for two complementary use cases:
 - a thin CLI for repeatable batch runs
 - a functional SDK for scripts, interactive analysis, and data workflows
 
-These docs track the current `0.2` alpha prerelease line for the branch.
+These docs track the `0.2` release surface as the project prepares its first
+public stable launch.
 
-The `0.2` alpha line ships a complete first-pass analysis workflow:
+The `0.2` release line ships a complete first-pass analysis workflow:
 
 - loading filtered NYC 311-style records from local CSV extracts
 - loading filtered records from the live NYC Socrata API
@@ -85,7 +86,7 @@ pip install "nyc311[science]"
     )
     ```
 
-## What Ships In The `0.2` Alpha Line
+## What Ships In The `0.2` Release Line
 
 ### Implemented
 

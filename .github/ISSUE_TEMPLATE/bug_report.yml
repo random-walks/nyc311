@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible problem with the nyc311 package, CLI, docs, or examples.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+        Please include enough detail for someone else to reproduce the issue.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+      placeholder: The CLI exits with an error when...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Share the exact steps, command, or code path that reproduces the issue.
+      placeholder: |
+        1. Install `nyc311[...]`
+        2. Run `nyc311 ...`
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include Python version, install extra set, OS, and any other relevant context.
+      placeholder: Python 3.12, `nyc311[all]`, macOS 15...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste stack traces, CLI output, or screenshots if they help.

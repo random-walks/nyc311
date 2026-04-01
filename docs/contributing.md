@@ -33,6 +33,7 @@ make test-integration
 make lint
 make docs
 make audit
+make smoke-dist
 ```
 
 If you prefer direct commands:
@@ -50,6 +51,7 @@ uvx nox -s tests_integration
 uv run mkdocs serve
 uv run mkdocs build --strict
 uv run python scripts/audit_public_api.py
+make smoke-dist
 ```
 
 ## Nox Sessions
@@ -118,11 +120,11 @@ content.
 
 ## Release Target
 
-This branch is now on the `0.2` alpha prerelease line.
+This branch is preparing the first public stable release in the `0.2` line.
 
-- Use the `0.2` alpha series as the release framing for this branch.
-- Follow normal prerelease progression within that line: `0.2.0a2`, `0.2.0a3`,
-  and so on.
+- Use the `0.2` line as the release framing for this branch.
+- Treat `0.2.0` as the default target for the first public stable release unless
+  release-specific validation shows that the scope needs to move.
 - The project version remains VCS-derived through Hatch, so the actual package
   version will come from the eventual git tag rather than a hardcoded file edit.
 
@@ -133,27 +135,29 @@ package publishing is intentionally opt-in.
 
 By default:
 
-- GitHub releases and manual `CD` runs build and inspect the package artifacts.
+- GitHub releases and manual `CD` runs build, validate, and smoke-test the
+  package artifacts.
 - The publish job is skipped unless publishing is explicitly enabled.
 - Artifact attestations are skipped automatically on private repositories,
   because GitHub does not support them there.
 
 To switch publishing on later:
 
-1. Configure trusted publishing on TestPyPI or PyPI for this repository. The
+1. Configure trusted publishing on TestPyPI and PyPI for this repository. The
    current workflow claims use repository `random-walks/nyc311`, workflow
    `.github/workflows/cd.yml`, and environment `pypi`.
 2. Set the repository variable `PYPI_PUBLISH_ENABLED=true`.
-3. Keep `repository-url: https://test.pypi.org/legacy/` in
-   `.github/workflows/cd.yml` while validating against TestPyPI.
-4. When you are ready for real PyPI, remove the `repository-url` override so
-   `pypa/gh-action-pypi-publish` targets PyPI.
-5. Publish by either: `a.` creating a GitHub release from a tag after enabling
-   the variable, or `b.` running the `CD` workflow manually from the target tag
-   with `publish=true`.
+3. Use the manual `CD` workflow from the target tag with `publish=true` and
+   `repository=testpypi` for a dry run.
+4. Publish to real PyPI by either: `a.` creating a GitHub release from the tag
+   after enabling the variable, or `b.` running the `CD` workflow manually from
+   the target tag with `publish=true` and `repository=pypi`.
 
 The manual dispatch path is useful when you want to keep iterating on the branch
 and only publish a selected tag later.
+
+The full public launch checklist, including repo visibility and package-index
+setup, lives in `docs/releasing.md`.
 
 ## Contribution Expectations
 
@@ -170,6 +174,7 @@ Before opening a PR, run:
 make ci
 make audit
 make docs-build
+make smoke-dist
 ```
 
 ## More Context

@@ -8,6 +8,14 @@ on:
         required: true
         type: boolean
         default: false
+      repository:
+        description: Target package index for manual publishes
+        required: true
+        type: choice
+        default: testpypi
+        options:
+          - testpypi
+          - pypi
   release:
     types:
       - published
@@ -29,7 +37,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: hynek/build-and-inspect-python-package@v2
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        with:
+          enable-cache: true
+
+      - name: Build distributions and validate long description
+        run: make ci-build
+
+      - name: Smoke-test installed wheel
+        run: make smoke-dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Packages
+          path: dist/*
 
   publish:
     needs: [dist]
@@ -61,8 +86,16 @@ jobs:
         with:
           subject-path: "dist/*"
 
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish package distributions to TestPyPI
+        if:
+          github.event_name == 'workflow_dispatch' && inputs.repository ==
+          'testpypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Default to TestPyPI until the project is ready for real PyPI.
-          # Once trusted publishing is configured for PyPI, remove this line.
           repository-url: https://test.pypi.org/legacy/
+
+      - name: Publish package distributions to PyPI
+        if:
+          github.event_name == 'release' || (github.event_name ==
+          'workflow_dispatch' && inputs.repository == 'pypi')
+        uses: pypa/gh-action-pypi-publish@release/v1

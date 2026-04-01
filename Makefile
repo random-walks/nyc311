@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-optional test-fetch test-integration lint lint-fix format docs docs-build audit clean build ci ci-lint ci-build ci-docs ci-tests
+.PHONY: help install install-dev test test-optional test-fetch test-integration lint lint-fix format docs docs-build audit clean build smoke-dist ci ci-lint ci-build ci-docs ci-tests
 
 help:
 	@echo "Available targets:"
@@ -11,6 +11,7 @@ help:
 	@echo "  lint         Run Ruff, mypy, and the public API audit"
 	@echo "  lint-fix     Apply safe automatic fixes, then run the full lint job"
 	@echo "  build        Build the source and wheel distributions"
+	@echo "  smoke-dist   Build release artifacts and smoke-test an installed wheel"
 	@echo "  format       Apply Ruff fixes and formatting"
 	@echo "  docs         Serve the MkDocs site locally"
 	@echo "  docs-build   Build the docs with strict checks"
@@ -64,7 +65,18 @@ ci-lint:
 		check-github-workflows check-readthedocs
 
 ci-build:
+	rm -rf dist dist-release-check .venv-release-check
 	uv run --with build python -m build
+	uv run --with twine python -m twine check --strict dist/*
+
+smoke-dist:
+	rm -rf dist-release-check .venv-release-check
+	uv run --with build python -m build --outdir dist-release-check
+	uv run --with twine python -m twine check --strict dist-release-check/*
+	python3 -m venv .venv-release-check
+	.venv-release-check/bin/python -m pip install --upgrade pip
+	.venv-release-check/bin/python -m pip install --force-reinstall dist-release-check/*.whl
+	.venv-release-check/bin/python scripts/smoke_installed_package.py
 
 ci-docs:
 	uv sync --frozen --group docs --all-extras
@@ -99,10 +111,13 @@ ci:
 	build_status=0; \
 	docs_status=0; \
 	tests_status=0; \
+	smoke_status=0; \
 	printf '\n==> [lint]\n'; \
 	$(MAKE) ci-lint || lint_status=$$?; \
 	printf '\n==> [build]\n'; \
 	$(MAKE) ci-build || build_status=$$?; \
+	printf '\n==> [smoke-dist]\n'; \
+	$(MAKE) smoke-dist || smoke_status=$$?; \
 	printf '\n==> [docs]\n'; \
 	$(MAKE) ci-docs || docs_status=$$?; \
 	printf '\n==> [tests]\n'; \
@@ -110,8 +125,9 @@ ci:
 	printf '\nLocal CI summary:\n'; \
 	if [ $$lint_status -eq 0 ]; then printf '  lint  -> success\n'; else printf '  lint  -> failure\n'; fi; \
 	if [ $$build_status -eq 0 ]; then printf '  build -> success\n'; else printf '  build -> failure\n'; fi; \
+	if [ $$smoke_status -eq 0 ]; then printf '  smoke -> success\n'; else printf '  smoke -> failure\n'; fi; \
 	if [ $$docs_status -eq 0 ]; then printf '  docs  -> success\n'; else printf '  docs  -> failure\n'; fi; \
 	if [ $$tests_status -eq 0 ]; then printf '  tests -> success\n'; else printf '  tests -> failure\n'; fi; \
-	if [ $$lint_status -ne 0 ] || [ $$build_status -ne 0 ] || [ $$docs_status -ne 0 ] || [ $$tests_status -ne 0 ]; then \
+	if [ $$lint_status -ne 0 ] || [ $$build_status -ne 0 ] || [ $$smoke_status -ne 0 ] || [ $$docs_status -ne 0 ] || [ $$tests_status -ne 0 ]; then \
 		exit 1; \
 	fi

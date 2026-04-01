@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a new capability, workflow improvement, or documentation enhancement for nyc311.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea.
+        Please keep requests concrete and tied to a user workflow when possible.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What workflow or user need is not served today?
+      placeholder: I want to...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior, API shape, or docs change you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds or alternative approaches you have already tried?

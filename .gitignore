@@ -168,6 +168,10 @@ cython_debug/
 # setuptools_scm
 src/*/_version.py
 
+# Local release verification scratch space
+.venv-release-check/
+dist-release-check/
+
 
 # Caches
 .*_cache/

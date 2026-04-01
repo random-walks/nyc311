@@ -65,4 +65,5 @@ nav:
   - Python API: api.md
   - Architecture: architecture.md
   - Contributing: contributing.md
+  - Releasing: releasing.md
   - Changelog: changelog.md

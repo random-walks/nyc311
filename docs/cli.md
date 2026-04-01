@@ -3,8 +3,8 @@
 The current command-line surface is intentionally small but now covers two
 practical workflows:
 
-This reference tracks the CLI surface for the current `0.2` alpha prerelease
-line.
+This reference tracks the CLI surface for the `0.2` release line the project is
+preparing for its first public stable launch.
 
 - `topics` for summary exports from a local CSV snapshot
 - `fetch` for pulling a filtered Socrata slice into a local CSV snapshot

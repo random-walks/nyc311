@@ -10,13 +10,14 @@ Python toolkit for building reproducible complaint-intelligence outputs from NYC
 
 ## Status
 
-`nyc311` is now on the `0.2` alpha prerelease line with a complete first-pass
-toolkit for loading, analyzing, and exporting NYC 311 complaint data.
+`nyc311` is preparing its first public stable release in the `0.2` line with a
+complete first-pass toolkit for loading, analyzing, and exporting NYC 311
+complaint data.
 
-The `0.2` alpha series better matches the current scope than the older `v0.1`
+The `0.2` release line better matches the current scope than the older `v0.1`
 foundation framing that the project started from.
 
-### Implemented in the `0.2` alpha line
+### Implemented in the `0.2` release line
 
 - load filtered NYC 311-style records from local CSV extracts or the live
   Socrata API
@@ -66,7 +67,7 @@ implemented today.
 
 ## Core workflow
 
-The current `0.2` alpha line focuses on a deterministic, testable workflow:
+The current `0.2` release line focuses on a deterministic, testable workflow:
 
 1. read a local CSV extract of NYC 311-style records or load a filtered slice
    from Socrata
@@ -89,13 +90,16 @@ clustering or advanced NLP.
 
 ## Quick links
 
-- Docs home: [`docs/index.md`](docs/index.md)
-- Getting started: [`docs/getting-started.md`](docs/getting-started.md)
-- CLI reference: [`docs/cli.md`](docs/cli.md)
-- SDK guide: [`docs/sdk.md`](docs/sdk.md)
-- Examples: [`docs/examples.md`](docs/examples.md)
-- Architecture: [`docs/architecture.md`](docs/architecture.md)
-- Contributing: [`docs/contributing.md`](docs/contributing.md)
+- Docs home: [nyc311.readthedocs.io](https://nyc311.readthedocs.io/en/latest/)
+- Getting started:
+  [Getting Started](https://nyc311.readthedocs.io/en/latest/getting-started/)
+- CLI reference: [CLI Reference](https://nyc311.readthedocs.io/en/latest/cli/)
+- SDK guide: [SDK Guide](https://nyc311.readthedocs.io/en/latest/sdk/)
+- Examples: [Examples](https://nyc311.readthedocs.io/en/latest/examples/)
+- Architecture:
+  [Architecture](https://nyc311.readthedocs.io/en/latest/architecture/)
+- Contributing:
+  [Contributing](https://nyc311.readthedocs.io/en/latest/contributing/)
 
 ## Example
 

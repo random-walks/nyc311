@@ -13,10 +13,20 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
+keywords = [
+  "nyc",
+  "nyc311",
+  "311",
+  "civic-tech",
+  "open-data",
+  "geospatial",
+  "analytics",
+]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
@@ -36,6 +46,7 @@ nyc311 = "nyc311.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/random-walks/nyc311"
+"Documentation" = "https://nyc311.readthedocs.io/"
 "Bug Tracker" = "https://github.com/random-walks/nyc311/issues"
 Discussions = "https://github.com/random-walks/nyc311/discussions"
 Changelog = "https://github.com/random-walks/nyc311/releases"
