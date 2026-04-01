@@ -48,6 +48,7 @@ plotting = [
     "matplotlib>=3.10.8",
 ]
 spatial = [
+    "contextily>=1.6.2",
     "geopandas>=1.1",
     "shapely>=2.1",
 ]
@@ -200,6 +201,7 @@ ignore = [
 "tests/**" = ["T20"]
 "noxfile.py" = ["EXE001", "T20"]
 "examples/scripts/**" = ["T20"]
+"examples/utils/**" = ["T20"]
 "examples/notebooks/*.ipynb" = ["T20"]
 "docs/examples/**" = ["T20"]
 
@@ -210,6 +212,7 @@ ignore-paths = [".*/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
 messages_control.disable = [
+  "duplicate-code",
   "design",
   "fixme",
   "line-too-long",

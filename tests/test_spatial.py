@@ -56,20 +56,25 @@ def test_load_boundaries_geodataframe_reads_geojson_fixture() -> None:
 
 
 def test_spatial_join_records_to_boundaries_assigns_boundary_columns() -> None:
-    records_gdf = nyc311.records_to_geodataframe(nyc311.load_service_requests(FIXTURE_PATH))
+    records_gdf = nyc311.records_to_geodataframe(
+        nyc311.load_service_requests(FIXTURE_PATH)
+    )
     boundaries_gdf = nyc311.load_boundaries_geodataframe(BOUNDARIES_PATH)
 
     joined = nyc311.spatial_join_records_to_boundaries(records_gdf, boundaries_gdf)
 
     assert "boundary_geography_value" in joined.columns
     assert (
-        joined.loc[joined["service_request_id"] == "1001", "boundary_geography_value"]
-        .iat[0]
+        joined.loc[
+            joined["service_request_id"] == "1001", "boundary_geography_value"
+        ].iat[0]
         == "BROOKLYN 01"
     )
-    assert joined.loc[
-        joined["service_request_id"] == "1016", "boundary_geography_value"
-    ].isna().all()
+    assert (
+        joined.loc[joined["service_request_id"] == "1016", "boundary_geography_value"]
+        .isna()
+        .all()
+    )
 
 
 def test_summaries_to_geodataframe_merges_summary_rows_onto_boundaries() -> None:

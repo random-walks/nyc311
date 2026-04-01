@@ -6,12 +6,12 @@ from .aggregation import aggregate_by_geography
 from .analytics import _compute_z_scores, analyze_resolution_gaps, detect_anomalies
 from .coverage import analyze_topic_coverage
 from .topics import (
-    DEFAULT_TOPIC_RULES,
-    TopicRule,
-    TopicRuleSet,
     _OTHER_TOPIC,
     _REGISTERED_TOPIC_RULES,
     _UNSPECIFIED_TEXT,
+    DEFAULT_TOPIC_RULES,
+    TopicRule,
+    TopicRuleSet,
     _extract_fallback_topics,
     _extract_rule_based_topics,
     _limit_assignments,

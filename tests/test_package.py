@@ -15,8 +15,14 @@ from nyc311.models import (
 )
 
 
+def _stable_version_prefix(version: str) -> str:
+    return version.split("+", maxsplit=1)[0].split(".dev", maxsplit=1)[0]
+
+
 def test_version() -> None:
-    assert m.__version__.startswith(importlib.metadata.version("nyc311"))
+    assert _stable_version_prefix(m.__version__) == _stable_version_prefix(
+        importlib.metadata.version("nyc311")
+    )
 
 
 def test_public_surface_exposes_current_alpha_contract() -> None:
@@ -72,12 +78,27 @@ def test_public_surface_exposes_current_alpha_contract() -> None:
     assert callable(m.export_service_requests_csv)
     assert callable(m.assignments_to_dataframe)
     assert callable(m.anomalies_to_dataframe)
+    assert callable(m.boundaries_to_dataframe)
+    assert callable(m.boundaries_to_geojson)
+    assert callable(m.clip_boundaries_to_bbox)
     assert callable(m.coverage_to_dataframe)
     assert callable(m.dataframe_to_records)
     assert callable(m.gaps_to_dataframe)
+    assert callable(m.list_boundary_layers)
+    assert callable(m.list_boundary_values)
+    assert callable(m.load_nyc_boundaries)
+    assert callable(m.load_nyc_council_districts)
+    assert callable(m.load_nyc_census_tracts)
+    assert callable(m.load_nyc_boundaries_geodataframe)
+    assert callable(m.load_nyc_neighborhood_tabulation_areas)
+    assert callable(m.load_sample_boundaries)
+    assert callable(m.load_sample_service_requests)
+    assert callable(m.plot_boundary_choropleth)
+    assert callable(m.plot_boundary_preview)
     assert callable(m.records_to_dataframe)
     assert callable(m.records_to_geodataframe)
     assert callable(m.run_topic_pipeline)
+    assert callable(m.spatially_enrich_records)
     assert callable(m.spatial_join_records_to_boundaries)
     assert callable(m.summaries_to_dataframe)
     assert callable(m.summaries_to_geodataframe)

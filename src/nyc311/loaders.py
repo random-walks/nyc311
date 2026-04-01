@@ -13,6 +13,13 @@ from .filters import (
     _matches_date_range,
     _matches_geography,
 )
+from .geographies.loaders import (
+    list_boundary_layers,
+    list_boundary_values,
+    load_nyc_boundaries,
+    load_sample_boundaries,
+    load_sample_service_requests,
+)
 from .loaders_csv import (
     REQUIRED_SERVICE_REQUEST_COLUMNS,
     _community_district_column,
@@ -68,8 +75,13 @@ def load_resolution_data(
 
 
 def load_boundaries(source: str | Path) -> BoundaryCollection:
-    """Load boundary polygons from a GeoJSON file for supported exports."""
-    return load_boundary_collection(source)
+    """Load boundaries from a file path or a packaged NYC boundary layer."""
+    if isinstance(source, Path) or Path(source).exists():
+        return load_boundary_collection(source)
+    try:
+        return load_nyc_boundaries(str(source))
+    except ValueError:
+        return load_boundary_collection(source)
 
 
 __all__ = [
@@ -89,7 +101,12 @@ __all__ = [
     "_socrata_select_fields",
     "_socrata_where_clauses",
     "_validate_columns",
+    "list_boundary_layers",
+    "list_boundary_values",
     "load_boundaries",
+    "load_nyc_boundaries",
+    "load_sample_boundaries",
+    "load_sample_service_requests",
     "load_resolution_data",
     "load_service_requests",
     "load_service_requests_from_csv",

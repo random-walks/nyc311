@@ -7,7 +7,7 @@ from typing import Any
 
 import nyc311
 
-from .plotting import configure_matplotlib_style, save_current_figure
+from .plotting import save_current_figure
 
 
 def load_boundary_frame(source: str | Path) -> Any:
@@ -21,8 +21,10 @@ def merge_summary_map(
     boundaries_source: str | Path,
 ) -> Any:
     """Merge topic summaries onto boundary geometries."""
-    boundaries_gdf = load_boundary_frame(boundaries_source)
-    return nyc311.summaries_to_geodataframe(summaries, boundaries_gdf)
+    return nyc311.summaries_to_geodataframe(
+        summaries,
+        boundaries_gdf=load_boundary_frame(boundaries_source),
+    )
 
 
 def save_choropleth(
@@ -33,19 +35,32 @@ def save_choropleth(
     filename: str,
     cmap: str = "viridis",
     categorical: bool = False,
+    add_basemap: bool = True,
 ) -> Path:
-    """Render and save a simple choropleth map."""
-    plt = configure_matplotlib_style()
-    axes = geodataframe.plot(
+    """Render and save a choropleth map, optionally over a real basemap."""
+    figure = nyc311.plot_boundary_choropleth(
+        geodataframe,
         column=column,
-        legend=True,
+        title=title,
         cmap=cmap,
         categorical=categorical,
-        figsize=(10, 8),
-        edgecolor="black",
-        linewidth=0.5,
-        missing_kwds={"color": "lightgrey", "label": "No data"},
+        add_basemap=add_basemap,
     )
-    axes.set_axis_off()
-    axes.set_title(title)
-    return save_current_figure(filename, axes.figure)
+    return save_current_figure(filename, figure)
+
+
+def save_boundary_preview(
+    boundaries_gdf: Any,
+    *,
+    filename: str,
+    title: str,
+    points_gdf: Any | None = None,
+) -> Path:
+    """Render boundary outlines, optionally with points, on a real basemap."""
+    figure = nyc311.plot_boundary_preview(
+        boundaries_gdf,
+        title=title,
+        points_gdf=points_gdf,
+        add_basemap=True,
+    )
+    return save_current_figure(filename, figure)

@@ -6,9 +6,6 @@ These examples match the current `0.2` alpha prerelease surface on this branch.
 
 ## Included Examples
 
-- `examples/data/service_requests_fixture.csv`
-- `examples/data/community_district_boundaries.geojson`
-- `examples/data/borough_boundaries.geojson`
 - `examples/scripts/quickstart_csv.py`
 - `examples/scripts/fetch_filtered_snapshot.py`
 - `examples/scripts/community_district_case_study.py`
@@ -21,7 +18,20 @@ These examples match the current `0.2` alpha prerelease surface on this branch.
 - `examples/notebooks/community_district_choropleth.ipynb`
 - `examples/notebooks/spatial_topic_comparison.ipynb`
 - `examples/notebooks/boundary_qa.ipynb`
-- `examples/utils/`
+
+The notebooks are now pure in-memory consumers of `nyc311` APIs. They use:
+
+- `nyc311.load_sample_service_requests()`
+- `nyc311.load_sample_boundaries()`
+- packaged NYC boundary layers exposed via `nyc311.load_nyc_boundaries*()`
+- in-memory plotting helpers such as `nyc311.plot_boundary_preview()`
+
+The packaged geography catalog now includes boroughs, community districts, city
+council districts, neighborhood tabulation areas, MODZCTAs, and census tracts.
+
+The file-oriented `examples/data/` and `examples/utils/` helpers remain
+available for scripts and ad hoc exploration, but notebooks no longer depend on
+them.
 
 ## Recommended Workflow For Large Datasets
 
@@ -33,7 +43,9 @@ For larger data-science workflows:
 4. keep large artifacts out of git
 
 That pattern is easier to debug, easier to reproduce, and friendlier to the
-Socrata API than pulling large live datasets for every notebook run.
+Socrata API than pulling large live datasets for every notebook run. The
+library-owned sample loaders provide the same reproducible workflow for notebook
+examples that should run without local file setup.
 
 ## Start With A Snapshot
 
@@ -76,7 +88,7 @@ uv run python examples/scripts/point_to_boundary_join.py
 ```
 
 The dataframe and notebook-oriented examples rely on the optional `dataframes`
-or `science` extras. The new geography-forward examples additionally rely on
-the `spatial` extra. `make install` already includes the core contributor
+or `science` extras. The new geography-forward examples additionally rely on the
+`spatial` extra. `make install` already includes the core contributor
 dependencies; add `uv sync --extra spatial --extra science` when you want to run
 the mapping notebooks and scripts.

@@ -7,15 +7,24 @@ explicit and keep the public contract stable across the CLI, SDK, and exports.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from datetime import date
-import math
 from pathlib import Path
 from typing import Any, Final
 
 BoroughName = str
 
-SUPPORTED_GEOGRAPHIES: Final[tuple[str, ...]] = ("borough", "community_district")
+SUPPORTED_RECORD_GEOGRAPHIES: Final[tuple[str, ...]] = ("borough", "community_district")
+SUPPORTED_BOUNDARY_GEOGRAPHIES: Final[tuple[str, ...]] = (
+    "borough",
+    "community_district",
+    "council_district",
+    "neighborhood_tabulation_area",
+    "census_tract",
+    "zcta",
+)
+SUPPORTED_GEOGRAPHIES: Final[tuple[str, ...]] = SUPPORTED_RECORD_GEOGRAPHIES
 SOCRATA_DATASET_IDENTIFIER: Final[str] = "erm2-nwe9"
 BOROUGH_BRONX: Final[BoroughName] = "BRONX"
 BOROUGH_BROOKLYN: Final[BoroughName] = "BROOKLYN"
@@ -73,6 +82,9 @@ def _coerce_optional_coordinate(value: object, *, name: str) -> float | None:
             return None
         value = normalized_value
 
+    if not isinstance(value, (int, float, str)):
+        raise ValueError(f"{name} must be numeric when provided.")
+
     try:
         coordinate = float(value)
     except (TypeError, ValueError) as exc:
@@ -101,8 +113,7 @@ def _normalize_coordinate_pair(
     min_longitude, max_longitude = _NYC_LONGITUDE_RANGE
     if not min_latitude <= normalized_latitude <= max_latitude:
         raise ValueError(
-            "latitude must fall within the supported NYC bounds "
-            f"{_NYC_LATITUDE_RANGE}."
+            f"latitude must fall within the supported NYC bounds {_NYC_LATITUDE_RANGE}."
         )
     if not min_longitude <= normalized_longitude <= max_longitude:
         raise ValueError(
@@ -535,10 +546,10 @@ class BoundaryFeature:
 
     def __post_init__(self) -> None:
         normalized_geography = self.geography.strip().lower()
-        if normalized_geography not in SUPPORTED_GEOGRAPHIES:
+        if normalized_geography not in SUPPORTED_BOUNDARY_GEOGRAPHIES:
             msg = (
                 "Unsupported boundary geography. "
-                f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
+                f"Expected one of {SUPPORTED_BOUNDARY_GEOGRAPHIES}, got {self.geography!r}."
             )
             raise ValueError(msg)
         if not _normalize_value(self.geography_value):
@@ -558,10 +569,10 @@ class BoundaryCollection:
 
     def __post_init__(self) -> None:
         normalized_geography = self.geography.strip().lower()
-        if normalized_geography not in SUPPORTED_GEOGRAPHIES:
+        if normalized_geography not in SUPPORTED_BOUNDARY_GEOGRAPHIES:
             msg = (
                 "Unsupported boundary collection geography. "
-                f"Expected one of {SUPPORTED_GEOGRAPHIES}, got {self.geography!r}."
+                f"Expected one of {SUPPORTED_BOUNDARY_GEOGRAPHIES}, got {self.geography!r}."
             )
             raise ValueError(msg)
         if not self.features:

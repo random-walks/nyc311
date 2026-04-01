@@ -1,0 +1,26 @@
+{
+  "borough": ["BRONX", "BROOKLYN", "MANHATTAN", "QUEENS"],
+  "census_tract": [
+    "36005022703",
+    "36047029500",
+    "36047056500",
+    "36061021200",
+    "36081015900"
+  ],
+  "community_district": [
+    "BRONX 05",
+    "BROOKLYN 01",
+    "BROOKLYN 03",
+    "MANHATTAN 10",
+    "QUEENS 02"
+  ],
+  "council_district": ["09", "15", "22", "33", "36"],
+  "neighborhood_tabulation_area": [
+    "BK0101",
+    "BK0302",
+    "BX0403",
+    "MN1002",
+    "QN0104"
+  ],
+  "zcta": ["10037", "10457", "11101", "11221", "11222"]
+}

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import ast
 import inspect
+import json
 import sys
 import tempfile
 from collections.abc import Callable
@@ -13,6 +13,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 PACKAGE_DIR = SRC / "nyc311"
+PLANNED_SURFACE_MANIFEST = PACKAGE_DIR / "planned_surface.json"
 FIXTURE_CSV = ROOT / "tests" / "fixtures" / "service_requests_fixture.csv"
 FIXTURE_BOUNDARIES = (
     ROOT / "tests" / "fixtures" / "community_district_boundaries.geojson"
@@ -24,22 +25,37 @@ if str(SRC) not in sys.path:
 import nyc311  # noqa: E402
 
 
-def _planned_symbols_from_source() -> set[str]:
-    planned_symbols: set[str] = set()
-    for path in PACKAGE_DIR.glob("*.py"):
-        if path.name == "_version.py":
-            continue
-        module = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in module.body:
-            if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
-                continue
-            if any(
-                isinstance(call, ast.Call)
-                and isinstance(call.func, ast.Name)
-                and call.func.id == "planned_surface"
-                for call in ast.walk(node)
-            ):
-                planned_symbols.add(node.name)
+def _planned_symbols_from_manifest() -> list[tuple[str, str]]:
+    if not PLANNED_SURFACE_MANIFEST.exists():
+        return []
+
+    payload = json.loads(PLANNED_SURFACE_MANIFEST.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("planned_surface.json must be a JSON object.")
+    raw_symbols = payload.get("symbols", [])
+    if not isinstance(raw_symbols, list):
+        raise ValueError("planned_surface.json must contain a list at 'symbols'.")
+
+    planned_symbols: list[tuple[str, str]] = []
+    seen_symbols: set[str] = set()
+    for raw_symbol in raw_symbols:
+        if not isinstance(raw_symbol, dict):
+            raise ValueError("Each planned symbol entry must be an object.")
+        symbol_name = raw_symbol.get("symbol")
+        module_name = raw_symbol.get("module")
+        if not isinstance(symbol_name, str) or not symbol_name.strip():
+            raise ValueError("Each planned symbol must include a non-empty symbol.")
+        if not isinstance(module_name, str) or not module_name.strip():
+            raise ValueError("Each planned symbol must include a non-empty module.")
+
+        normalized_symbol_name = symbol_name.strip()
+        if normalized_symbol_name in seen_symbols:
+            raise ValueError(
+                "planned_surface.json contains duplicate symbols: "
+                f"{normalized_symbol_name!r}."
+            )
+        seen_symbols.add(normalized_symbol_name)
+        planned_symbols.append((normalized_symbol_name, module_name.strip()))
     return planned_symbols
 
 
@@ -148,11 +164,8 @@ def _build_probes(tmpdir: Path) -> dict[str, Callable[[], Any]]:
 def _status_for_symbol(
     symbol_name: str,
     symbol: object,
-    planned_symbols: set[str],
     probes: dict[str, Callable[[], Any]],
 ) -> str:
-    if symbol_name in planned_symbols:
-        return "planned"
     if inspect.isclass(symbol) or not callable(symbol):
         return "implemented"
 
@@ -167,28 +180,35 @@ def _status_for_symbol(
         except (LookupError, OSError, RuntimeError, TypeError, ValueError):
             return "implemented"
         return "implemented"
-
-    try:
-        source = inspect.getsource(symbol)
-    except (OSError, TypeError):
-        return "implemented"
-    return "planned" if "planned_surface(" in source else "implemented"
+    return "implemented"
 
 
 def _iter_public_rows() -> list[tuple[str, str, str]]:
-    planned_symbols = _planned_symbols_from_source()
+    planned_symbols = _planned_symbols_from_manifest()
+    planned_symbol_lookup = dict(planned_symbols)
     with tempfile.TemporaryDirectory() as tmp:
         probes = _build_probes(Path(tmp))
         rows = []
+        exported_symbols = set(nyc311.__all__)
         for symbol_name in nyc311.__all__:
+            if symbol_name in planned_symbol_lookup:
+                raise ValueError(
+                    "Planned symbols must not overlap the exported package surface. "
+                    f"Remove {symbol_name!r} from planned_surface.json once it is implemented."
+                )
             symbol = getattr(nyc311, symbol_name)
             rows.append(
                 (
                     symbol_name,
                     _symbol_module_name(symbol_name, symbol),
-                    _status_for_symbol(symbol_name, symbol, planned_symbols, probes),
+                    _status_for_symbol(symbol_name, symbol, probes),
                 )
             )
+        rows.extend(
+            (symbol_name, module_name, "planned")
+            for symbol_name, module_name in planned_symbols
+            if symbol_name not in exported_symbols
+        )
     return rows
 
 
