@@ -1,16 +1,35 @@
 from __future__ import annotations
 
+import argparse
 import csv
+import os
 from collections import Counter, defaultdict
+from datetime import date
 from importlib import import_module
 from pathlib import Path
 
-from nyc311 import analysis, export, models, plotting, samples, spatial
+from nyc311 import analysis, export, io, models, pipeline, plotting, spatial
 
 ROOT = Path(__file__).resolve().parent
+CACHE_DIR = ROOT / "cache"
 ARTIFACTS_DIR = ROOT / "artifacts"
 REPORTS_DIR = ROOT / "reports"
 REPORT_FIGURES_DIR = REPORTS_DIR / "figures"
+DEFAULT_START_DATE = "2025-01-01"
+DEFAULT_END_DATE = "2025-03-31"
+DEFAULT_PAGE_SIZE = 1_000
+DEFAULT_MAX_PAGES = 15
+MAP_LABEL_LIMIT = 12
+PARTY_CHART_LIMIT = 12
+TOPIC_MIX_LIMIT = 6
+REPORT_COMPARISON_LIMIT = 10
+REPORT_REASSIGNMENT_LIMIT = 25
+REPORT_DISTRICT_LIMIT = 15
+
+
+def cache_path(filename: str) -> Path:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    return CACHE_DIR / filename
 
 
 def artifact_path(filename: str) -> Path:
@@ -38,12 +57,65 @@ def require_matplotlib() -> object:
     return import_module("matplotlib.pyplot")
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Compare raw and spatial district topic stories from a cached live noise slice.",
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Ignore the existing cache file and fetch a fresh live slice.",
+    )
+    parser.add_argument(
+        "--publish-report",
+        action="store_true",
+        help="Write tracked report markdown and tracked figures under reports/.",
+    )
+    parser.add_argument(
+        "--app-token",
+        default=os.getenv("NYC_OPEN_DATA_APP_TOKEN"),
+        help="Optional Socrata app token. Falls back to NYC_OPEN_DATA_APP_TOKEN.",
+    )
+    return parser
+
+
+def load_records(
+    refresh: bool, app_token: str | None
+) -> tuple[list[models.ServiceRequestRecord], str, Path]:
+    snapshot_path = cache_path("spatial-topic-comparison-noise-snapshot.csv")
+    if snapshot_path.exists() and not refresh:
+        return io.load_service_requests(snapshot_path), "cache", snapshot_path
+
+    records = pipeline.fetch_service_requests(
+        filters=models.ServiceRequestFilter(
+            start_date=date.fromisoformat(DEFAULT_START_DATE),
+            end_date=date.fromisoformat(DEFAULT_END_DATE),
+            geography=models.GeographyFilter("borough", models.BOROUGH_BROOKLYN),
+            complaint_types=("Noise - Residential",),
+        ),
+        socrata_config=models.SocrataConfig(
+            app_token=app_token,
+            page_size=DEFAULT_PAGE_SIZE,
+            max_pages=DEFAULT_MAX_PAGES,
+        ),
+        output=snapshot_path,
+    )
+    return records, "live fetch", snapshot_path
+
+
 def format_topic_name(value: str) -> str:
     return value.replace("_", " ").title()
 
 
 def format_district_name(value: str) -> str:
     return value.title()
+
+
+def select_label_rows(dominant_map: object) -> object:
+    return dominant_map[dominant_map["complaint_count"] > 0].sort_values(
+        ["geography_total_count", "share_of_geography", "geography_value"],
+        ascending=[False, False, True],
+    ).head(MAP_LABEL_LIMIT)
 
 
 def aggregate_joined_topics(joined: object) -> list[models.GeographyTopicSummary]:
@@ -184,13 +256,13 @@ def build_preview_map(
 ) -> object:
     return plotting.plot_boundary_point_groups(
         highlighted_districts_gdf,
-        title="Where do the sample noise points land in the full district layer?",
+        title="Where do cached noise points land in the full district layer?",
         matched_points_gdf=matched,
         unmatched_points_gdf=unmatched,
         context_gdf=all_districts_gdf,
         outline_gdf=borough_outlines,
-        matched_label="Matched noise point",
-        unmatched_label="Unmatched noise point",
+        matched_label="Matched to a district",
+        unmatched_label="Outside every district polygon",
         figsize=(10.5, 8.5),
     )
 
@@ -209,8 +281,7 @@ def build_dominant_map_figure(
         legend_title="Spatially joined dominant topic",
     )
     axes = figure.axes[0]
-    sampled_rows = dominant_map[dominant_map["complaint_count"] > 0]
-    for row in sampled_rows.itertuples(index=False):
+    for row in select_label_rows(dominant_map).itertuples(index=False):
         point = row.geometry.representative_point()
         axes.text(
             point.x,
@@ -236,13 +307,14 @@ def build_dominant_map_figure(
 def build_party_music_figure(snapshot_rows: list[dict[str, object]]) -> object:
     plt = require_matplotlib()
     percent_formatter = import_module("matplotlib.ticker").PercentFormatter
+    plot_rows = snapshot_rows[:PARTY_CHART_LIMIT]
     figure, axes = plt.subplots(figsize=(8.5, 4.8))
     bars = axes.barh(
-        [str(row["district"]) for row in snapshot_rows],
-        [float(row["party_music_share"]) for row in snapshot_rows],
+        [str(row["district"]) for row in plot_rows],
+        [float(row["party_music_share"]) for row in plot_rows],
         color=[
             "#7c3aed" if float(row["party_music_share"]) > 0 else "#cbd5e1"
-            for row in snapshot_rows
+            for row in plot_rows
         ],
     )
     axes.invert_yaxis()
@@ -251,7 +323,7 @@ def build_party_music_figure(snapshot_rows: list[dict[str, object]]) -> object:
     axes.set_title("Which joined districts skew hardest toward party music?")
     axes.xaxis.set_major_formatter(percent_formatter(xmax=1))
     axes.grid(axis="x", alpha=0.25)
-    for bar, row in zip(bars, snapshot_rows, strict=True):
+    for bar, row in zip(bars, plot_rows, strict=True):
         axes.text(
             bar.get_width() + 0.02,
             bar.get_y() + bar.get_height() / 2,
@@ -272,19 +344,27 @@ def build_topic_mix_figure(
 ) -> object:
     plt = require_matplotlib()
     percent_formatter = import_module("matplotlib.ticker").PercentFormatter
+    plot_rows = sorted(
+        snapshot_rows,
+        key=lambda row: (
+            -float(row["dominant_share"]),
+            -int(row["geography_total_count"]),
+            str(row["district"]),
+        ),
+    )[:TOPIC_MIX_LIMIT]
     figure, axes = plt.subplots(
         1,
-        len(snapshot_rows),
-        figsize=(4.2 * len(snapshot_rows), 4.8),
+        len(plot_rows),
+        figsize=(4.2 * len(plot_rows), 4.8),
         sharey=True,
     )
-    axes_list = [axes] if len(snapshot_rows) == 1 else list(axes)
+    axes_list = [axes] if len(plot_rows) == 1 else list(axes)
     colormap = require_matplotlib().get_cmap("Set2", len(topic_order))
     topic_colors = {
         topic: "#7c3aed" if topic == "party_music" else colormap(index)
         for index, topic in enumerate(topic_order)
     }
-    for axis, row in zip(axes_list, snapshot_rows, strict=True):
+    for axis, row in zip(axes_list, plot_rows, strict=True):
         shares = [float(row["topic_shares"].get(topic, 0.0)) for topic in topic_order]
         bars = axis.bar(
             range(len(topic_order)),
@@ -322,6 +402,8 @@ def build_topic_mix_figure(
 
 def write_report(
     *,
+    source: str,
+    snapshot_path: Path,
     total_rows: int,
     matched_count: int,
     spatial_rows: list[dict[str, object]],
@@ -334,6 +416,20 @@ def write_report(
 ) -> Path:
     report_file = report_path("spatial-topic-comparison-tearsheet.md")
     top_party_row = spatial_rows[0]
+    report_comparison_rows = []
+    for view in ("Raw record label", "Spatial join"):
+        report_comparison_rows.extend(
+            sorted(
+                [row for row in comparison_rows if row["view"] == view],
+                key=lambda row: (
+                    -int(row["geography_total_count"]),
+                    -float(row["party_music_share"]),
+                    str(row["district"]),
+                ),
+            )[:REPORT_COMPARISON_LIMIT]
+        )
+    report_reassignment_rows = reassigned_rows[:REPORT_REASSIGNMENT_LIMIT]
+    report_district_rows = spatial_rows[:REPORT_DISTRICT_LIMIT]
     strongest_dominance = max(
         spatial_rows,
         key=lambda row: (
@@ -354,12 +450,13 @@ def write_report(
         "# Spatial Topic Comparison Tearsheet",
         "",
         "This tearsheet compares residential-noise topics before and after spatially",
-        "joining the packaged sample points to the full NYC community-district layer.",
+        "joining a cached live noise slice to the full NYC community-district layer.",
         "",
         "## Executive Summary",
         "",
         (
-            f"- The packaged sample contributes `{total_rows}` residential-noise points, "
+            f"- The cached slice contributes `{total_rows}` residential-noise points from "
+            f"`{source}` using `cache/{snapshot_path.name}`, "
             f"and `{matched_count}` of them land inside a district polygon when the full layer is used."
         ),
         (
@@ -377,7 +474,7 @@ def write_report(
         ),
         (
             f"- Spatial enrichment changes the raw district label for `{len(reassigned_rows)}` "
-            "sample rows, which is why this example reports both raw and spatial district views."
+            "rows in the cached slice, which is why this example reports both raw and spatial district views."
         ),
         "",
         "## Spatial Join Preview",
@@ -414,7 +511,7 @@ def write_report(
             ]
         )
         + " |"
-        for row in comparison_rows
+        for row in report_comparison_rows
     )
     lines.extend(
         [
@@ -437,7 +534,7 @@ def write_report(
             ]
         )
         + " |"
-        for row in reassigned_rows
+        for row in report_reassignment_rows
     )
     lines.extend(
         [
@@ -460,27 +557,26 @@ def write_report(
             ]
         )
         + " |"
-        for row in spatial_rows
+        for row in report_district_rows
     )
     report_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return report_file
 
 
 def main() -> None:
-    records = samples.load_sample_service_requests(
-        filters=models.ServiceRequestFilter(
-            complaint_types=("Noise - Residential",),
-        )
-    )
+    args = build_parser().parse_args()
+    records, source, snapshot_path = load_records(args.refresh, args.app_token)
     if not records:
-        raise RuntimeError(
-            "The packaged sample slice did not return any noise records."
-        )
+        raise RuntimeError("The cached spatial-topic slice did not return any noise records.")
 
     all_districts_gdf = spatial.load_boundaries_geodataframe(layer="community_district")
     borough_outlines = spatial.load_boundaries_geodataframe(layer="borough")
     records_gdf = spatial.records_to_geodataframe(records)
     joined = spatial.spatial_join_records_to_boundaries(records_gdf, all_districts_gdf)
+    if joined.empty:
+        raise RuntimeError(
+            "The cached spatial-topic slice did not include any point-capable records."
+        )
     assignments = analysis.extract_topics(
         records,
         models.TopicQuery("Noise - Residential"),
@@ -601,52 +697,68 @@ def main() -> None:
         for row in reassigned_rows:
             writer.writerow(row)
 
-    preview_map_path = save_figure(
-        build_preview_map(
-            highlighted_districts_gdf=sampled_districts_gdf,
-            all_districts_gdf=all_districts_gdf,
-            borough_outlines=borough_outlines,
-            matched=matched,
-            unmatched=unmatched,
-        ),
-        report_figure_path("spatial-topic-comparison-preview.png"),
-    )
-    dominant_map_path = save_figure(
-        build_dominant_map_figure(dominant_map, borough_outlines=borough_outlines),
-        report_figure_path("spatial-dominant-noise-topics.png"),
-    )
-    party_chart_path = save_figure(
-        build_party_music_figure(spatial_rows),
-        report_figure_path("spatial-party-music-intensity.png"),
-    )
-    topic_mix_chart_path = save_figure(
-        build_topic_mix_figure(spatial_rows, topic_order),
-        report_figure_path("spatial-topic-mix-by-district.png"),
-    )
-    report_file = write_report(
-        total_rows=len(joined),
-        matched_count=len(matched),
-        spatial_rows=spatial_rows,
-        comparison_rows=comparison_rows,
-        reassigned_rows=reassigned_rows,
-        preview_map_path=preview_map_path,
-        dominant_map_path=dominant_map_path,
-        party_chart_path=party_chart_path,
-        topic_mix_chart_path=topic_mix_chart_path,
-    )
+    report_file: Path | None = None
+    preview_map_path: Path | None = None
+    dominant_map_path: Path | None = None
+    party_chart_path: Path | None = None
+    topic_mix_chart_path: Path | None = None
+    if args.publish_report:
+        preview_map_path = save_figure(
+            build_preview_map(
+                highlighted_districts_gdf=sampled_districts_gdf,
+                all_districts_gdf=all_districts_gdf,
+                borough_outlines=borough_outlines,
+                matched=matched,
+                unmatched=unmatched,
+            ),
+            report_figure_path("spatial-topic-comparison-preview.png"),
+        )
+        dominant_map_path = save_figure(
+            build_dominant_map_figure(dominant_map, borough_outlines=borough_outlines),
+            report_figure_path("spatial-dominant-noise-topics.png"),
+        )
+        party_chart_path = save_figure(
+            build_party_music_figure(spatial_rows),
+            report_figure_path("spatial-party-music-intensity.png"),
+        )
+        topic_mix_chart_path = save_figure(
+            build_topic_mix_figure(spatial_rows, topic_order),
+            report_figure_path("spatial-topic-mix-by-district.png"),
+        )
+        report_file = write_report(
+            source=source,
+            snapshot_path=snapshot_path,
+            total_rows=len(joined),
+            matched_count=len(matched),
+            spatial_rows=spatial_rows,
+            comparison_rows=comparison_rows,
+            reassigned_rows=reassigned_rows,
+            preview_map_path=preview_map_path,
+            dominant_map_path=dominant_map_path,
+            party_chart_path=party_chart_path,
+            topic_mix_chart_path=topic_mix_chart_path,
+        )
 
     print("Spatial Topic Comparison")
     print("------------------------")
+    print(f"Record source: {source}")
+    print(f"Cache path: {snapshot_path}")
+    print(f"Loaded records: {len(records)}")
     print(f"Wrote joined topic summary: {output_csv}")
     print(f"Wrote joined preview: {joined_preview_path}")
     print(f"Wrote unmatched rows: {unmatched_path}")
     print(f"Wrote raw-vs-joined summary: {comparison_path}")
     print(f"Wrote reassignment summary: {reassignment_path}")
-    print(f"Wrote tracked preview map: {preview_map_path}")
-    print(f"Wrote tracked dominant-topic map: {dominant_map_path}")
-    print(f"Wrote tracked party-music chart: {party_chart_path}")
-    print(f"Wrote tracked topic-mix chart: {topic_mix_chart_path}")
-    print(f"Wrote tracked report: {report_file}")
+    if report_file is None:
+        print(
+            "Skipped tracked report generation. Re-run with --publish-report to update reports/."
+        )
+    else:
+        print(f"Wrote tracked preview map: {preview_map_path}")
+        print(f"Wrote tracked dominant-topic map: {dominant_map_path}")
+        print(f"Wrote tracked party-music chart: {party_chart_path}")
+        print(f"Wrote tracked topic-mix chart: {topic_mix_chart_path}")
+        print(f"Wrote tracked report: {report_file}")
     for row in spatial_rows:
         print(
             f"- {row['district']}: {format_topic_name(str(row['dominant_topic']))} "

@@ -1,15 +1,31 @@
 from __future__ import annotations
 
+import argparse
+import os
 from collections import Counter
+from datetime import date
 from importlib import import_module
 from pathlib import Path
 
-from nyc311 import analysis, export, models, plotting, samples, spatial
+from nyc311 import analysis, export, io, models, pipeline, plotting, spatial
 
 ROOT = Path(__file__).resolve().parent
+CACHE_DIR = ROOT / "cache"
 ARTIFACTS_DIR = ROOT / "artifacts"
 REPORTS_DIR = ROOT / "reports"
 REPORT_FIGURES_DIR = REPORTS_DIR / "figures"
+DEFAULT_START_DATE = "2025-01-01"
+DEFAULT_END_DATE = "2025-03-31"
+DEFAULT_PAGE_SIZE = 1_000
+DEFAULT_MAX_PAGES = 15
+MAP_LABEL_LIMIT = 12
+PARTY_CHART_LIMIT = 12
+REPORT_DISTRICT_LIMIT = 15
+
+
+def cache_path(filename: str) -> Path:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    return CACHE_DIR / filename
 
 
 def artifact_path(filename: str) -> Path:
@@ -37,6 +53,52 @@ def require_matplotlib() -> object:
     return import_module("matplotlib.pyplot")
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Build a district-level choropleth from a cached live noise slice.",
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Ignore the existing cache file and fetch a fresh live slice.",
+    )
+    parser.add_argument(
+        "--publish-report",
+        action="store_true",
+        help="Write tracked report markdown and tracked figures under reports/.",
+    )
+    parser.add_argument(
+        "--app-token",
+        default=os.getenv("NYC_OPEN_DATA_APP_TOKEN"),
+        help="Optional Socrata app token. Falls back to NYC_OPEN_DATA_APP_TOKEN.",
+    )
+    return parser
+
+
+def load_records(
+    refresh: bool, app_token: str | None
+) -> tuple[list[models.ServiceRequestRecord], str, Path]:
+    snapshot_path = cache_path("community-district-noise-snapshot.csv")
+    if snapshot_path.exists() and not refresh:
+        return io.load_service_requests(snapshot_path), "cache", snapshot_path
+
+    records = pipeline.fetch_service_requests(
+        filters=models.ServiceRequestFilter(
+            start_date=date.fromisoformat(DEFAULT_START_DATE),
+            end_date=date.fromisoformat(DEFAULT_END_DATE),
+            geography=models.GeographyFilter("borough", models.BOROUGH_BROOKLYN),
+            complaint_types=("Noise - Residential",),
+        ),
+        socrata_config=models.SocrataConfig(
+            app_token=app_token,
+            page_size=DEFAULT_PAGE_SIZE,
+            max_pages=DEFAULT_MAX_PAGES,
+        ),
+        output=snapshot_path,
+    )
+    return records, "live fetch", snapshot_path
+
+
 def format_topic_name(value: str | None) -> str:
     if not isinstance(value, str) or not value:
         return "No sample data"
@@ -51,6 +113,13 @@ def sampled_snapshot_rows(
     snapshot_rows: list[dict[str, object]],
 ) -> list[dict[str, object]]:
     return [row for row in snapshot_rows if int(row["geography_total_count"]) > 0]
+
+
+def select_label_rows(dominant_map: object) -> object:
+    return dominant_map[dominant_map["complaint_count"] > 0].sort_values(
+        ["geography_total_count", "share_of_geography", "geography_value"],
+        ascending=[False, False, True],
+    ).head(MAP_LABEL_LIMIT)
 
 
 def build_snapshot_rows(
@@ -131,8 +200,7 @@ def build_map_figure(dominant_map: object, *, borough_outlines: object) -> objec
         legend_title="Dominant topic",
     )
     axes = figure.axes[0]
-    sampled_rows = dominant_map[dominant_map["complaint_count"] > 0]
-    for row in sampled_rows.itertuples(index=False):
+    for row in select_label_rows(dominant_map).itertuples(index=False):
         point = row.geometry.representative_point()
         axes.text(
             point.x,
@@ -167,7 +235,7 @@ def build_party_music_intensity_figure(
             -int(row["geography_total_count"]),
             str(row["geography_value"]),
         ),
-    )
+    )[:PARTY_CHART_LIMIT]
     figure, axes = plt.subplots(figsize=(9, 6))
     bars = axes.barh(
         [str(row["geography_value"]) for row in plot_rows],
@@ -180,7 +248,7 @@ def build_party_music_intensity_figure(
     axes.invert_yaxis()
     axes.set_xlim(0, 1)
     axes.set_xlabel("Party music share of district noise complaints")
-    axes.set_title("Which sampled districts skew hardest toward party music?")
+    axes.set_title("Which districts in the cached slice skew hardest toward party music?")
     axes.xaxis.set_major_formatter(percent_formatter(xmax=1))
     axes.grid(axis="x", alpha=0.25)
     for bar, row in zip(bars, plot_rows, strict=True):
@@ -258,12 +326,14 @@ def build_topic_mix_figure(
                 fontsize=8,
             )
     axes_list[0].set_ylabel("Share of district noise complaints")
-    figure.suptitle("Top sampled districts by dominant-topic strength", y=1.02)
+    figure.suptitle("Top districts in the cached slice by dominant-topic strength", y=1.02)
     return figure
 
 
 def write_report(
     *,
+    source: str,
+    snapshot_path: Path,
     records: list[models.ServiceRequestRecord],
     snapshot_rows: list[dict[str, object]],
     map_image_path: Path,
@@ -272,6 +342,14 @@ def write_report(
 ) -> Path:
     report_file = report_path("community-district-choropleth-tearsheet.md")
     sampled_rows = sampled_snapshot_rows(snapshot_rows)
+    report_rows = sorted(
+        sampled_rows,
+        key=lambda item: (
+            -float(item["party_music_share"]),
+            -int(item["geography_total_count"]),
+            str(item["geography_value"]),
+        ),
+    )[:REPORT_DISTRICT_LIMIT]
     total_districts = len(snapshot_rows)
     missing_count = total_districts - len(sampled_rows)
     top_party_row = max(
@@ -301,15 +379,15 @@ def write_report(
     lines = [
         "# Community District Choropleth Tearsheet",
         "",
-        "This tearsheet summarizes the packaged `Noise - Residential` sample at the",
+        "This tearsheet summarizes a cached live `Noise - Residential` slice at the",
         "community-district level. The map uses the full NYC district layer so grey",
-        "polygons show where the packaged sample has no district-level coverage.",
+        "polygons show where the cached slice has no district-level coverage.",
         "",
         "## Executive Summary",
         "",
         (
-            f"- The packaged sample contains `{len(records)}` noise complaints across "
-            f"`{len(sampled_rows)}` sampled districts."
+            f"- The cached slice contains `{len(records)}` noise complaints from `{source}` "
+            f"using `cache/{snapshot_path.name}` across `{len(sampled_rows)}` sampled districts."
         ),
         (
             f"- The strongest party-music intensity appears in "
@@ -322,7 +400,7 @@ def write_report(
             f"- The sharpest dominant-topic signal appears in "
             f"`{strongest_dominance['geography_value']}`, where "
             f"`{format_topic_name(str(strongest_dominance['dominant_topic']))}` accounts for "
-            f"`{float(strongest_dominance['dominant_share']):.1%}` of sampled district noise."
+            f"`{float(strongest_dominance['dominant_share']):.1%}` of cached district noise."
         ),
         (
             f"- The flattest topic mix appears in "
@@ -331,7 +409,7 @@ def write_report(
         ),
         (
             f"- The full district layer contains `{missing_count}` no-data polygons that do not "
-            "appear in the packaged sample."
+            "appear in the cached slice."
         ),
         "",
         "## Dominant Topic Map",
@@ -364,7 +442,7 @@ def write_report(
         )
         + " |"
         for row in sorted(
-            sampled_rows,
+            report_rows,
             key=lambda item: (
                 -float(item["party_music_share"]),
                 -int(item["geography_total_count"]),
@@ -377,13 +455,10 @@ def write_report(
 
 
 def main() -> None:
-    records = samples.load_sample_service_requests(
-        filters=models.ServiceRequestFilter(
-            complaint_types=("Noise - Residential",),
-        )
-    )
+    args = build_parser().parse_args()
+    records, source, snapshot_path = load_records(args.refresh, args.app_token)
     if not records:
-        raise RuntimeError("The packaged sample slice did not return any records.")
+        raise RuntimeError("The cached district choropleth slice did not return any records.")
 
     assignments = analysis.extract_topics(
         records,
@@ -396,7 +471,7 @@ def main() -> None:
     dominant_summaries = [summary for summary in summaries if summary.is_dominant_topic]
     if not dominant_summaries:
         raise RuntimeError(
-            "The packaged sample slice did not produce any community district summaries."
+            "The cached district choropleth slice did not produce any community district summaries."
         )
 
     all_districts_gdf = spatial.load_boundaries_geodataframe(layer="community_district")
@@ -424,35 +499,50 @@ def main() -> None:
         models.ExportTarget("csv", dominant_summary_path),
     )
 
-    map_path = save_figure(
-        build_map_figure(dominant_map, borough_outlines=borough_outlines),
-        report_figure_path("community-district-dominant-noise-topics.png"),
-    )
-    party_music_chart_path = save_figure(
-        build_party_music_intensity_figure(snapshot_rows),
-        report_figure_path("community-district-party-music-intensity.png"),
-    )
-    topic_mix_chart_path = save_figure(
-        build_topic_mix_figure(snapshot_rows, topic_order),
-        report_figure_path("community-district-topic-mix-topn.png"),
-    )
-    report_file = write_report(
-        records=records,
-        snapshot_rows=snapshot_rows,
-        map_image_path=map_path,
-        party_music_image_path=party_music_chart_path,
-        topic_mix_image_path=topic_mix_chart_path,
-    )
+    report_file: Path | None = None
+    map_path: Path | None = None
+    party_music_chart_path: Path | None = None
+    topic_mix_chart_path: Path | None = None
+    if args.publish_report:
+        map_path = save_figure(
+            build_map_figure(dominant_map, borough_outlines=borough_outlines),
+            report_figure_path("community-district-dominant-noise-topics.png"),
+        )
+        party_music_chart_path = save_figure(
+            build_party_music_intensity_figure(snapshot_rows),
+            report_figure_path("community-district-party-music-intensity.png"),
+        )
+        topic_mix_chart_path = save_figure(
+            build_topic_mix_figure(snapshot_rows, topic_order),
+            report_figure_path("community-district-topic-mix-topn.png"),
+        )
+        report_file = write_report(
+            source=source,
+            snapshot_path=snapshot_path,
+            records=records,
+            snapshot_rows=snapshot_rows,
+            map_image_path=map_path,
+            party_music_image_path=party_music_chart_path,
+            topic_mix_image_path=topic_mix_chart_path,
+        )
 
     print("Community District Choropleth")
     print("-----------------------------")
+    print(f"Record source: {source}")
+    print(f"Cache path: {snapshot_path}")
+    print(f"Loaded records: {len(records)}")
     print(f"Wrote scratch summary: {all_summary_path}")
     print(f"Wrote dominant-only summary: {dominant_summary_path}")
-    print(f"Wrote tracked map: {map_path}")
-    print(f"Wrote tracked party-music chart: {party_music_chart_path}")
-    print(f"Wrote tracked topic-mix chart: {topic_mix_chart_path}")
-    print(f"Wrote tracked report: {report_file}")
-    print("Dominant topics by sampled district")
+    if report_file is None:
+        print(
+            "Skipped tracked report generation. Re-run with --publish-report to update reports/."
+        )
+    else:
+        print(f"Wrote tracked map: {map_path}")
+        print(f"Wrote tracked party-music chart: {party_music_chart_path}")
+        print(f"Wrote tracked topic-mix chart: {topic_mix_chart_path}")
+        print(f"Wrote tracked report: {report_file}")
+    print("Dominant topics by cached district slice")
     for row in sampled_snapshot_rows(snapshot_rows):
         print(
             f"- {row['geography_value']}: "

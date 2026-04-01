@@ -69,6 +69,8 @@ When `--publish-report` is passed, it also writes:
 
 - uses `dataframes` for local tabular inspection and `plotting` for report
   figures
+- now defaults to a higher-row Brooklyn cache so coverage and anomaly summaries
+  are less sample-starved
 - keeps both cache and artifacts inside this example folder
 - treats the generic package-level report card as scratch, not the final tracked
   report

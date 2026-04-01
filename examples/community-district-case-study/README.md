@@ -67,5 +67,7 @@ When `--publish-report` is passed, it also writes:
 ## Notes
 
 - keeps its live slice local to this folder
+- now defaults to a higher-row Brooklyn cache so district comparisons have more
+  signal
 - reuses the local cache by default instead of refetching
 - gates tracked report regeneration behind `--publish-report`

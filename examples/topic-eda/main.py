@@ -103,7 +103,7 @@ def load_records(
         socrata_config=presets.small_socrata_config(
             app_token=app_token,
             page_size=1000,
-            max_pages=5,
+            max_pages=15,
         ),
         output=snapshot_path,
     )

@@ -8,6 +8,7 @@ from datetime import date
 from ._constants import SUPPORTED_GEOGRAPHIES
 from ._normalize import (
     _normalize_borough_or_passthrough,
+    _normalize_community_district_or_passthrough,
     _normalize_coordinate_pair,
     _normalize_value,
 )
@@ -48,7 +49,9 @@ class ServiceRequestRecord:
             self, "borough", _normalize_borough_or_passthrough(self.borough)
         )
         object.__setattr__(
-            self, "community_district", _normalize_value(self.community_district)
+            self,
+            "community_district",
+            _normalize_community_district_or_passthrough(self.community_district),
         )
 
         normalized_resolution = (

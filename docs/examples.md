@@ -34,9 +34,9 @@ The canonical bootstrap starting point for new examples is
 | `examples/community-district-case-study/` | Brooklyn case study with topic, volume, and resolution summaries      | cache-backed live slice           | `plotting`            | yes   | multiple scratch CSV summaries       | publish-gated tearsheet + 3 PNGs | implemented |
 | `examples/topic-eda/`                     | coverage audit, unmatched descriptors, anomalies, and resolution gaps | cache-backed live slice           | `dataframes,plotting` | yes   | baseline report card + CSV summaries | publish-gated tearsheet + 4 PNGs | implemented |
 | `examples/borough-choropleth/`            | borough-level dominant-topic map                                      | packaged sample records           | `spatial,plotting`    | no    | scratch CSV summaries                | tearsheet + 3 PNGs               | implemented |
-| `examples/spatial-join-qa/`               | canonical spatial join QA over the sampled district subset            | packaged sample records           | `spatial,plotting`    | no    | boundary inventory + join QA CSVs    | tearsheet + 3 PNGs               | implemented |
-| `examples/community-district-choropleth/` | district-level dominant-topic map with full-layer context             | packaged sample records           | `spatial,plotting`    | no    | scratch CSV summaries                | tearsheet + 3 PNGs               | implemented |
-| `examples/spatial-topic-comparison/`      | joined-district topic comparison after spatial enrichment             | packaged sample records           | `spatial,plotting`    | no    | joined topic CSV + preview tables    | tearsheet + 3 PNGs               | implemented |
+| `examples/spatial-join-qa/`               | canonical spatial join QA over a larger cached live district audit    | cache-backed live slice           | `spatial,plotting`    | yes   | boundary inventory + join QA CSVs    | publish-gated tearsheet + 3 PNGs | implemented |
+| `examples/community-district-choropleth/` | district-level dominant-topic map with full-layer context             | cache-backed live slice           | `spatial,plotting`    | yes   | scratch CSV summaries                | publish-gated tearsheet + 3 PNGs | implemented |
+| `examples/spatial-topic-comparison/`      | joined-district topic comparison after spatial enrichment             | cache-backed live slice           | `spatial,plotting`    | yes   | joined topic CSV + preview tables    | publish-gated tearsheet + 4 PNGs | implemented |
 
 ## Data And Cache Strategy
 
@@ -86,9 +86,9 @@ nyc311 fetch \
   --geography borough \
   --geography-value BROOKLYN \
   --start-date 2025-01-01 \
-  --end-date 2025-01-31 \
-  --page-size 500 \
-  --max-pages 2
+  --end-date 2025-03-31 \
+  --page-size 1000 \
+  --max-pages 6
 ```
 
 Then point analysis at the saved file:

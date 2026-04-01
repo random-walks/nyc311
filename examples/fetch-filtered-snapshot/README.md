@@ -54,7 +54,7 @@ content.
 
 Running the example writes or reuses:
 
-- `cache/rodent-snapshot.csv`
+- `cache/brooklyn-noise-snapshot.csv`
 - `artifacts/fetch-metadata.json`
 - `artifacts/fetch-summary.md`
 
@@ -67,3 +67,5 @@ When `--publish-report` is passed, it also writes:
 - uses an example-local cache instead of a shared repo dump
 - respects `NYC_OPEN_DATA_APP_TOKEN` when present
 - stays base-only and does not add plotting dependencies
+- defaults to a larger Q1 2025 Brooklyn `Noise - Residential` snapshot instead
+  of a one-page demo fetch

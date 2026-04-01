@@ -50,10 +50,10 @@ learning tracks. Use the table below as the fast GitHub skim.
 | ----------------------------------------- | ------------ | ----------------------- | ------------------------------------------------------------------- | --------------------------------- |
 | `examples/quickstart-sdk/`                | Easy         | first run               | smallest end-to-end SDK walkthrough                                 | packaged sample records           |
 | `examples/borough-choropleth/`            | Easy         | visual intro            | first polished geospatial tearsheet                                 | packaged sample records           |
-| `examples/fetch-filtered-snapshot/`       | Easy         | live data               | first cache-backed fetch pattern                                    | live fetch with local cache reuse |
-| `examples/community-district-choropleth/` | Intermediate | geospatial storytelling | full-city district choropleth with no-data context                  | packaged sample records           |
-| `examples/spatial-join-qa/`               | Intermediate | spatial QA              | canonical join coverage, unmatched-row, and label-agreement example | packaged sample records           |
-| `examples/spatial-topic-comparison/`      | Intermediate | spatial comparison      | how the story changes after a full spatial join                     | packaged sample records           |
+| `examples/fetch-filtered-snapshot/`       | Easy         | live data               | first cache-backed fetch pattern with a larger default slice        | live fetch with local cache reuse |
+| `examples/community-district-choropleth/` | Intermediate | geospatial storytelling | Brooklyn district choropleth over full-city no-data context         | cache-backed live slice           |
+| `examples/spatial-join-qa/`               | Intermediate | spatial QA              | canonical join coverage, unmatched-row, and label-agreement example | cache-backed live slice           |
+| `examples/spatial-topic-comparison/`      | Intermediate | spatial comparison      | how the story changes after a full spatial join                     | cache-backed live slice           |
 | `examples/community-district-case-study/` | Advanced     | live analysis           | larger Brooklyn slice with publish-gated reporting                  | cache-backed live slice           |
 | `examples/topic-eda/`                     | Advanced     | live analysis           | coverage audits, anomaly flags, and scratch exports                 | cache-backed live slice           |
 
@@ -65,6 +65,9 @@ learning tracks. Use the table below as the fast GitHub skim.
 2. `examples/borough-choropleth/`
 3. `examples/community-district-choropleth/`
 4. `examples/spatial-topic-comparison/`
+
+The last two examples reuse larger live caches and only refresh tracked report
+assets when you pass `--publish-report`.
 
 ### Spatial QA path
 
@@ -115,8 +118,8 @@ example.
 The examples follow one runtime pattern:
 
 1. load packaged sample data directly when that is enough to teach the feature
-2. for heavier live-fetch stories, reuse an example-local cached snapshot when
-   present
+2. for heavier live-fetch stories, especially the richer spatial ones, reuse an
+   example-local cached snapshot when present
 3. only refetch large inputs when the user explicitly asks to refresh the cache
 4. only refresh tracked report assets for live examples when the user explicitly
    asks to publish them

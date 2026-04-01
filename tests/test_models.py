@@ -63,6 +63,18 @@ def test_service_request_record_rejects_coordinates_outside_nyc_bounds() -> None
         _build_record(latitude=39.9, longitude=-73.96)
 
 
+def test_service_request_record_normalizes_number_first_community_district() -> None:
+    record = _build_record(community_district="01 BROOKLYN")
+
+    assert record.community_district == "BROOKLYN 01"
+
+
+def test_service_request_record_preserves_nonstandard_community_district_label() -> None:
+    record = _build_record(community_district="Unspecified BROOKLYN")
+
+    assert record.community_district == "Unspecified BROOKLYN"
+
+
 def test_boundary_models_accept_packaged_zcta_geography() -> None:
     feature = BoundaryFeature(
         geography="zcta",

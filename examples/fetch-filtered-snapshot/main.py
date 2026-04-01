@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parent
 CACHE_DIR = ROOT / "cache"
 ARTIFACTS_DIR = ROOT / "artifacts"
 REPORTS_DIR = ROOT / "reports"
+DEFAULT_START_DATE = "2025-01-01"
+DEFAULT_END_DATE = "2025-03-31"
+DEFAULT_PAGE_SIZE = 1_000
+DEFAULT_MAX_PAGES = 6
 
 
 def cache_path(filename: str) -> Path:
@@ -36,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         type=Path,
-        default=cache_path("rodent-snapshot.csv"),
+        default=cache_path("brooklyn-noise-snapshot.csv"),
         help="Where to store the local CSV snapshot.",
     )
     parser.add_argument(
@@ -45,16 +49,16 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         help="Optional complaint type filter. Repeat to include more than one value.",
     )
-    parser.add_argument("--start-date", default="2025-01-01")
-    parser.add_argument("--end-date", default="2025-01-31")
+    parser.add_argument("--start-date", default=DEFAULT_START_DATE)
+    parser.add_argument("--end-date", default=DEFAULT_END_DATE)
     parser.add_argument(
         "--geography",
         default="borough",
         choices=("borough", "community_district"),
     )
     parser.add_argument("--geography-value", default=models.BOROUGH_BROOKLYN)
-    parser.add_argument("--page-size", type=int, default=500)
-    parser.add_argument("--max-pages", type=int, default=1)
+    parser.add_argument("--page-size", type=int, default=DEFAULT_PAGE_SIZE)
+    parser.add_argument("--max-pages", type=int, default=DEFAULT_MAX_PAGES)
     parser.add_argument(
         "--app-token",
         default=os.getenv("NYC_OPEN_DATA_APP_TOKEN"),
@@ -77,7 +81,7 @@ def load_records(
     args: argparse.Namespace,
 ) -> tuple[list[models.ServiceRequestRecord], str, tuple[str, ...]]:
     output_path = args.output
-    complaint_types = tuple(args.complaint_type or ["Rodent"])
+    complaint_types = tuple(args.complaint_type or ["Noise - Residential"])
     if output_path.exists() and not args.refresh:
         return io.load_service_requests(output_path), "cache", complaint_types
 
