@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import nyc311
+from nyc311 import analysis, dataframes, io, models
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"
 pytest.importorskip(
@@ -15,10 +15,10 @@ pytestmark = pytest.mark.optional
 
 
 def test_records_dataframe_round_trip_preserves_core_fields() -> None:
-    records = nyc311.load_service_requests(FIXTURE_PATH)
+    records = io.load_service_requests(FIXTURE_PATH)
 
-    dataframe = nyc311.records_to_dataframe(records)
-    round_tripped_records = nyc311.dataframe_to_records(dataframe)
+    dataframe = dataframes.records_to_dataframe(records)
+    round_tripped_records = dataframes.dataframe_to_records(dataframe)
 
     assert list(dataframe.columns) == [
         "service_request_id",
@@ -36,30 +36,30 @@ def test_records_dataframe_round_trip_preserves_core_fields() -> None:
 
 
 def test_summary_and_gap_dataframe_helpers_return_expected_columns() -> None:
-    records = nyc311.load_service_requests(FIXTURE_PATH)
-    assignments = nyc311.extract_topics(
+    records = io.load_service_requests(FIXTURE_PATH)
+    assignments = analysis.extract_topics(
         records,
-        nyc311.TopicQuery("Noise - Residential"),
+        models.TopicQuery("Noise - Residential"),
     )
-    summaries = nyc311.aggregate_by_geography(
+    summaries = analysis.aggregate_by_geography(
         assignments,
         geography="community_district",
     )
-    gaps = nyc311.analyze_resolution_gaps(
+    gaps = analysis.analyze_resolution_gaps(
         records,
         [record for record in records if record.resolution_description is not None],
     )
-    anomalies = nyc311.detect_anomalies(summaries, nyc311.AnalysisWindow(days=30))
-    coverage = nyc311.analyze_topic_coverage(
+    anomalies = analysis.detect_anomalies(summaries, models.AnalysisWindow(days=30))
+    coverage = analysis.analyze_topic_coverage(
         records,
-        nyc311.TopicQuery("Noise - Residential"),
+        models.TopicQuery("Noise - Residential"),
     )
 
-    assignments_dataframe = nyc311.assignments_to_dataframe(assignments)
-    summaries_dataframe = nyc311.summaries_to_dataframe(summaries)
-    gaps_dataframe = nyc311.gaps_to_dataframe(gaps)
-    anomalies_dataframe = nyc311.anomalies_to_dataframe(anomalies)
-    coverage_dataframe = nyc311.coverage_to_dataframe([coverage])
+    assignments_dataframe = dataframes.assignments_to_dataframe(assignments)
+    summaries_dataframe = dataframes.summaries_to_dataframe(summaries)
+    gaps_dataframe = dataframes.gaps_to_dataframe(gaps)
+    anomalies_dataframe = dataframes.anomalies_to_dataframe(anomalies)
+    coverage_dataframe = dataframes.coverage_to_dataframe([coverage])
 
     assert "topic" in assignments_dataframe.columns
     assert "is_dominant_topic" in summaries_dataframe.columns

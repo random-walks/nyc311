@@ -36,13 +36,19 @@ Choose the dependency footprint that matches your workflow:
 pip install nyc311
 ```
 
+For the full turnkey experience:
+
+```bash
+pip install "nyc311[all]"
+```
+
 For pandas-backed conversion helpers:
 
 ```bash
 pip install "nyc311[dataframes]"
 ```
 
-For notebook and plotting workflows:
+For plotting and exploratory analysis without the geospatial stack:
 
 ```bash
 pip install "nyc311[science]"
@@ -97,28 +103,28 @@ clustering or advanced NLP.
 from datetime import date
 from pathlib import Path
 
-import nyc311
+from nyc311 import analysis, export, models, pipeline
 
-records = nyc311.fetch_service_requests(
-    filters=nyc311.ServiceRequestFilter(
+records = pipeline.fetch_service_requests(
+    filters=models.ServiceRequestFilter(
         start_date=date(2025, 1, 1),
         end_date=date(2025, 1, 31),
-        geography=nyc311.GeographyFilter("borough", nyc311.BOROUGH_BROOKLYN),
+        geography=models.GeographyFilter("borough", models.BOROUGH_BROOKLYN),
         complaint_types=("Noise - Residential",),
     ),
-    socrata_config=nyc311.SocrataConfig(page_size=250, max_pages=1),
+    socrata_config=models.SocrataConfig(page_size=250, max_pages=1),
 )
 
-nyc311.export_service_requests_csv(
+export.export_service_requests_csv(
     records,
-    nyc311.ExportTarget("csv", Path("brooklyn-noise-snapshot.csv")),
+    models.ExportTarget("csv", Path("brooklyn-noise-snapshot.csv")),
 )
 
-assignments = nyc311.extract_topics(records, nyc311.TopicQuery("Noise - Residential"))
-summary = nyc311.aggregate_by_geography(assignments, geography="community_district")
-nyc311.export_topic_table(
+assignments = analysis.extract_topics(records, models.TopicQuery("Noise - Residential"))
+summary = analysis.aggregate_by_geography(assignments, geography="community_district")
+export.export_topic_table(
     summary,
-    nyc311.ExportTarget("csv", Path("brooklyn-noise-topics.csv")),
+    models.ExportTarget("csv", Path("brooklyn-noise-topics.csv")),
 )
 ```
 
@@ -178,31 +184,20 @@ remains descriptor-driven.
 
 ## Public package surface
 
-The current public package surface includes:
+The current public package surface is organized around explicit namespaces:
 
-- `nyc311.load_service_requests`
-- `nyc311.fetch_service_requests`
-- `nyc311.load_resolution_data`
-- `nyc311.load_boundaries`
-- `nyc311.extract_topics`
-- `nyc311.aggregate_by_geography`
-- `nyc311.analyze_topic_coverage`
-- `nyc311.analyze_resolution_gaps`
-- `nyc311.detect_anomalies`
-- `nyc311.export_topic_table`
-- `nyc311.export_anomalies`
-- `nyc311.export_geojson`
-- `nyc311.export_report_card`
-- `nyc311.export_service_requests_csv`
-- `nyc311.records_to_dataframe`
-- `nyc311.assignments_to_dataframe`
-- `nyc311.summaries_to_dataframe`
-- `nyc311.gaps_to_dataframe`
-- `nyc311.anomalies_to_dataframe`
-- `nyc311.coverage_to_dataframe`
-- `nyc311.run_topic_pipeline`
-- `nyc311.main` with the `topics` and `fetch` subcommands
-- typed models for filters, records, assignments, and summary rows
+- `nyc311.models` for dataclasses, constants, and configs
+- `nyc311.io` for CSV and Socrata loading
+- `nyc311.analysis` for topic extraction, coverage, gaps, and anomalies
+- `nyc311.geographies` for packaged boundary layers and geometry helpers
+- `nyc311.samples` for packaged sample records and sample-aligned boundaries
+- `nyc311.export` for CSV, GeoJSON, and report exports
+- `nyc311.pipeline` for one-call workflow helpers
+- `nyc311.dataframes` for optional pandas conversions
+- `nyc311.spatial` for optional geopandas helpers
+- `nyc311.plotting` for optional plotting helpers
+- `nyc311.presets` for reusable filter and Socrata config builders
+- `nyc311.cli` with the `topics` and `fetch` subcommands
 
 ## Documentation
 
@@ -221,7 +216,7 @@ If you are browsing in GitHub, the docs source lives in `docs/`:
 - `docs/architecture.md`
 - `docs/contributing.md`
 
-Runnable examples live in `examples/`, including scripts and notebooks.
+Runnable examples live in `examples/` as self-contained consumer projects.
 
 For local preview:
 
@@ -235,14 +230,13 @@ make docs-build
 ```bash
 uv sync
 uv sync --all-groups --all-extras
-uv run pytest -m "not integration and not optional"
-uv run --extra dataframes pytest -m optional
+uv run --all-extras pytest -m "not integration"
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy
 uv run mkdocs serve
 uv run mkdocs build --strict
-uv run python scripts/audit_implementation.py
+uv run python scripts/audit_public_api.py
 uv run pytest -m "fetch and not integration"
 ```
 

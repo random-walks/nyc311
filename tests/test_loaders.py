@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from nyc311.loaders import load_service_requests
+from nyc311.io import load_service_requests
 from nyc311.models import GeographyFilter, ServiceRequestFilter
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"

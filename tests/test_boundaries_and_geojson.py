@@ -5,10 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from nyc311.exporters import export_geojson
-from nyc311.loaders import load_boundaries, load_service_requests
+from nyc311.analysis import aggregate_by_geography, extract_topics
+from nyc311.export import export_geojson
+from nyc311.geographies import load_boundaries
+from nyc311.io import load_service_requests
 from nyc311.models import BoundaryGeoJSONExport, ExportTarget, TopicQuery
-from nyc311.processors import aggregate_by_geography, extract_topics
 
 BOUNDARIES_FIXTURE_PATH = (
     Path(__file__).parent / "fixtures" / "community_district_boundaries.geojson"

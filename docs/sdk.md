@@ -1,7 +1,7 @@
 # SDK Guide
 
-`nyc311` is usable as a functional SDK for notebooks, scripts, scheduled jobs,
-and data-processing workflows.
+`nyc311` is usable as a functional SDK for scripts, scheduled jobs, interactive
+analysis, and data-processing workflows.
 
 This guide describes the SDK surface for the current `0.2` alpha prerelease
 line.
@@ -26,55 +26,55 @@ The most common SDK pattern is:
 from datetime import date
 from pathlib import Path
 
-import nyc311
+from nyc311 import analysis, export, models, pipeline
 
-records = nyc311.fetch_service_requests(
-    filters=nyc311.ServiceRequestFilter(
+records = pipeline.fetch_service_requests(
+    filters=models.ServiceRequestFilter(
         start_date=date(2025, 1, 1),
         end_date=date(2025, 1, 31),
-        geography=nyc311.GeographyFilter("borough", nyc311.BOROUGH_BROOKLYN),
+        geography=models.GeographyFilter("borough", models.BOROUGH_BROOKLYN),
         complaint_types=("Noise - Residential",),
     ),
-    socrata_config=nyc311.SocrataConfig(page_size=250, max_pages=1),
+    socrata_config=models.SocrataConfig(page_size=250, max_pages=1),
 )
 
-assignments = nyc311.extract_topics(
+assignments = analysis.extract_topics(
     records,
-    nyc311.TopicQuery("Noise - Residential", top_n=10),
+    models.TopicQuery("Noise - Residential", top_n=10),
 )
 
-summary = nyc311.aggregate_by_geography(
+summary = analysis.aggregate_by_geography(
     assignments,
     geography="community_district",
 )
 
-nyc311.export_topic_table(
+export.export_topic_table(
     summary,
-    nyc311.ExportTarget("csv", Path("brooklyn-noise-topics.csv")),
+    models.ExportTarget("csv", Path("brooklyn-noise-topics.csv")),
 )
 ```
 
 ## One-Call Pipeline Helper
 
 For workflow code that does not need to manage every intermediate step, use
-`run_topic_pipeline()`:
+`nyc311.pipeline.run_topic_pipeline()`:
 
 ```python
 from pathlib import Path
 
-import nyc311
+from nyc311 import export, models, pipeline
 
-records = nyc311.fetch_service_requests(
-    filters=nyc311.ServiceRequestFilter(
-        geography=nyc311.GeographyFilter("borough", nyc311.BOROUGH_BROOKLYN),
+records = pipeline.fetch_service_requests(
+    filters=models.ServiceRequestFilter(
+        geography=models.GeographyFilter("borough", models.BOROUGH_BROOKLYN),
         complaint_types=("Noise - Residential",),
     ),
-    socrata_config=nyc311.SocrataConfig(page_size=250, max_pages=1),
+    socrata_config=models.SocrataConfig(page_size=250, max_pages=1),
 )
 
-nyc311.export_service_requests_csv(
+export.export_service_requests_csv(
     records,
-    nyc311.ExportTarget("csv", Path("brooklyn-noise-snapshot.csv")),
+    models.ExportTarget("csv", Path("brooklyn-noise-snapshot.csv")),
 )
 ```
 
@@ -82,7 +82,9 @@ If you already have a local snapshot, `run_topic_pipeline()` remains the fastest
 one-call path:
 
 ```python
-summary = nyc311.run_topic_pipeline(
+from nyc311.pipeline import run_topic_pipeline
+
+summary = run_topic_pipeline(
     "brooklyn-noise-snapshot.csv",
     "Noise - Residential",
     geography="community_district",
@@ -97,17 +99,18 @@ The SDK already supports live loading through `SocrataConfig`.
 ```python
 from datetime import date
 
-import nyc311
+from nyc311 import models
+from nyc311.pipeline import run_topic_pipeline
 
-summary = nyc311.run_topic_pipeline(
-    nyc311.SocrataConfig(
+summary = run_topic_pipeline(
+    models.SocrataConfig(
         app_token=None,
         page_size=500,
         max_pages=1,
     ),
     "Rodent",
     geography="borough",
-    filters=nyc311.ServiceRequestFilter(
+    filters=models.ServiceRequestFilter(
         start_date=date(2025, 1, 1),
         end_date=date(2025, 1, 31),
     ),
@@ -122,18 +125,18 @@ local CSV snapshot:
 ```python
 from pathlib import Path
 
-import nyc311
+from nyc311 import export, io, models
 
-records = nyc311.load_service_requests(
-    nyc311.SocrataConfig(page_size=500, max_pages=2),
-    filters=nyc311.ServiceRequestFilter(
+records = io.load_service_requests(
+    models.SocrataConfig(page_size=500, max_pages=2),
+    filters=models.ServiceRequestFilter(
         complaint_types=("Noise - Residential",),
     ),
 )
 
-nyc311.export_service_requests_csv(
+export.export_service_requests_csv(
     records,
-    nyc311.ExportTarget("csv", Path("noise-snapshot.csv")),
+    models.ExportTarget("csv", Path("noise-snapshot.csv")),
 )
 ```
 
@@ -148,27 +151,37 @@ stay lightweight:
 pip install "nyc311[dataframes]"
 ```
 
-Or install the broader notebook stack:
+For the full turnkey stack:
+
+```bash
+pip install "nyc311[all]"
+```
+
+Or install the broader notebook stack without geospatial dependencies:
 
 ```bash
 pip install "nyc311[science]"
 ```
 
-Once installed, the SDK exposes helpers such as `records_to_dataframe()`,
-`assignments_to_dataframe()`, `summaries_to_dataframe()`, `gaps_to_dataframe()`,
-`anomalies_to_dataframe()`, `coverage_to_dataframe()`, and
-`dataframe_to_records()`.
+Once installed, the SDK exposes helpers such as
+`nyc311.dataframes.records_to_dataframe()`,
+`nyc311.dataframes.assignments_to_dataframe()`,
+`nyc311.dataframes.summaries_to_dataframe()`,
+`nyc311.dataframes.gaps_to_dataframe()`,
+`nyc311.dataframes.anomalies_to_dataframe()`,
+`nyc311.dataframes.coverage_to_dataframe()`, and
+`nyc311.dataframes.dataframe_to_records()`.
 
 ## Borough Constants
 
 The public SDK includes canonical borough constants and normalization helpers:
 
 ```python
-import nyc311
+from nyc311.models import BOROUGH_BROOKLYN, SUPPORTED_BOROUGHS, normalize_borough_name
 
-nyc311.BOROUGH_BROOKLYN
-nyc311.SUPPORTED_BOROUGHS
-nyc311.normalize_borough_name("bk")
+BOROUGH_BROOKLYN
+SUPPORTED_BOROUGHS
+normalize_borough_name("bk")
 ```
 
 ## Boundary-Backed GeoJSON
@@ -176,9 +189,9 @@ nyc311.normalize_borough_name("bk")
 ```python
 from pathlib import Path
 
-import nyc311
+from nyc311.pipeline import run_topic_pipeline
 
-summary = nyc311.run_topic_pipeline(
+summary = run_topic_pipeline(
     "brooklyn-noise-snapshot.csv",
     "Noise - Residential",
     geography="community_district",
@@ -195,31 +208,19 @@ Boundary files must currently include:
 
 ## Public Surface
 
-### Implemented in the `0.2` alpha line
+### Canonical namespaces
 
-- `load_service_requests`
-- `fetch_service_requests`
-- `load_resolution_data`
-- `load_boundaries`
-- `extract_topics`
-- `aggregate_by_geography`
-- `analyze_topic_coverage`
-- `analyze_resolution_gaps`
-- `detect_anomalies`
-- `export_topic_table`
-- `export_anomalies`
-- `export_geojson`
-- `export_report_card`
-- `export_service_requests_csv`
-- `records_to_dataframe`
-- `assignments_to_dataframe`
-- `summaries_to_dataframe`
-- `gaps_to_dataframe`
-- `anomalies_to_dataframe`
-- `coverage_to_dataframe`
-- `dataframe_to_records`
-- `run_topic_pipeline`
-- typed models such as `ServiceRequestFilter`, `TopicQuery`, and `ExportTarget`
+- `nyc311.models`
+- `nyc311.io`
+- `nyc311.analysis`
+- `nyc311.geographies`
+- `nyc311.samples`
+- `nyc311.export`
+- `nyc311.pipeline`
+- `nyc311.dataframes`
+- `nyc311.spatial`
+- `nyc311.plotting`
+- `nyc311.presets`
 
 ## When To Use The CLI Instead
 
@@ -232,6 +233,6 @@ Use the CLI when you want:
 Use the SDK when you want:
 
 - Socrata ingestion
-- notebooks or workflow orchestration
+- interactive analysis or workflow orchestration
 - custom filtering, branching, or intermediate inspection
 - direct access to typed objects instead of files alone

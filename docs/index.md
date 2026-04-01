@@ -6,7 +6,7 @@ reproducible complaint-intelligence outputs.
 It is designed for two complementary use cases:
 
 - a thin CLI for repeatable batch runs
-- a functional SDK for notebooks, scripts, and data workflows
+- a functional SDK for scripts, interactive analysis, and data workflows
 
 These docs track the current `0.2` alpha prerelease line for the branch.
 
@@ -31,13 +31,19 @@ The `0.2` alpha line ships a complete first-pass analysis workflow:
 pip install nyc311
 ```
 
+For the full turnkey stack:
+
+```bash
+pip install "nyc311[all]"
+```
+
 For pandas-backed conversion helpers:
 
 ```bash
 pip install "nyc311[dataframes]"
 ```
 
-For notebook and plotting workflows:
+For plotting and exploratory analysis without the geospatial stack:
 
 ```bash
 pip install "nyc311[science]"
@@ -61,21 +67,21 @@ pip install "nyc311[science]"
     from datetime import date
     from pathlib import Path
 
-    import nyc311
+    from nyc311 import export, models, pipeline
 
-    records = nyc311.fetch_service_requests(
-        filters=nyc311.ServiceRequestFilter(
+    records = pipeline.fetch_service_requests(
+        filters=models.ServiceRequestFilter(
             start_date=date(2025, 1, 1),
             end_date=date(2025, 1, 31),
-            geography=nyc311.GeographyFilter("borough", nyc311.BOROUGH_BROOKLYN),
+            geography=models.GeographyFilter("borough", models.BOROUGH_BROOKLYN),
             complaint_types=("Noise - Residential",),
         ),
-        socrata_config=nyc311.SocrataConfig(page_size=250, max_pages=1),
+        socrata_config=models.SocrataConfig(page_size=250, max_pages=1),
     )
 
-    nyc311.export_service_requests_csv(
+    export.export_service_requests_csv(
         records,
-        nyc311.ExportTarget("csv", Path("brooklyn-noise-snapshot.csv")),
+        models.ExportTarget("csv", Path("brooklyn-noise-snapshot.csv")),
     )
     ```
 
@@ -109,9 +115,9 @@ pip install "nyc311[science]"
 - Start with [Getting Started](getting-started.md) for installation and first
   runs.
 - Use [CLI Reference](cli.md) for repeatable command-line usage.
-- Use [SDK Guide](sdk.md) for notebook and workflow-oriented usage.
-- Use [Examples](examples.md) for scripts, notebooks, and staged fetch
-  workflows.
+- Use [SDK Guide](sdk.md) for script and workflow-oriented usage.
+- Use [Examples](examples.md) for self-contained consumer projects and staged
+  fetch workflows.
 - Use [API Reference](api.md) for the complete public package surface.
 - Use [Architecture](architecture.md) if you are maintaining or extending the
   project.

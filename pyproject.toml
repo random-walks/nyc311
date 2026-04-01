@@ -57,6 +57,14 @@ science = [
     "pandas>=2.3.3",
     "scipy>=1.15.3",
 ]
+all = [
+    "contextily>=1.6.2",
+    "geopandas>=1.1",
+    "matplotlib>=3.10.8",
+    "pandas>=2.3.3",
+    "scipy>=1.15.3",
+    "shapely>=2.1",
+]
 
 
 [dependency-groups]
@@ -78,9 +86,6 @@ docs = [
     "mkdocs>=1.1.2",
     "mkdocstrings-python>=1.18.2",
     "pyyaml>=6.0.1",
-]
-notebooks = [
-    "ipykernel>=7.2.0",
 ]
 
 [tool.uv]
@@ -200,9 +205,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]
 "noxfile.py" = ["EXE001", "T20"]
-"examples/scripts/**" = ["T20"]
-"examples/utils/**" = ["T20"]
-"examples/notebooks/*.ipynb" = ["T20"]
+"examples/**/*.py" = ["T20"]
 "docs/examples/**" = ["T20"]
 
 

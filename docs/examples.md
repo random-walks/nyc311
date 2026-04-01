@@ -1,55 +1,83 @@
 # Examples
 
-The repository ships quickstart scripts and notebooks in `examples/`.
+`nyc311` examples now live as self-contained consumer projects under
+`examples/`. There are no repo-level example notebooks, no shared
+`examples/utils/`, and no shared `examples/output/`.
 
-These examples match the current `0.2` alpha prerelease surface on this branch.
+## Contract
 
-## Included Examples
+Every example follows the same structure:
 
-- `examples/scripts/quickstart_csv.py`
-- `examples/scripts/fetch_filtered_snapshot.py`
-- `examples/scripts/community_district_case_study.py`
-- `examples/scripts/topic_eda.py`
-- `examples/scripts/borough_choropleth.py`
-- `examples/scripts/point_to_boundary_join.py`
-- `examples/notebooks/quickstart_sdk.ipynb`
-- `examples/notebooks/community_district_case_study.ipynb`
-- `examples/notebooks/topic_eda.ipynb`
-- `examples/notebooks/community_district_choropleth.ipynb`
-- `examples/notebooks/spatial_topic_comparison.ipynb`
-- `examples/notebooks/boundary_qa.ipynb`
+- one semantic-slug folder under `examples/`
+- one local `pyproject.toml`
+- one local `README.md`
+- one local `.gitignore`
+- one `main.py` entrypoint
+- local `cache/` and ignored `artifacts/` directories created on demand
+- optional tracked `reports/` for markdown and report figures that should ship
+  with the example
 
-The notebooks are now pure in-memory consumers of `nyc311` APIs. They use:
+Each example imports only `nyc311.*`, so it exercises the package the same way
+an external user would. In the repo, that happens through a local editable path
+dependency. Outside the repo, the same scripts work after installing `nyc311`
+from PyPI with the listed extras.
 
-- `nyc311.load_sample_service_requests()`
-- `nyc311.load_sample_boundaries()`
-- packaged NYC boundary layers exposed via `nyc311.load_nyc_boundaries*()`
-- in-memory plotting helpers such as `nyc311.plot_boundary_preview()`
+The canonical bootstrap starting point for new examples is
+`examples/example-template/`.
 
-The packaged geography catalog now includes boroughs, community districts, city
-council districts, neighborhood tabulation areas, MODZCTAs, and census tracts.
+## Overview
 
-The file-oriented `examples/data/` and `examples/utils/` helpers remain
-available for scripts and ad hoc exploration, but notebooks no longer depend on
-them.
+| Example                                   | Focus                                                                 | Default data mode                 | Extra                 | Cache | Artifacts                            | Reports                          | Status      |
+| ----------------------------------------- | --------------------------------------------------------------------- | --------------------------------- | --------------------- | ----- | ------------------------------------ | -------------------------------- | ----------- |
+| `examples/quickstart-sdk/`                | first in-memory SDK walkthrough                                       | packaged sample records           | base                  | no    | CSV topic summary                    | markdown tearsheet               | implemented |
+| `examples/fetch-filtered-snapshot/`       | filtered Socrata fetch, cache reuse, and fetch metadata               | live fetch with local cache reuse | base                  | yes   | snapshot CSV + metadata JSON/MD      | optional publishable tearsheet   | implemented |
+| `examples/community-district-case-study/` | Brooklyn case study with topic, volume, and resolution summaries      | cache-backed live slice           | `plotting`            | yes   | multiple scratch CSV summaries       | publish-gated tearsheet + 3 PNGs | implemented |
+| `examples/topic-eda/`                     | coverage audit, unmatched descriptors, anomalies, and resolution gaps | cache-backed live slice           | `dataframes,plotting` | yes   | baseline report card + CSV summaries | publish-gated tearsheet + 4 PNGs | implemented |
+| `examples/borough-choropleth/`            | borough-level dominant-topic map                                      | packaged sample records           | `spatial,plotting`    | no    | scratch CSV summaries                | tearsheet + 3 PNGs               | implemented |
+| `examples/spatial-join-qa/`               | canonical spatial join QA over a larger cached live district audit    | cache-backed live slice           | `spatial,plotting`    | yes   | boundary inventory + join QA CSVs    | publish-gated tearsheet + 3 PNGs | implemented |
+| `examples/community-district-choropleth/` | district-level dominant-topic map with full-layer context             | cache-backed live slice           | `spatial,plotting`    | yes   | scratch CSV summaries                | publish-gated tearsheet + 3 PNGs | implemented |
+| `examples/spatial-topic-comparison/`      | joined-district topic comparison after spatial enrichment             | cache-backed live slice           | `spatial,plotting`    | yes   | joined topic CSV + preview tables    | publish-gated tearsheet + 4 PNGs | implemented |
 
-## Recommended Workflow For Large Datasets
+## Data And Cache Strategy
 
-For larger data-science workflows:
+The examples follow one default runtime story:
 
-1. fetch a narrow live slice from Socrata
-2. save it as a local CSV snapshot
-3. iterate on analysis against the local file
-4. keep large artifacts out of git
+1. run in memory whenever packaged sample data is enough
+2. when a story needs more data, write a cache file inside that example folder
+3. reuse that local cache on later runs instead of refetching by default
+4. keep ignored scratch outputs in `artifacts/` and tracked markdown/figures in
+   `reports/`
+5. for live examples, update tracked report assets only through an explicit
+   publish step
 
-That pattern is easier to debug, easier to reproduce, and friendlier to the
-Socrata API than pulling large live datasets for every notebook run. The
-library-owned sample loaders provide the same reproducible workflow for notebook
-examples that should run without local file setup.
+That pattern keeps examples reproducible without reintroducing one shared global
+dump directory.
 
-## Start With A Snapshot
+## Local Repo Usage
 
-The CLI now supports:
+From any example folder:
+
+```bash
+uv sync
+uv run python main.py
+```
+
+Examples are intentionally not executed in the main CI or test matrix. The
+package itself remains the tested release surface.
+
+## Bootstrap Template
+
+When adding a new example, start from `examples/example-template/`. It captures
+the current conventions for:
+
+- uv path-dependency setup
+- ignored `cache/` and `artifacts/`
+- tracked `reports/` and `reports/figures/`
+- explicit relative markdown image paths like `./figures/example-chart.png`
+
+## Snapshot-First Pattern
+
+For larger workflows, fetch once and then iterate against a local snapshot:
 
 ```bash
 nyc311 fetch \
@@ -58,12 +86,12 @@ nyc311 fetch \
   --geography borough \
   --geography-value BROOKLYN \
   --start-date 2025-01-01 \
-  --end-date 2025-01-31 \
-  --page-size 500 \
-  --max-pages 2
+  --end-date 2025-03-31 \
+  --page-size 1000 \
+  --max-pages 6
 ```
 
-Then run your local analysis against that snapshot:
+Then point analysis at the saved file:
 
 ```bash
 nyc311 topics \
@@ -73,22 +101,4 @@ nyc311 topics \
   --output topics.csv
 ```
 
-## Running Repo Examples
-
-From the repo root:
-
-```bash
-uv sync --all-groups --all-extras
-uv run python examples/scripts/quickstart_csv.py
-uv run python examples/scripts/community_district_case_study.py
-uv run python examples/scripts/fetch_filtered_snapshot.py
-uv run python examples/scripts/topic_eda.py
-uv run python examples/scripts/borough_choropleth.py
-uv run python examples/scripts/point_to_boundary_join.py
-```
-
-The dataframe and notebook-oriented examples rely on the optional `dataframes`
-or `science` extras. The new geography-forward examples additionally rely on the
-`spatial` extra. `make install` already includes the core contributor
-dependencies; add `uv sync --extra spatial --extra science` when you want to run
-the mapping notebooks and scripts.
+That same pattern is mirrored inside the cache-backed example projects.

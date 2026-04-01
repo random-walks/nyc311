@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import cast
 
-import nyc311
+from nyc311 import geographies, samples
 
 
 def test_list_boundary_layers_reports_packaged_layers() -> None:
-    assert nyc311.list_boundary_layers() == (
+    assert geographies.list_boundary_layers() == (
         "borough",
         "community_district",
         "council_district",
@@ -17,7 +17,7 @@ def test_list_boundary_layers_reports_packaged_layers() -> None:
 
 
 def test_load_nyc_boundaries_loads_full_packaged_community_district_layer() -> None:
-    boundaries = nyc311.load_nyc_boundaries("community_district")
+    boundaries = geographies.load_nyc_boundaries("community_district")
 
     assert boundaries.geography == "community_district"
     assert len(boundaries.features) == 59
@@ -25,7 +25,7 @@ def test_load_nyc_boundaries_loads_full_packaged_community_district_layer() -> N
 
 
 def test_load_nyc_boundaries_filters_values_and_supports_zcta_aliases() -> None:
-    boundaries = nyc311.load_nyc_boundaries("zip", values="MODZCTA 10001")
+    boundaries = geographies.load_nyc_boundaries("zip", values="MODZCTA 10001")
 
     assert boundaries.geography == "zcta"
     assert [feature.geography_value for feature in boundaries.features] == ["10001"]
@@ -33,9 +33,9 @@ def test_load_nyc_boundaries_filters_values_and_supports_zcta_aliases() -> None:
 
 
 def test_specific_packaged_layer_loaders_work_for_remaining_layers() -> None:
-    census_tracts = nyc311.load_nyc_census_tracts(values="1000100")
-    ntas = nyc311.load_nyc_neighborhood_tabulation_areas(values="bk0101")
-    council_districts = nyc311.load_nyc_council_districts(values="district 33")
+    census_tracts = geographies.load_nyc_census_tracts(values="1000100")
+    ntas = geographies.load_nyc_neighborhood_tabulation_areas(values="bk0101")
+    council_districts = geographies.load_nyc_council_districts(values="district 33")
 
     assert [feature.geography_value for feature in census_tracts.features] == [
         "36061000100"
@@ -45,19 +45,19 @@ def test_specific_packaged_layer_loaders_work_for_remaining_layers() -> None:
 
 
 def test_load_boundaries_accepts_packaged_layer_names() -> None:
-    borough_boundaries = nyc311.load_boundaries("borough")
+    borough_boundaries = geographies.load_boundaries("borough")
 
     assert borough_boundaries.geography == "borough"
     assert len(borough_boundaries.features) == 5
 
 
 def test_sample_loaders_use_packaged_library_resources() -> None:
-    records = nyc311.load_sample_service_requests()
-    community_boundaries = nyc311.load_sample_boundaries("community_district")
-    council_boundaries = nyc311.load_sample_boundaries("council_district")
-    nta_boundaries = nyc311.load_sample_boundaries("neighborhood_tabulation_area")
-    zcta_boundaries = nyc311.load_sample_boundaries("zcta")
-    census_tract_boundaries = nyc311.load_sample_boundaries("census_tract")
+    records = samples.load_sample_service_requests()
+    community_boundaries = samples.load_sample_boundaries("community_district")
+    council_boundaries = samples.load_sample_boundaries("council_district")
+    nta_boundaries = samples.load_sample_boundaries("neighborhood_tabulation_area")
+    zcta_boundaries = samples.load_sample_boundaries("zcta")
+    census_tract_boundaries = samples.load_sample_boundaries("census_tract")
 
     assert len(records) == 18
     assert {record.community_district for record in records} == {
@@ -107,9 +107,9 @@ def test_sample_loaders_use_packaged_library_resources() -> None:
 
 
 def test_boundaries_to_geojson_preserves_feature_collection_shape() -> None:
-    boundaries = nyc311.load_nyc_boundaries("borough", values="Queens")
+    boundaries = geographies.load_nyc_boundaries("borough", values="Queens")
 
-    payload = nyc311.boundaries_to_geojson(boundaries)
+    payload = geographies.boundaries_to_geojson(boundaries)
     features = cast(list[dict[str, object]], payload["features"])
     properties = cast(dict[str, object], features[0]["properties"])
 

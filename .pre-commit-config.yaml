@@ -64,7 +64,6 @@ repos:
     hooks:
       - id: codespell
         args: ["--ignore-words-list=explination,astroid,Hart"]
-        exclude: ^examples/notebooks/.*\.ipynb$
         additional_dependencies:
           - tomli; python_version<'3.11'
 

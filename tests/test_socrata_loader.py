@@ -8,9 +8,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from typing_extensions import Self
 
-from nyc311.loaders import (
-    load_service_requests,
-)
+from nyc311.io import load_service_requests
 from nyc311.models import GeographyFilter, ServiceRequestFilter, SocrataConfig
 
 pytestmark = [pytest.mark.unit, pytest.mark.fetch]
@@ -65,7 +63,7 @@ def test_load_service_requests_supports_socrata_json(
         requested_urls.append(str(request_url))
         return FakeResponse(payload)
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
 
     records = load_service_requests(SocrataConfig(), filters=ServiceRequestFilter())
 
@@ -93,7 +91,7 @@ def test_load_service_requests_builds_filtered_socrata_query(
         requested_urls.append(str(request_url))
         return FakeResponse([])
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
 
     load_service_requests(
         SocrataConfig(),
@@ -125,7 +123,7 @@ def test_load_service_requests_uses_community_board_for_live_district_filter(
         requested_urls.append(str(request_url))
         return FakeResponse([])
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
 
     load_service_requests(
         SocrataConfig(),
@@ -147,7 +145,7 @@ def test_load_service_requests_rejects_non_json_socrata_payload(
         del request, timeout
         return FakeResponse({"not": "a list"})
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
 
     with pytest.raises(ValueError, match="expected a JSON list"):
         load_service_requests(SocrataConfig())
@@ -189,7 +187,7 @@ def test_load_service_requests_fetches_multiple_socrata_pages(
         requested_urls.append(str(request_url))
         return FakeResponse(payloads.popleft())
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
 
     records = load_service_requests(
         SocrataConfig(page_size=1),
@@ -215,7 +213,7 @@ def test_load_service_requests_sends_socrata_app_token_header(
             captured_headers[str(header_name)] = str(header_value)
         return FakeResponse([])
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
 
     load_service_requests(
         SocrataConfig(app_token="test-token"),
@@ -242,7 +240,7 @@ def test_load_service_requests_allows_missing_live_descriptor(
             ]
         )
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
 
     records = load_service_requests(SocrataConfig(), filters=ServiceRequestFilter())
 

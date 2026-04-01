@@ -11,13 +11,19 @@ It reflects the current `0.2` alpha prerelease surface on this branch.
 pip install nyc311
 ```
 
+For the full turnkey stack:
+
+```bash
+pip install "nyc311[all]"
+```
+
 For pandas-backed dataframe helpers, install:
 
 ```bash
 pip install "nyc311[dataframes]"
 ```
 
-For notebook and plotting workflows, install:
+For plotting and exploratory analysis without the geospatial stack, install:
 
 ```bash
 pip install "nyc311[science]"
@@ -68,25 +74,25 @@ nyc311 topics \
 from datetime import date
 from pathlib import Path
 
-import nyc311
+from nyc311 import analysis, export, models, pipeline
 
-records = nyc311.fetch_service_requests(
-    filters=nyc311.ServiceRequestFilter(
+records = pipeline.fetch_service_requests(
+    filters=models.ServiceRequestFilter(
         start_date=date(2025, 1, 1),
         end_date=date(2025, 1, 31),
-        geography=nyc311.GeographyFilter("borough", nyc311.BOROUGH_BROOKLYN),
+        geography=models.GeographyFilter("borough", models.BOROUGH_BROOKLYN),
         complaint_types=("Noise - Residential",),
     ),
-    socrata_config=nyc311.SocrataConfig(page_size=250, max_pages=1),
+    socrata_config=models.SocrataConfig(page_size=250, max_pages=1),
 )
 
-summary = nyc311.aggregate_by_geography(
-    nyc311.extract_topics(records, nyc311.TopicQuery("Noise - Residential")),
+summary = analysis.aggregate_by_geography(
+    analysis.extract_topics(records, models.TopicQuery("Noise - Residential")),
     geography="community_district",
 )
-nyc311.export_topic_table(
+export.export_topic_table(
     summary,
-    nyc311.ExportTarget("csv", Path("topics.csv")),
+    models.ExportTarget("csv", Path("topics.csv")),
 )
 
 print(f"rows: {len(summary)}")
@@ -98,25 +104,25 @@ print(f"rows: {len(summary)}")
 from datetime import date
 from pathlib import Path
 
-import nyc311
+from nyc311 import analysis, export, models, pipeline
 
-records = nyc311.fetch_service_requests(
-    filters=nyc311.ServiceRequestFilter(
+records = pipeline.fetch_service_requests(
+    filters=models.ServiceRequestFilter(
         start_date=date(2025, 1, 1),
         end_date=date(2025, 3, 31),
-        geography=nyc311.GeographyFilter("borough", nyc311.BOROUGH_BROOKLYN),
+        geography=models.GeographyFilter("borough", models.BOROUGH_BROOKLYN),
         complaint_types=("Noise - Residential",),
     ),
-    socrata_config=nyc311.SocrataConfig(page_size=500, max_pages=2),
+    socrata_config=models.SocrataConfig(page_size=500, max_pages=2),
 )
 
-summary = nyc311.aggregate_by_geography(
-    nyc311.extract_topics(records, nyc311.TopicQuery("Noise - Residential")),
+summary = analysis.aggregate_by_geography(
+    analysis.extract_topics(records, models.TopicQuery("Noise - Residential")),
     geography="community_district",
 )
-nyc311.export_topic_table(
+export.export_topic_table(
     summary,
-    nyc311.ExportTarget("csv", Path("brooklyn-noise-topics.csv")),
+    models.ExportTarget("csv", Path("brooklyn-noise-topics.csv")),
 )
 ```
 
@@ -146,23 +152,23 @@ Then point `nyc311 topics` or your Python code at the local snapshot.
 ```python
 from datetime import date
 
-import nyc311
+from nyc311 import analysis, models, pipeline
 
-records = nyc311.fetch_service_requests(
-    socrata_config=nyc311.SocrataConfig(
+records = pipeline.fetch_service_requests(
+    socrata_config=models.SocrataConfig(
         app_token=None,
         page_size=500,
         max_pages=2,
     ),
-    filters=nyc311.ServiceRequestFilter(
+    filters=models.ServiceRequestFilter(
         start_date=date(2025, 1, 1),
         end_date=date(2025, 1, 31),
         complaint_types=("Rodent",),
     ),
 )
 
-assignments = nyc311.extract_topics(records, nyc311.TopicQuery("Rodent"))
-summary = nyc311.aggregate_by_geography(assignments, geography="borough")
+assignments = analysis.extract_topics(records, models.TopicQuery("Rodent"))
+summary = analysis.aggregate_by_geography(assignments, geography="borough")
 ```
 
 ## Export GeoJSON
@@ -186,9 +192,9 @@ nyc311 topics \
 ```python
 from pathlib import Path
 
-import nyc311
+from nyc311.pipeline import run_topic_pipeline
 
-nyc311.run_topic_pipeline(
+run_topic_pipeline(
     "brooklyn-noise-snapshot.csv",
     "Noise - Residential",
     geography="community_district",
@@ -207,11 +213,11 @@ The current rules-based extractor supports:
 - `Noise - Residential`
 - `Rodent`
 
-Use `nyc311.supported_topic_queries()` to inspect that list from code.
+Use `nyc311.models.supported_topic_queries()` to inspect that list from code.
 
 ## Next Steps
 
 - Use [CLI Reference](cli.md) to see every current flag and option.
 - Use [SDK Guide](sdk.md) to compose custom workflows.
-- Use [Examples](examples.md) for copy-paste scripts and notebooks.
+- Use [Examples](examples.md) for self-contained consumer projects.
 - Use [Architecture](architecture.md) if you are extending the package.

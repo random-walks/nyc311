@@ -1,76 +1,127 @@
 # Examples
 
-This folder contains copy-paste starting points for the `nyc311` CLI and SDK.
+`examples/` now contains self-contained consumer projects instead of a shared
+mix of scripts, notebooks, repo-local utilities, and one global output
+directory.
 
-## Layout
+## Contract
 
-- `data/`: small offline demo datasets for geography-forward examples
-- `scripts/quickstart_csv.py`: fetch live data, analyze it in memory, and write
-  a first topic-summary CSV
-- `scripts/fetch_filtered_snapshot.py`: fetch a filtered Socrata slice and save
-  it as a reproducible local CSV snapshot, or skip export and inspect records in
-  memory only
-- `scripts/community_district_case_study.py`: a small case study / EDA-style
-  workflow over a larger Brooklyn live sample
-- `scripts/topic_eda.py`: raw-data audit workflow for topic coverage, anomalies,
-  and report-card output
-- `scripts/borough_choropleth.py`: offline borough-level categorical choropleth
-  from the demo spatial dataset
-- `scripts/point_to_boundary_join.py`: offline point-in-polygon join example
-- `notebooks/quickstart_sdk.ipynb`: notebook version of the SDK quickstart
-- `notebooks/community_district_case_study.ipynb`: notebook Brooklyn EDA case
-  study
-- `notebooks/topic_eda.ipynb`: notebook version of the topic-coverage audit
-- `notebooks/community_district_choropleth.ipynb`: offline district-level map
-- `notebooks/spatial_topic_comparison.ipynb`: offline joined-topic comparison
-- `notebooks/boundary_qa.ipynb`: quick QA pass over the demo boundary files
-- `utils/`: shared helpers for paths, filters, plotting, display, and geo maps
+Every example lives in its own semantic-slug folder such as
+`examples/quickstart-sdk/`.
 
-## Best-Practice Workflow For Large Datasets
+The canonical starting point for new work is `examples/example-template/`.
 
-For larger datasets, the cleanest data-science workflow is:
+Each example must:
 
-1. filter as early as possible at the source
-2. fetch a local snapshot for reproducibility
-3. keep large snapshots out of git
-4. do iterative EDA and modeling against the local snapshot, not the live API
+- include its own `pyproject.toml`
+- include its own `README.md`
+- include its own `.gitignore`
+- provide a single `main.py` entrypoint
+- import only `nyc311.*` as an installed package
+- keep caches under `cache/`
+- keep scratch and intermediate outputs under ignored `artifacts/`
+- use an optional tracked `reports/` folder for markdown and report figures that
+  should stay in git
+- avoid shared cross-example `utils/`, `data/`, or `output/` directories
+- run in memory by default, with local cache reuse for heavier live-fetch flows
 
-In practical `nyc311` terms:
+Examples are intentionally not part of the main test matrix or CI runtime path.
+They are consumer references, not package fixtures.
 
-- use `nyc311.fetch_service_requests(...)` or `nyc311 fetch`
-- start with `--max-pages` during development
-- save the snapshot outside the repo or under an ignored local data directory
-- rerun the same CLI/SDK logic against the cached CSV when iterating
+## Start Here
 
-## Running The Scripts
-
-From the repo root:
+If you just want the smoothest first run across the report-rich examples,
+install the full optional stack once:
 
 ```bash
-uv run python examples/scripts/quickstart_csv.py
-uv run python examples/scripts/community_district_case_study.py
-uv run python examples/scripts/topic_eda.py
+pip install "nyc311[all]"
 ```
 
-To fetch a live snapshot:
+That covers every example in this folder, including the map-heavy spatial ones.
+The individual example READMEs still document their minimal extras for advanced
+users who want a leaner install.
+
+## Quick Index
+
+The folders stay flat on disk, but the examples group naturally into a few
+learning tracks. Use the table below as the fast GitHub skim.
+
+| Example                                   | Skill level  | Track                   | Best for                                                            | Default data mode                 |
+| ----------------------------------------- | ------------ | ----------------------- | ------------------------------------------------------------------- | --------------------------------- |
+| `examples/quickstart-sdk/`                | Easy         | first run               | smallest end-to-end SDK walkthrough                                 | packaged sample records           |
+| `examples/borough-choropleth/`            | Easy         | visual intro            | first polished geospatial tearsheet                                 | packaged sample records           |
+| `examples/fetch-filtered-snapshot/`       | Easy         | live data               | first cache-backed fetch pattern with a larger default slice        | live fetch with local cache reuse |
+| `examples/community-district-choropleth/` | Intermediate | geospatial storytelling | Brooklyn district choropleth over full-city no-data context         | cache-backed live slice           |
+| `examples/spatial-join-qa/`               | Intermediate | spatial QA              | canonical join coverage, unmatched-row, and label-agreement example | cache-backed live slice           |
+| `examples/spatial-topic-comparison/`      | Intermediate | spatial comparison      | how the story changes after a full spatial join                     | cache-backed live slice           |
+| `examples/community-district-case-study/` | Advanced     | live analysis           | larger Brooklyn slice with publish-gated reporting                  | cache-backed live slice           |
+| `examples/topic-eda/`                     | Advanced     | live analysis           | coverage audits, anomaly flags, and scratch exports                 | cache-backed live slice           |
+
+## Suggested Paths
+
+### Fast visual path
+
+1. `examples/quickstart-sdk/`
+2. `examples/borough-choropleth/`
+3. `examples/community-district-choropleth/`
+4. `examples/spatial-topic-comparison/`
+
+The last two examples reuse larger live caches and only refresh tracked report
+assets when you pass `--publish-report`.
+
+### Spatial QA path
+
+1. `examples/spatial-join-qa/`
+
+### Live snapshot path
+
+1. `examples/fetch-filtered-snapshot/`
+2. `examples/community-district-case-study/`
+3. `examples/topic-eda/`
+
+## Non-Example Helpers
+
+- `examples/example-template/`: canonical scaffold for new example folders, not
+  a finished tutorial
+
+## Bootstrap Template
+
+Use `examples/example-template/` when creating a new example folder. It captures
+the current conventions for:
+
+- local editable uv wiring
+- `cache/` vs `artifacts/` vs tracked `reports/`
+- report figure path conventions
+- question-driven example design
+
+## Local Repo Usage
+
+Each example is its own uv project. From an example folder:
 
 ```bash
-uv run python examples/scripts/fetch_filtered_snapshot.py --help
+uv sync
+uv run python main.py
 ```
 
-To run the offline spatial demos:
+The local `pyproject.toml` points to the repo root as an editable path
+dependency, so the example imports `nyc311` exactly the way an external consumer
+would while still tracking local source edits.
 
-```bash
-uv sync --extra spatial --extra science
-uv run python examples/scripts/borough_choropleth.py
-uv run python examples/scripts/point_to_boundary_join.py
-```
+## Public Consumer Shape
 
-## Notes
+These examples are written so the same `main.py` files also work outside the
+repo after installing `nyc311` from PyPI with the documented extras for that
+example.
 
-These examples intentionally start from no local data. They fetch a live Socrata
-slice first, then analyze that in memory or export a snapshot if needed.
+## Caching Policy
 
-The new geography-forward examples also ship with a tiny offline dataset under
-`examples/data/` so you can try the spatial helpers without relying on a live
-API call.
+The examples follow one runtime pattern:
+
+1. load packaged sample data directly when that is enough to teach the feature
+2. for heavier live-fetch stories, especially the richer spatial ones, reuse an
+   example-local cached snapshot when present
+3. only refetch large inputs when the user explicitly asks to refresh the cache
+4. only refresh tracked report assets for live examples when the user explicitly
+   asks to publish them
+
+That keeps runs fast, reproducible, and self-contained.

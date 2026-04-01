@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-import nyc311
+from nyc311 import geographies, samples, spatial
 
 pytest.importorskip(
     "geopandas",
@@ -20,7 +20,7 @@ pytestmark = pytest.mark.optional
 
 
 def test_load_nyc_boundaries_geodataframe_reads_packaged_zcta_layer() -> None:
-    boundaries_gdf = nyc311.load_nyc_boundaries_geodataframe(
+    boundaries_gdf = geographies.load_nyc_boundaries_geodataframe(
         "zcta",
         values=("10001", "10002"),
     )
@@ -31,15 +31,15 @@ def test_load_nyc_boundaries_geodataframe_reads_packaged_zcta_layer() -> None:
 
 
 def test_load_nyc_boundaries_geodataframe_supports_new_packaged_layers() -> None:
-    nta_gdf = nyc311.load_nyc_boundaries_geodataframe(
+    nta_gdf = geographies.load_nyc_boundaries_geodataframe(
         "neighborhood_tabulation_area",
         values=("BK0101",),
     )
-    council_gdf = nyc311.load_nyc_boundaries_geodataframe(
+    council_gdf = geographies.load_nyc_boundaries_geodataframe(
         "council_district",
         values=("33",),
     )
-    census_gdf = nyc311.load_nyc_boundaries_geodataframe(
+    census_gdf = geographies.load_nyc_boundaries_geodataframe(
         "census_tract",
         values=("36061000100",),
     )
@@ -50,9 +50,9 @@ def test_load_nyc_boundaries_geodataframe_supports_new_packaged_layers() -> None
 
 
 def test_load_boundaries_geodataframe_accepts_boundary_collections() -> None:
-    boundaries = nyc311.load_sample_boundaries("community_district")
+    boundaries = samples.load_sample_boundaries("community_district")
 
-    boundaries_gdf = nyc311.load_boundaries_geodataframe(boundaries)
+    boundaries_gdf = spatial.load_boundaries_geodataframe(boundaries)
 
     assert len(boundaries_gdf) == 5
     assert set(boundaries_gdf["geography_value"]) == {
@@ -65,8 +65,8 @@ def test_load_boundaries_geodataframe_accepts_boundary_collections() -> None:
 
 
 def test_boundaries_to_dataframe_returns_notebook_friendly_rows() -> None:
-    dataframe = nyc311.boundaries_to_dataframe(
-        nyc311.load_nyc_boundaries("borough", values=("Queens", "Brooklyn"))
+    dataframe = geographies.boundaries_to_dataframe(
+        geographies.load_nyc_boundaries("borough", values=("Queens", "Brooklyn"))
     )
 
     assert list(dataframe["geography_value"]) == ["BROOKLYN", "QUEENS"]
@@ -74,8 +74,8 @@ def test_boundaries_to_dataframe_returns_notebook_friendly_rows() -> None:
 
 
 def test_clip_boundaries_to_bbox_returns_only_intersecting_boundaries() -> None:
-    clipped = nyc311.clip_boundaries_to_bbox(
-        nyc311.load_sample_boundaries("community_district"),
+    clipped = geographies.clip_boundaries_to_bbox(
+        samples.load_sample_boundaries("community_district"),
         min_longitude=-73.95,
         min_latitude=40.74,
         max_longitude=-73.89,
@@ -86,9 +86,9 @@ def test_clip_boundaries_to_bbox_returns_only_intersecting_boundaries() -> None:
 
 
 def test_spatially_enrich_records_can_join_sample_records_to_zcta() -> None:
-    records = nyc311.load_sample_service_requests()
+    records = samples.load_sample_service_requests()
 
-    joined = nyc311.spatially_enrich_records(records, layer="zcta")
+    joined = geographies.spatially_enrich_records(records, layer="zcta")
 
     assert joined["boundary_geography_value"].notna().all()
     assert set(joined["boundary_geography_value"]) == {
@@ -101,13 +101,15 @@ def test_spatially_enrich_records_can_join_sample_records_to_zcta() -> None:
 
 
 def test_spatially_enrich_records_can_join_sample_records_to_new_layers() -> None:
-    records = nyc311.load_sample_service_requests()
+    records = samples.load_sample_service_requests()
 
-    nta_joined = nyc311.spatially_enrich_records(
+    nta_joined = geographies.spatially_enrich_records(
         records,
         layer="neighborhood_tabulation_area",
     )
-    council_joined = nyc311.spatially_enrich_records(records, layer="council_district")
+    council_joined = geographies.spatially_enrich_records(
+        records, layer="council_district"
+    )
 
     assert set(nta_joined["boundary_geography_value"]) == {
         "BK0101",
