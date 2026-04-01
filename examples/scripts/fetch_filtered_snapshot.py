@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-import nyc311
+from nyc311 import models, pipeline
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -39,7 +39,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="borough",
         choices=("borough", "community_district"),
     )
-    parser.add_argument("--geography-value", default=nyc311.BOROUGH_BROOKLYN)
+    parser.add_argument("--geography-value", default=models.BOROUGH_BROOKLYN)
     parser.add_argument(
         "--page-size",
         default="500",
@@ -66,7 +66,7 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     complaint_types = args.complaint_type or ["Rodent"]
-    records = nyc311.fetch_service_requests(
+    records = pipeline.fetch_service_requests(
         filters=build_filter(
             start_date=args.start_date,
             end_date=args.end_date,

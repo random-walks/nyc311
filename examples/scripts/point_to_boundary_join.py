@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import nyc311
+from nyc311 import io, spatial
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -18,12 +18,12 @@ from examples.utils import (  # noqa: E402
 
 
 def main() -> None:
-    records = nyc311.load_service_requests(data_path("service_requests_fixture.csv"))
-    records_gdf = nyc311.records_to_geodataframe(records)
-    boundaries_gdf = nyc311.load_boundaries_geodataframe(
+    records = io.load_service_requests(data_path("service_requests_fixture.csv"))
+    records_gdf = spatial.records_to_geodataframe(records)
+    boundaries_gdf = spatial.load_boundaries_geodataframe(
         data_path("community_district_boundaries.geojson")
     )
-    joined = nyc311.spatial_join_records_to_boundaries(records_gdf, boundaries_gdf)
+    joined = spatial.spatial_join_records_to_boundaries(records_gdf, boundaries_gdf)
     join_preview = joined[
         [
             "service_request_id",

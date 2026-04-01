@@ -1822,6 +1822,16 @@ name = "nyc311"
 source = { editable = "." }
 
 [package.optional-dependencies]
+all = [
+    { name = "contextily" },
+    { name = "geopandas" },
+    { name = "matplotlib" },
+    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pandas", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "shapely" },
+]
 dataframes = [
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -1870,16 +1880,22 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "contextily", marker = "extra == 'all'", specifier = ">=1.6.2" },
     { name = "contextily", marker = "extra == 'spatial'", specifier = ">=1.6.2" },
+    { name = "geopandas", marker = "extra == 'all'", specifier = ">=1.1" },
     { name = "geopandas", marker = "extra == 'spatial'", specifier = ">=1.1" },
+    { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'plotting'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'science'", specifier = ">=3.10.8" },
+    { name = "pandas", marker = "extra == 'all'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'dataframes'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'science'", specifier = ">=2.3.3" },
+    { name = "scipy", marker = "extra == 'all'", specifier = ">=1.15.3" },
     { name = "scipy", marker = "extra == 'science'", specifier = ">=1.15.3" },
+    { name = "shapely", marker = "extra == 'all'", specifier = ">=2.1" },
     { name = "shapely", marker = "extra == 'spatial'", specifier = ">=2.1" },
 ]
-provides-extras = ["dataframes", "plotting", "science", "spatial"]
+provides-extras = ["all", "dataframes", "plotting", "science", "spatial"]
 
 [package.metadata.requires-dev]
 dev = [

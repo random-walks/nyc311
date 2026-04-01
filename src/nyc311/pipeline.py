@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .exporters import export_geojson, export_service_requests_csv, export_topic_table
-from .loaders import load_boundaries, load_service_requests
+from .analysis import aggregate_by_geography, extract_topics
+from .export import export_geojson, export_service_requests_csv, export_topic_table
+from .geographies import load_boundaries
+from .io import load_service_requests
 from .models import (
     BoundaryGeoJSONExport,
     ExportTarget,
@@ -15,7 +17,6 @@ from .models import (
     SocrataConfig,
     TopicQuery,
 )
-from .processors import aggregate_by_geography, extract_topics
 
 
 def fetch_service_requests(
@@ -97,3 +98,9 @@ def run_topic_pipeline(
         target,
     )
     return summaries
+
+
+__all__ = [
+    "fetch_service_requests",
+    "run_topic_pipeline",
+]

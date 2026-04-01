@@ -106,3 +106,9 @@ def plot_boundary_preview(
     axes.set_axis_off()
     axes.set_title(title)
     return axes.figure
+
+
+__all__ = [
+    "plot_boundary_choropleth",
+    "plot_boundary_preview",
+]

@@ -4,7 +4,7 @@ import csv
 import json
 from pathlib import Path
 
-import nyc311
+from nyc311.pipeline import run_topic_pipeline
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"
 BOUNDARIES_PATH = (
@@ -13,7 +13,7 @@ BOUNDARIES_PATH = (
 
 
 def test_run_topic_pipeline_returns_summaries_without_export() -> None:
-    summary = nyc311.run_topic_pipeline(
+    summary = run_topic_pipeline(
         FIXTURE_PATH,
         "Noise - Residential",
         geography="community_district",
@@ -27,7 +27,7 @@ def test_run_topic_pipeline_returns_summaries_without_export() -> None:
 def test_run_topic_pipeline_exports_csv_when_output_is_provided(tmp_path: Path) -> None:
     output_path = tmp_path / "pipeline-output.csv"
 
-    summary = nyc311.run_topic_pipeline(
+    summary = run_topic_pipeline(
         FIXTURE_PATH,
         "Noise - Residential",
         geography="community_district",
@@ -46,7 +46,7 @@ def test_run_topic_pipeline_exports_csv_when_output_is_provided(tmp_path: Path) 
 def test_run_topic_pipeline_exports_geojson(tmp_path: Path) -> None:
     output_path = tmp_path / "pipeline-output.geojson"
 
-    summary = nyc311.run_topic_pipeline(
+    summary = run_topic_pipeline(
         FIXTURE_PATH,
         "Noise - Residential",
         geography="community_district",

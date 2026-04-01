@@ -38,9 +38,9 @@ make audit
 If you prefer direct commands:
 
 ```bash
-uv run pytest -m "not integration and not optional"
-uv run --extra dataframes pytest -m optional
-uv run pytest -m "fetch and not integration"
+uv run --all-extras pytest -m "not integration"
+uv run --all-extras pytest -m optional
+uv run --all-extras pytest -m "fetch and not integration"
 uv run ruff check .
 uv run ruff format --check .
 uv run mypy
@@ -49,6 +49,7 @@ uvx nox -s pylint
 uvx nox -s tests_integration
 uv run mkdocs serve
 uv run mkdocs build --strict
+uv run python scripts/audit_public_api.py
 ```
 
 ## Nox Sessions
@@ -69,10 +70,10 @@ uvx nox -s build
 - `integration`: heavier or live-service checks
 - `network`: tests that reach external services
 
-The default local and CI path stays fast. Live fetch checks are available
-through the dedicated integration session instead of running on every commit.
-Optional pandas-backed checks live in `make test-optional` and
-`uvx nox -s tests_optional`.
+The default local and CI path now uses the full installed feature set and runs
+`pytest -m "not integration"` so pandas-backed and spatial coverage are
+included by default. Live fetch checks remain available through the dedicated
+integration session instead of running on every commit.
 
 ## Pre-commit
 
@@ -109,9 +110,11 @@ make docs-build
 `make docs` runs `mkdocs serve` for local preview, and `make docs-build` runs a
 strict build equivalent to the hosted site and CI checks.
 
-`docs/api.md` is generated with `mkdocstrings` from the public package surface.
-Prefer updating source docstrings and exported symbols in `src/nyc311/` rather
-than hand-editing generated API content.
+`docs/api.md` is generated with `mkdocstrings` from the explicit public
+namespaces in `src/nyc311/`. `scripts/audit_public_api.py` verifies that those
+namespaces stay explicit, unique, and documented. Prefer updating source
+docstrings and exported symbols there rather than hand-editing generated API
+content.
 
 ## Release Target
 

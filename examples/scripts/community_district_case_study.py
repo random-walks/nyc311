@@ -4,7 +4,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-import nyc311
+from nyc311 import analysis, export, models, pipeline
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -21,7 +21,7 @@ from examples.utils import (  # noqa: E402
 
 
 def main() -> None:
-    records = nyc311.fetch_service_requests(
+    records = pipeline.fetch_service_requests(
         filters=brooklyn_borough_filter(
             start_date="2025-01-01",
             end_date="2025-03-31",
@@ -34,18 +34,18 @@ def main() -> None:
     records_with_resolution = [
         record for record in records if record.resolution_description is not None
     ]
-    resolution_summaries = nyc311.analyze_resolution_gaps(
+    resolution_summaries = analysis.analyze_resolution_gaps(
         records, records_with_resolution
     )
 
     noise_records = [
         record for record in records if record.complaint_type == "Noise - Residential"
     ]
-    assignments = nyc311.extract_topics(
+    assignments = analysis.extract_topics(
         noise_records,
-        nyc311.TopicQuery("Noise - Residential"),
+        models.TopicQuery("Noise - Residential"),
     )
-    summaries = nyc311.aggregate_by_geography(
+    summaries = analysis.aggregate_by_geography(
         assignments,
         geography="community_district",
     )
@@ -53,7 +53,7 @@ def main() -> None:
     descriptor_lengths = Counter(len(record.descriptor.split()) for record in records)
     dominant_topics = [row for row in summaries if row.is_dominant_topic]
     target_path = output_path("brooklyn-noise-community-districts.csv")
-    nyc311.export_topic_table(summaries, nyc311.ExportTarget("csv", target_path))
+    export.export_topic_table(summaries, models.ExportTarget("csv", target_path))
 
     print_section("Brooklyn exploratory data analysis")
     print(f"Loaded records: {len(records)}")

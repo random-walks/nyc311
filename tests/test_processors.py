@@ -5,18 +5,18 @@ from pathlib import Path
 
 import pytest
 
-from nyc311.loaders import load_service_requests
+from nyc311.analysis import (
+    aggregate_by_geography,
+    analyze_topic_coverage,
+    detect_anomalies,
+    extract_topics,
+)
+from nyc311.io import load_service_requests
 from nyc311.models import (
     AnalysisWindow,
     GeographyTopicSummary,
     ServiceRequestRecord,
     TopicQuery,
-)
-from nyc311.processors import (
-    aggregate_by_geography,
-    analyze_topic_coverage,
-    detect_anomalies,
-    extract_topics,
 )
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"

@@ -3,9 +3,9 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from nyc311.loaders import load_service_requests
+from nyc311.analysis import aggregate_by_geography, extract_topics
+from nyc311.io import load_service_requests
 from nyc311.models import ServiceRequestRecord, TopicQuery, supported_topic_queries
-from nyc311.processors import aggregate_by_geography, extract_topics
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"
 

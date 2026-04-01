@@ -4,7 +4,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-import nyc311
+from nyc311 import analysis, dataframes, export, models, pipeline
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -19,7 +19,7 @@ from examples.utils import (  # noqa: E402
 
 
 def main() -> None:
-    records = nyc311.fetch_service_requests(
+    records = pipeline.fetch_service_requests(
         filters=brooklyn_borough_filter(
             start_date="2025-01-01",
             end_date="2025-03-31",
@@ -27,7 +27,7 @@ def main() -> None:
         socrata_config=brooklyn_socrata_config(page_size=1000, max_pages=5),
     )
 
-    records_df = nyc311.records_to_dataframe(records)
+    records_df = dataframes.records_to_dataframe(records)
     complaint_distribution = (
         records_df["complaint_type"]
         .value_counts()
@@ -38,10 +38,10 @@ def main() -> None:
     print(complaint_distribution.head(10).to_string(index=False))
 
     print("\nCoverage audit for built-in topic rules:")
-    for complaint_type in nyc311.supported_topic_queries():
-        coverage = nyc311.analyze_topic_coverage(
+    for complaint_type in models.supported_topic_queries():
+        coverage = analysis.analyze_topic_coverage(
             records,
-            nyc311.TopicQuery(complaint_type=complaint_type, top_n=10),
+            models.TopicQuery(complaint_type=complaint_type, top_n=10),
         )
         print(
             f"- {coverage.complaint_type}: "
@@ -58,62 +58,62 @@ def main() -> None:
         ("leak", ("leak", "leaking")),
     )
     synthetic_records = [
-        nyc311.ServiceRequestRecord(
+        models.ServiceRequestRecord(
             service_request_id="demo-1",
             created_date=date(2025, 1, 1),
             complaint_type="Water System",
             descriptor="Low water pressure near hydrant",
-            borough=nyc311.BOROUGH_BROOKLYN,
+            borough=models.BOROUGH_BROOKLYN,
             community_district="01 BROOKLYN",
         ),
-        nyc311.ServiceRequestRecord(
+        models.ServiceRequestRecord(
             service_request_id="demo-2",
             created_date=date(2025, 1, 2),
             complaint_type="Water System",
             descriptor="Leaking hydrant on corner",
-            borough=nyc311.BOROUGH_BROOKLYN,
+            borough=models.BOROUGH_BROOKLYN,
             community_district="01 BROOKLYN",
         ),
-        nyc311.ServiceRequestRecord(
+        models.ServiceRequestRecord(
             service_request_id="demo-3",
             created_date=date(2025, 1, 3),
             complaint_type="Water System",
             descriptor="Pressure issue in building basement",
-            borough=nyc311.BOROUGH_BROOKLYN,
+            borough=models.BOROUGH_BROOKLYN,
             community_district="01 BROOKLYN",
         ),
     ]
-    before_coverage = nyc311.analyze_topic_coverage(
+    before_coverage = analysis.analyze_topic_coverage(
         synthetic_records,
-        nyc311.TopicQuery("Water System", top_n=10),
+        models.TopicQuery("Water System", top_n=10),
     )
-    after_coverage = nyc311.analyze_topic_coverage(
+    after_coverage = analysis.analyze_topic_coverage(
         synthetic_records,
-        nyc311.TopicQuery("Water System", top_n=10),
+        models.TopicQuery("Water System", top_n=10),
         custom_rules=custom_rules,
     )
     print("\nCustom rule demo for Water System:")
     print(f"- before custom rules: {before_coverage.coverage_rate:.1%} matched")
     print(f"- after custom rules:  {after_coverage.coverage_rate:.1%} matched")
 
-    noise_assignments = nyc311.extract_topics(
+    noise_assignments = analysis.extract_topics(
         records,
-        nyc311.TopicQuery("Noise - Residential", top_n=10),
+        models.TopicQuery("Noise - Residential", top_n=10),
     )
-    noise_summaries = nyc311.aggregate_by_geography(
+    noise_summaries = analysis.aggregate_by_geography(
         noise_assignments,
         geography="community_district",
     )
-    anomalies = nyc311.detect_anomalies(
+    anomalies = analysis.detect_anomalies(
         noise_summaries,
-        nyc311.AnalysisWindow(days=30),
+        models.AnalysisWindow(days=30),
         z_threshold=1.5,
     )
     report_card_path = output_path("topic-eda-report.md")
-    nyc311.export_report_card(
+    export.export_report_card(
         {
             "topic_summaries": noise_summaries,
-            "resolution_gaps": nyc311.analyze_resolution_gaps(
+            "resolution_gaps": analysis.analyze_resolution_gaps(
                 records,
                 [
                     record
@@ -123,7 +123,7 @@ def main() -> None:
             ),
             "anomalies": anomalies,
         },
-        nyc311.ExportTarget("md", report_card_path),
+        models.ExportTarget("md", report_card_path),
     )
     print_section("Topic EDA")
     print(f"\nWrote report card to: {report_card_path}")

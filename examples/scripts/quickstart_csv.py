@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import nyc311
+from nyc311 import analysis, export, models, pipeline
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -19,7 +19,7 @@ from examples.utils import (  # noqa: E402
 
 
 def main() -> None:
-    records = nyc311.fetch_service_requests(
+    records = pipeline.fetch_service_requests(
         filters=brooklyn_borough_filter(
             start_date="2025-01-01",
             end_date="2025-01-31",
@@ -27,18 +27,18 @@ def main() -> None:
         ),
         socrata_config=brooklyn_socrata_config(page_size=250, max_pages=1),
     )
-    assignments = nyc311.extract_topics(
+    assignments = analysis.extract_topics(
         records,
-        nyc311.TopicQuery("Noise - Residential"),
+        models.TopicQuery("Noise - Residential"),
     )
-    summaries = nyc311.aggregate_by_geography(
+    summaries = analysis.aggregate_by_geography(
         assignments,
         geography="community_district",
     )
     target_path = output_path("quickstart-topics.csv")
-    nyc311.export_topic_table(
+    export.export_topic_table(
         summaries,
-        nyc311.ExportTarget("csv", target_path),
+        models.ExportTarget("csv", target_path),
     )
 
     dominant_topics = [row for row in summaries if row.is_dominant_topic]

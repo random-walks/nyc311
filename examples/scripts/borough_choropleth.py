@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import nyc311
+from nyc311 import analysis, io, models
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -19,12 +19,12 @@ from examples.utils import (  # noqa: E402
 
 
 def main() -> None:
-    records = nyc311.load_service_requests(data_path("service_requests_fixture.csv"))
-    assignments = nyc311.extract_topics(
+    records = io.load_service_requests(data_path("service_requests_fixture.csv"))
+    assignments = analysis.extract_topics(
         records,
-        nyc311.TopicQuery("Noise - Residential"),
+        models.TopicQuery("Noise - Residential"),
     )
-    borough_summaries = nyc311.aggregate_by_geography(assignments, geography="borough")
+    borough_summaries = analysis.aggregate_by_geography(assignments, geography="borough")
     borough_map = merge_summary_map(
         borough_summaries,
         boundaries_source=data_path("borough_boundaries.geojson"),

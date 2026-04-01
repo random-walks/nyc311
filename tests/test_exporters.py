@@ -5,20 +5,20 @@ from pathlib import Path
 
 import pytest
 
-from nyc311.exporters import (
-    export_anomalies,
-    export_report_card,
-    export_service_requests_csv,
-    export_topic_table,
-)
-from nyc311.loaders import load_service_requests
-from nyc311.models import AnalysisWindow, ExportTarget, TopicQuery
-from nyc311.processors import (
+from nyc311.analysis import (
     aggregate_by_geography,
     analyze_resolution_gaps,
     detect_anomalies,
     extract_topics,
 )
+from nyc311.export import (
+    export_anomalies,
+    export_report_card,
+    export_service_requests_csv,
+    export_topic_table,
+)
+from nyc311.io import load_service_requests
+from nyc311.models import AnalysisWindow, ExportTarget, TopicQuery
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"
 pytestmark = pytest.mark.unit

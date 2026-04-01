@@ -1,7 +1,7 @@
 # Architecture
 
-`nyc311` currently implements a narrow but end-to-end pipeline for deterministic
-topic summarization over NYC 311-style complaint data.
+`nyc311` implements a narrow but end-to-end pipeline for deterministic topic
+summarization over NYC 311-style complaint data.
 
 This architecture snapshot reflects the current `0.2` alpha prerelease line.
 
@@ -28,27 +28,29 @@ flowchart LR
 
 ## Module Responsibilities
 
-| Module               | Responsibility                                                              |
-| -------------------- | --------------------------------------------------------------------------- |
-| `nyc311.models`      | Typed dataclasses and package-level constants                               |
-| `nyc311.loaders`     | CSV and Socrata ingestion, filter application, boundary-loading entry point |
-| `nyc311.geographies` | Packaged NYC boundary layers, sample loaders, and geography conversions     |
-| `nyc311.processors`  | Deterministic topic extraction and geography aggregation                    |
-| `nyc311.exporters`   | CSV and GeoJSON output generation                                           |
-| `nyc311.boundaries`  | GeoJSON parsing into boundary models                                        |
-| `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers            |
-| `nyc311.pipeline`    | High-level SDK helper that mirrors the CLI happy path                       |
-| `nyc311.cli`         | Argparse-powered fetch and analysis entry points                            |
+| Module               | Responsibility                                                     |
+| -------------------- | ------------------------------------------------------------------ |
+| `nyc311.models`      | Typed dataclasses, constants, configs, and normalization helpers   |
+| `nyc311.io`          | CSV and Socrata ingestion for service-request records              |
+| `nyc311.analysis`    | Deterministic topic extraction, coverage, gaps, and anomalies      |
+| `nyc311.geographies` | Packaged NYC boundary layers, conversions, and boundary operations |
+| `nyc311.samples`     | Packaged sample records and sample-aligned boundary subsets        |
+| `nyc311.export`      | CSV, GeoJSON, and markdown artifact generation                     |
+| `nyc311.dataframes`  | Optional pandas conversions for typed nyc311 models                |
+| `nyc311.spatial`     | Optional geopandas spatial helpers and joins                       |
+| `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers   |
+| `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path              |
+| `nyc311.cli`         | Argparse-powered fetch and analysis entry points                   |
 
 ## Design Principles
 
-- Keep the implemented surface honest and narrow.
+- Keep the implemented surface explicit and namespaced.
 - Prefer typed inputs and outputs over implicit dictionaries.
 - Make the SDK composable for workflows and notebooks.
 - Ship turnkey NYC geography layers as library-owned packaged resources.
 - Keep the CLI thin by delegating real work to importable functions.
-- Keep optional dependency boundaries explicit for dataframe and notebook
-  helpers.
+- Keep optional dependency boundaries explicit for dataframe, spatial, and
+  notebook helpers.
 
 ## Implemented Scope
 
@@ -69,11 +71,7 @@ flowchart LR
 - optional in-memory boundary plotting helpers
 - a one-call SDK pipeline helper
 - thin CLI fetch and export paths
-
-The repository includes `scripts/audit_implementation.py` to summarize the
-current public surface and keep docs aligned with shipped behavior. Planned
-symbols are declared in `src/nyc311/planned_surface.json` rather than as dead
-runtime placeholders.
+- a namespace-based public API audit script for maintainers
 
 ## Boundaries
 
@@ -92,7 +90,8 @@ Boundary-backed exports still expect feature properties with both:
 - `census_tract`
 
 These packaged layers are the preferred notebook and SDK path. File-backed
-boundary loading remains available for scripts and custom workflows.
+boundary loading remains available through `nyc311.geographies.load_boundaries()`
+for scripts and custom workflows.
 
 ## Maintainer Notes
 

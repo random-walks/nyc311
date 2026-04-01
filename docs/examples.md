@@ -21,10 +21,10 @@ These examples match the current `0.2` alpha prerelease surface on this branch.
 
 The notebooks are now pure in-memory consumers of `nyc311` APIs. They use:
 
-- `nyc311.load_sample_service_requests()`
-- `nyc311.load_sample_boundaries()`
-- packaged NYC boundary layers exposed via `nyc311.load_nyc_boundaries*()`
-- in-memory plotting helpers such as `nyc311.plot_boundary_preview()`
+- `nyc311.samples.load_sample_service_requests()`
+- `nyc311.samples.load_sample_boundaries()`
+- packaged NYC boundary layers exposed via `nyc311.geographies.load_nyc_boundaries*()`
+- in-memory plotting helpers such as `nyc311.plotting.plot_boundary_preview()`
 
 The packaged geography catalog now includes boroughs, community districts, city
 council districts, neighborhood tabulation areas, MODZCTAs, and census tracts.
@@ -87,8 +87,10 @@ uv run python examples/scripts/borough_choropleth.py
 uv run python examples/scripts/point_to_boundary_join.py
 ```
 
-The dataframe and notebook-oriented examples rely on the optional `dataframes`
-or `science` extras. The new geography-forward examples additionally rely on the
-`spatial` extra. `make install` already includes the core contributor
-dependencies; add `uv sync --extra spatial --extra science` when you want to run
-the mapping notebooks and scripts.
+The examples work best with the turnkey `all` extra:
+
+```bash
+pip install "nyc311[all]"
+```
+
+For contributor workflows, `make install` already syncs all groups and extras.

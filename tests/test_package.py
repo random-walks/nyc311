@@ -3,8 +3,22 @@ from __future__ import annotations
 import importlib.metadata
 from pathlib import Path
 
-import nyc311 as m
+import nyc311 as root
+from nyc311 import (
+    analysis,
+    cli,
+    dataframes,
+    export,
+    geographies,
+    io,
+    models,
+    pipeline,
+    plotting,
+    samples,
+    spatial,
+)
 from nyc311.models import (
+    BOROUGH_BROOKLYN,
     AnalysisWindow,
     AnomalyResult,
     ExportTarget,
@@ -20,12 +34,16 @@ def _stable_version_prefix(version: str) -> str:
 
 
 def test_version() -> None:
-    assert _stable_version_prefix(m.__version__) == _stable_version_prefix(
+    assert _stable_version_prefix(root.__version__) == _stable_version_prefix(
         importlib.metadata.version("nyc311")
     )
 
 
-def test_public_surface_exposes_current_alpha_contract() -> None:
+def test_root_package_is_minimal() -> None:
+    assert root.__all__ == ["__version__"]
+
+
+def test_public_namespaces_expose_current_contract() -> None:
     window = AnalysisWindow(days=30)
     anomaly = AnomalyResult(
         geography="borough",
@@ -57,49 +75,50 @@ def test_public_surface_exposes_current_alpha_contract() -> None:
     assert window.days == 30
     assert anomaly.is_anomaly is True
     assert coverage.coverage_rate == 0.8
-    assert geography.value == m.BOROUGH_BROOKLYN
+    assert geography.value == BOROUGH_BROOKLYN
     assert query.top_n == 10
     assert service_request_filter.geography == geography
     assert target.format == "geojson"
-    assert m.normalize_borough_name("bk") == m.BOROUGH_BROOKLYN
-    assert callable(m.load_service_requests)
-    assert callable(m.fetch_service_requests)
-    assert callable(m.load_resolution_data)
-    assert callable(m.load_boundaries_geodataframe)
-    assert callable(m.extract_topics)
-    assert callable(m.aggregate_by_geography)
-    assert callable(m.analyze_topic_coverage)
-    assert callable(m.analyze_resolution_gaps)
-    assert callable(m.detect_anomalies)
-    assert callable(m.register_topic_rules)
-    assert callable(m.export_anomalies)
-    assert callable(m.export_report_card)
-    assert callable(m.export_topic_table)
-    assert callable(m.export_service_requests_csv)
-    assert callable(m.assignments_to_dataframe)
-    assert callable(m.anomalies_to_dataframe)
-    assert callable(m.boundaries_to_dataframe)
-    assert callable(m.boundaries_to_geojson)
-    assert callable(m.clip_boundaries_to_bbox)
-    assert callable(m.coverage_to_dataframe)
-    assert callable(m.dataframe_to_records)
-    assert callable(m.gaps_to_dataframe)
-    assert callable(m.list_boundary_layers)
-    assert callable(m.list_boundary_values)
-    assert callable(m.load_nyc_boundaries)
-    assert callable(m.load_nyc_council_districts)
-    assert callable(m.load_nyc_census_tracts)
-    assert callable(m.load_nyc_boundaries_geodataframe)
-    assert callable(m.load_nyc_neighborhood_tabulation_areas)
-    assert callable(m.load_sample_boundaries)
-    assert callable(m.load_sample_service_requests)
-    assert callable(m.plot_boundary_choropleth)
-    assert callable(m.plot_boundary_preview)
-    assert callable(m.records_to_dataframe)
-    assert callable(m.records_to_geodataframe)
-    assert callable(m.run_topic_pipeline)
-    assert callable(m.spatially_enrich_records)
-    assert callable(m.spatial_join_records_to_boundaries)
-    assert callable(m.summaries_to_dataframe)
-    assert callable(m.summaries_to_geodataframe)
-    assert "Noise - Residential" in m.supported_topic_queries()
+    assert models.normalize_borough_name("bk") == BOROUGH_BROOKLYN
+    assert callable(io.load_service_requests)
+    assert callable(pipeline.fetch_service_requests)
+    assert callable(io.load_resolution_data)
+    assert callable(spatial.load_boundaries_geodataframe)
+    assert callable(analysis.extract_topics)
+    assert callable(analysis.aggregate_by_geography)
+    assert callable(analysis.analyze_topic_coverage)
+    assert callable(analysis.analyze_resolution_gaps)
+    assert callable(analysis.detect_anomalies)
+    assert callable(analysis.register_topic_rules)
+    assert callable(export.export_anomalies)
+    assert callable(export.export_report_card)
+    assert callable(export.export_topic_table)
+    assert callable(export.export_service_requests_csv)
+    assert callable(dataframes.assignments_to_dataframe)
+    assert callable(dataframes.anomalies_to_dataframe)
+    assert callable(geographies.boundaries_to_dataframe)
+    assert callable(geographies.boundaries_to_geojson)
+    assert callable(geographies.clip_boundaries_to_bbox)
+    assert callable(dataframes.coverage_to_dataframe)
+    assert callable(dataframes.dataframe_to_records)
+    assert callable(dataframes.gaps_to_dataframe)
+    assert callable(geographies.list_boundary_layers)
+    assert callable(geographies.list_boundary_values)
+    assert callable(geographies.load_nyc_boundaries)
+    assert callable(geographies.load_nyc_council_districts)
+    assert callable(geographies.load_nyc_census_tracts)
+    assert callable(geographies.load_nyc_boundaries_geodataframe)
+    assert callable(geographies.load_nyc_neighborhood_tabulation_areas)
+    assert callable(samples.load_sample_boundaries)
+    assert callable(samples.load_sample_service_requests)
+    assert callable(plotting.plot_boundary_choropleth)
+    assert callable(plotting.plot_boundary_preview)
+    assert callable(dataframes.records_to_dataframe)
+    assert callable(spatial.records_to_geodataframe)
+    assert callable(pipeline.run_topic_pipeline)
+    assert callable(geographies.spatially_enrich_records)
+    assert callable(spatial.spatial_join_records_to_boundaries)
+    assert callable(dataframes.summaries_to_dataframe)
+    assert callable(spatial.summaries_to_geodataframe)
+    assert callable(cli.main)
+    assert "Noise - Residential" in models.supported_topic_queries()

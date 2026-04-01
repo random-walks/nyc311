@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from nyc311.loaders import load_service_requests
+from nyc311.io import load_service_requests
 from nyc311.models import ServiceRequestFilter, SocrataConfig
 
 pytestmark = [

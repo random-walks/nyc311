@@ -77,7 +77,7 @@ def test_cli_fetch_command_exports_filtered_socrata_snapshot(
             ]
         )
 
-    monkeypatch.setattr("nyc311.loaders.urlopen", fake_urlopen)
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
 
     exit_code = main(
         [
