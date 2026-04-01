@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from collections import Counter
+from importlib import import_module
 from pathlib import Path
 
-from nyc311 import analysis, models, plotting, samples, spatial
+from nyc311 import analysis, export, models, plotting, samples, spatial
 
 ROOT = Path(__file__).resolve().parent
 ARTIFACTS_DIR = ROOT / "artifacts"
+REPORTS_DIR = ROOT / "reports"
+REPORT_FIGURES_DIR = REPORTS_DIR / "figures"
 
 
 def artifact_path(filename: str) -> Path:
@@ -13,11 +17,358 @@ def artifact_path(filename: str) -> Path:
     return ARTIFACTS_DIR / filename
 
 
-def save_figure(figure: object, filename: str) -> Path:
-    output_path = artifact_path(filename)
+def report_path(filename: str) -> Path:
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    return REPORTS_DIR / filename
+
+
+def report_figure_path(filename: str) -> Path:
+    REPORT_FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+    return REPORT_FIGURES_DIR / filename
+
+
+def save_figure(figure: object, output_path: Path) -> Path:
     figure.tight_layout()
     figure.savefig(output_path, bbox_inches="tight", dpi=150)
     return output_path
+
+
+def require_matplotlib() -> object:
+    return import_module("matplotlib.pyplot")
+
+
+def format_topic_name(value: str | None) -> str:
+    if not isinstance(value, str) or not value:
+        return "No sample data"
+    return value.replace("_", " ").title()
+
+
+def format_district_name(value: str) -> str:
+    return value.title()
+
+
+def sampled_snapshot_rows(snapshot_rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [
+        row for row in snapshot_rows if int(row["geography_total_count"]) > 0
+    ]
+
+
+def build_snapshot_rows(
+    all_districts_gdf: object,
+    summaries: list[models.GeographyTopicSummary],
+) -> tuple[list[dict[str, object]], list[str]]:
+    topic_totals = Counter(summary.topic for summary in summaries)
+    topic_order = sorted(
+        topic_totals,
+        key=lambda topic: (topic != "party_music", -topic_totals[topic], topic),
+    )
+    summaries_by_district: dict[str, list[models.GeographyTopicSummary]] = {}
+    for summary in summaries:
+        summaries_by_district.setdefault(summary.geography_value, []).append(summary)
+
+    snapshot_rows: list[dict[str, object]] = []
+    for row in all_districts_gdf[["geography_value"]].itertuples(index=False):
+        district = str(row.geography_value)
+        district_summaries = sorted(
+            summaries_by_district.get(district, []),
+            key=lambda summary: (summary.topic_rank, summary.topic),
+        )
+        total_count = district_summaries[0].geography_total_count if district_summaries else 0
+        dominant_summary = district_summaries[0] if district_summaries else None
+        party_music_summary = next(
+            (
+                summary
+                for summary in district_summaries
+                if summary.topic == "party_music"
+            ),
+            None,
+        )
+        topic_shares = {
+            summary.topic: summary.share_of_geography for summary in district_summaries
+        }
+        snapshot_rows.append(
+            {
+                "geography_value": district,
+                "geography_total_count": total_count,
+                "dominant_topic": (
+                    None if dominant_summary is None else dominant_summary.topic
+                ),
+                "dominant_count": (
+                    0 if dominant_summary is None else dominant_summary.complaint_count
+                ),
+                "dominant_share": (
+                    0.0
+                    if dominant_summary is None
+                    else dominant_summary.share_of_geography
+                ),
+                "party_music_count": (
+                    0 if party_music_summary is None else party_music_summary.complaint_count
+                ),
+                "party_music_share": (
+                    0.0
+                    if party_music_summary is None
+                    else party_music_summary.share_of_geography
+                ),
+                "topic_shares": topic_shares,
+            }
+        )
+    return snapshot_rows, topic_order
+
+
+def build_map_figure(dominant_map: object, *, borough_outlines: object) -> object:
+    figure = plotting.plot_boundary_choropleth(
+        dominant_map,
+        column="topic",
+        title="Dominant noise topic by community district",
+        cmap="Set2",
+        categorical=True,
+        figsize=(11, 10),
+        outline_gdf=borough_outlines,
+        legend_title="Dominant topic",
+    )
+    axes = figure.axes[0]
+    sampled_rows = dominant_map[dominant_map["complaint_count"] > 0]
+    for row in sampled_rows.itertuples(index=False):
+        point = row.geometry.representative_point()
+        axes.text(
+            point.x,
+            point.y,
+            (
+                f"{format_district_name(row.geography_value)}\n"
+                f"{format_topic_name(row.topic)}\n"
+                f"{row.complaint_count}/{row.geography_total_count} ({row.share_of_geography:.0%})"
+            ),
+            ha="center",
+            va="center",
+            fontsize=7.5,
+            bbox={
+                "boxstyle": "round,pad=0.22",
+                "facecolor": "white",
+                "edgecolor": "#334155",
+                "alpha": 0.92,
+            },
+        )
+    return figure
+
+
+def build_party_music_intensity_figure(snapshot_rows: list[dict[str, object]]) -> object:
+    plt = require_matplotlib()
+    percent_formatter = import_module("matplotlib.ticker").PercentFormatter
+    plot_rows = sorted(
+        sampled_snapshot_rows(snapshot_rows),
+        key=lambda row: (
+            -float(row["party_music_share"]),
+            -int(row["geography_total_count"]),
+            str(row["geography_value"]),
+        ),
+    )
+    figure, axes = plt.subplots(figsize=(9, 6))
+    bars = axes.barh(
+        [str(row["geography_value"]) for row in plot_rows],
+        [float(row["party_music_share"]) for row in plot_rows],
+        color=[
+            "#7c3aed" if float(row["party_music_share"]) > 0 else "#cbd5e1"
+            for row in plot_rows
+        ],
+    )
+    axes.invert_yaxis()
+    axes.set_xlim(0, 1)
+    axes.set_xlabel("Party music share of district noise complaints")
+    axes.set_title("Which sampled districts skew hardest toward party music?")
+    axes.xaxis.set_major_formatter(percent_formatter(xmax=1))
+    axes.grid(axis="x", alpha=0.25)
+    for bar, row in zip(bars, plot_rows, strict=True):
+        axes.text(
+            bar.get_width() + 0.02,
+            bar.get_y() + bar.get_height() / 2,
+            (
+                f"{float(row['party_music_share']):.1%} "
+                f"({int(row['party_music_count'])}/{int(row['geography_total_count'])})"
+            ),
+            ha="left",
+            va="center",
+            fontsize=8,
+        )
+    return figure
+
+
+def build_topic_mix_figure(
+    snapshot_rows: list[dict[str, object]],
+    topic_order: list[str],
+) -> object:
+    plt = require_matplotlib()
+    percent_formatter = import_module("matplotlib.ticker").PercentFormatter
+    plot_rows = sorted(
+        sampled_snapshot_rows(snapshot_rows),
+        key=lambda row: (
+            -float(row["dominant_share"]),
+            -int(row["geography_total_count"]),
+            str(row["geography_value"]),
+        ),
+    )[:6]
+    figure, axes = plt.subplots(
+        1,
+        len(plot_rows),
+        figsize=(4.2 * len(plot_rows), 4.8),
+        sharey=True,
+    )
+    axes_list = [axes] if len(plot_rows) == 1 else list(axes)
+    colormap = require_matplotlib().get_cmap("Set2", len(topic_order))
+    topic_colors = {
+        topic: "#7c3aed" if topic == "party_music" else colormap(index)
+        for index, topic in enumerate(topic_order)
+    }
+    for axis, row in zip(axes_list, plot_rows, strict=True):
+        shares = [float(row["topic_shares"].get(topic, 0.0)) for topic in topic_order]
+        bars = axis.bar(
+            range(len(topic_order)),
+            shares,
+            color=[
+                topic_colors[topic] if share > 0 else "#e5e7eb"
+                for topic, share in zip(topic_order, shares, strict=True)
+            ],
+        )
+        axis.set_title(
+            f"{row['geography_value']}\n"
+            f"n={int(row['geography_total_count'])}"
+        )
+        axis.set_xticks(range(len(topic_order)))
+        axis.set_xticklabels(
+            [format_topic_name(topic) for topic in topic_order],
+            rotation=35,
+            ha="right",
+        )
+        axis.set_ylim(0, 1)
+        axis.yaxis.set_major_formatter(percent_formatter(xmax=1))
+        axis.grid(axis="y", alpha=0.2)
+        for bar, share in zip(bars, shares, strict=True):
+            if share == 0:
+                continue
+            axis.text(
+                bar.get_x() + bar.get_width() / 2,
+                share + 0.03,
+                f"{share:.0%}",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+            )
+    axes_list[0].set_ylabel("Share of district noise complaints")
+    figure.suptitle("Top sampled districts by dominant-topic strength", y=1.02)
+    return figure
+
+
+def write_report(
+    *,
+    records: list[models.ServiceRequestRecord],
+    snapshot_rows: list[dict[str, object]],
+    map_image_path: Path,
+    party_music_image_path: Path,
+    topic_mix_image_path: Path,
+) -> Path:
+    report_file = report_path("community-district-choropleth-tearsheet.md")
+    sampled_rows = sampled_snapshot_rows(snapshot_rows)
+    total_districts = len(snapshot_rows)
+    missing_count = total_districts - len(sampled_rows)
+    top_party_row = max(
+        sampled_rows,
+        key=lambda row: (
+            float(row["party_music_share"]),
+            int(row["party_music_count"]),
+            -int(row["geography_total_count"]),
+        ),
+    )
+    strongest_dominance = max(
+        sampled_rows,
+        key=lambda row: (
+            float(row["dominant_share"]),
+            int(row["dominant_count"]),
+            -int(row["geography_total_count"]),
+        ),
+    )
+    weakest_dominance = min(
+        sampled_rows,
+        key=lambda row: (
+            float(row["dominant_share"]),
+            -int(row["geography_total_count"]),
+            str(row["geography_value"]),
+        ),
+    )
+    lines = [
+        "# Community District Choropleth Tearsheet",
+        "",
+        "This tearsheet summarizes the packaged `Noise - Residential` sample at the",
+        "community-district level. The map uses the full NYC district layer so grey",
+        "polygons show where the packaged sample has no district-level coverage.",
+        "",
+        "## Executive Summary",
+        "",
+        (
+            f"- The packaged sample contains `{len(records)}` noise complaints across "
+            f"`{len(sampled_rows)}` sampled districts."
+        ),
+        (
+            f"- The strongest party-music intensity appears in "
+            f"`{top_party_row['geography_value']}` at "
+            f"`{float(top_party_row['party_music_share']):.1%}` "
+            f"({int(top_party_row['party_music_count'])} of "
+            f"{int(top_party_row['geography_total_count'])})."
+        ),
+        (
+            f"- The sharpest dominant-topic signal appears in "
+            f"`{strongest_dominance['geography_value']}`, where "
+            f"`{format_topic_name(str(strongest_dominance['dominant_topic']))}` accounts for "
+            f"`{float(strongest_dominance['dominant_share']):.1%}` of sampled district noise."
+        ),
+        (
+            f"- The flattest topic mix appears in "
+            f"`{weakest_dominance['geography_value']}`, where the leading topic reaches only "
+            f"`{float(weakest_dominance['dominant_share']):.1%}`."
+        ),
+        (
+            f"- The full district layer contains `{missing_count}` no-data polygons that do not "
+            "appear in the packaged sample."
+        ),
+        "",
+        "## Dominant Topic Map",
+        "",
+        f"![Dominant noise topic by community district](./figures/{map_image_path.name})",
+        "",
+        "## Party Music Intensity",
+        "",
+        f"![Party music intensity by district](./figures/{party_music_image_path.name})",
+        "",
+        "## Topic Mix Snapshot",
+        "",
+        f"![Topic mix for top sampled districts](./figures/{topic_mix_image_path.name})",
+        "",
+        "## District Metrics",
+        "",
+        "| District | Total complaints | Party music share | Dominant topic | Dominant share |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for row in sorted(
+        sampled_rows,
+        key=lambda item: (
+            -float(item["party_music_share"]),
+            -int(item["geography_total_count"]),
+            str(item["geography_value"]),
+        ),
+    ):
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    str(row["geography_value"]),
+                    str(int(row["geography_total_count"])),
+                    f"{float(row['party_music_share']):.1%}",
+                    format_topic_name(str(row["dominant_topic"])),
+                    f"{float(row['dominant_share']):.1%}",
+                ]
+            )
+            + " |"
+        )
+    report_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return report_file
 
 
 def main() -> None:
@@ -26,7 +377,9 @@ def main() -> None:
             complaint_types=("Noise - Residential",),
         )
     )
-    sample_boundaries = samples.load_sample_boundaries("community_district")
+    if not records:
+        raise RuntimeError("The packaged sample slice did not return any records.")
+
     assignments = analysis.extract_topics(
         records,
         models.TopicQuery("Noise - Residential"),
@@ -35,30 +388,67 @@ def main() -> None:
         assignments,
         geography="community_district",
     )
-    map_gdf = spatial.summaries_to_geodataframe(
-        summaries,
-        boundaries_gdf=spatial.load_boundaries_geodataframe(sample_boundaries),
-    )
-    dominant_map = map_gdf[map_gdf["is_dominant_topic"].fillna(False)].copy()
-    if dominant_map.empty:
+    dominant_summaries = [summary for summary in summaries if summary.is_dominant_topic]
+    if not dominant_summaries:
         raise RuntimeError(
-            "The packaged sample slice did not produce a community district map."
+            "The packaged sample slice did not produce any community district summaries."
         )
 
-    figure = plotting.plot_boundary_choropleth(
-        dominant_map,
-        column="topic",
-        title="Dominant noise topics by community district (sample data)",
-        cmap="tab20",
-        categorical=True,
+    all_districts_gdf = spatial.load_boundaries_geodataframe(layer="community_district")
+    borough_outlines = spatial.load_boundaries_geodataframe(layer="borough")
+    dominant_map = spatial.summaries_to_geodataframe(
+        dominant_summaries,
+        boundaries_gdf=all_districts_gdf,
     )
-    output_path = save_figure(figure, "community-district-dominant-noise-topics.png")
+    dominant_map["complaint_count"] = dominant_map["complaint_count"].fillna(0).astype(int)
+    dominant_map["geography_total_count"] = dominant_map["geography_total_count"].fillna(0).astype(int)
+    dominant_map["share_of_geography"] = dominant_map["share_of_geography"].fillna(0.0)
+
+    snapshot_rows, topic_order = build_snapshot_rows(all_districts_gdf, summaries)
+    all_summary_path = artifact_path("community-district-topic-summaries.csv")
+    dominant_summary_path = artifact_path("community-district-dominant-topic-summaries.csv")
+    export.export_topic_table(summaries, models.ExportTarget("csv", all_summary_path))
+    export.export_topic_table(
+        dominant_summaries,
+        models.ExportTarget("csv", dominant_summary_path),
+    )
+
+    map_path = save_figure(
+        build_map_figure(dominant_map, borough_outlines=borough_outlines),
+        report_figure_path("community-district-dominant-noise-topics.png"),
+    )
+    party_music_chart_path = save_figure(
+        build_party_music_intensity_figure(snapshot_rows),
+        report_figure_path("community-district-party-music-intensity.png"),
+    )
+    topic_mix_chart_path = save_figure(
+        build_topic_mix_figure(snapshot_rows, topic_order),
+        report_figure_path("community-district-topic-mix-topn.png"),
+    )
+    report_file = write_report(
+        records=records,
+        snapshot_rows=snapshot_rows,
+        map_image_path=map_path,
+        party_music_image_path=party_music_chart_path,
+        topic_mix_image_path=topic_mix_chart_path,
+    )
 
     print("Community District Choropleth")
     print("-----------------------------")
-    print(f"Wrote map: {output_path}")
-    for row in dominant_map.itertuples(index=False):
-        print(f"- {row.geography_value}: {row.topic}")
+    print(f"Wrote scratch summary: {all_summary_path}")
+    print(f"Wrote dominant-only summary: {dominant_summary_path}")
+    print(f"Wrote tracked map: {map_path}")
+    print(f"Wrote tracked party-music chart: {party_music_chart_path}")
+    print(f"Wrote tracked topic-mix chart: {topic_mix_chart_path}")
+    print(f"Wrote tracked report: {report_file}")
+    print("Dominant topics by sampled district")
+    for row in sampled_snapshot_rows(snapshot_rows):
+        print(
+            f"- {row['geography_value']}: "
+            f"{format_topic_name(str(row['dominant_topic']))} "
+            f"({int(row['dominant_count'])}/{int(row['geography_total_count'])}, "
+            f"{float(row['dominant_share']):.1%})"
+        )
 
 
 if __name__ == "__main__":

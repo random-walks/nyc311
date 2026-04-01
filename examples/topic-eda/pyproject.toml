@@ -3,7 +3,7 @@ name = "nyc311-example-topic-eda"
 version = "0.0.0"
 description = "Self-contained nyc311 topic EDA example."
 requires-python = ">=3.10"
-dependencies = ["nyc311[dataframes]"]
+dependencies = ["nyc311[dataframes,plotting]"]
 
 [tool.uv.sources]
 nyc311 = { path = "../..", editable = true }
