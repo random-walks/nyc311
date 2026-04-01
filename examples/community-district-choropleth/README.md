@@ -1,8 +1,8 @@
 # Community District Choropleth
 
-This example builds a community-district dominant-topic choropleth from a
-cached live `Noise - Residential` slice, then turns it into a tracked tearsheet
-with full-layer map context and supporting charts.
+This example builds a community-district dominant-topic choropleth from a cached
+live `Noise - Residential` slice, then turns it into a tracked tearsheet with
+full-layer map context and supporting charts.
 
 ## Questions This Example Answers
 
