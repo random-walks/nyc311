@@ -1,12 +1,11 @@
 # Releasing
 
-This guide covers the first public PyPI launch path for `nyc311` and the
-repeatable workflow after that.
+This guide covers the stable PyPI release workflow for `nyc311`.
 
 ## Release Shape
 
 - Stable line: `0.2`
-- First public stable target: `0.2.0`
+- Current patch target example: `0.2.1`
 - Version source: git tags via Hatch VCS
 - Preferred publish trigger: GitHub Release publication
 
@@ -29,10 +28,10 @@ That covers:
 - PyPI long-description validation
 - installed-wheel smoke testing for the CLI and packaged resources
 
-## Manual Setup Checklist
+## Bootstrap Checklist
 
-These steps must be done by a human account owner before the first public
-release:
+These one-time steps must be completed by a human account owner before the
+trusted publishing flow can be used:
 
 1. Create or verify the PyPI account that will own `nyc311`, and enable 2FA.
 2. Create or verify a TestPyPI account if you want a dry run before production.
@@ -59,9 +58,9 @@ is used successfully for the first publish.
 
 ## TestPyPI Dry Run
 
-After manual setup is complete, do one dry run from the final release tag:
+For routine releases, do one dry run from the final release tag:
 
-1. Create the release tag, for example `0.2.0`.
+1. Create the release tag, for example `0.2.1`.
 2. Push the tag.
 3. Run the `CD` workflow manually from that tag with:
    - `publish=true`
@@ -87,9 +86,8 @@ If you want the optional stacks too:
 
 Once the TestPyPI dry run passes:
 
-1. Make the repository public if it is still private.
-2. Confirm the `pypi` environment and `PYPI_PUBLISH_ENABLED=true` are in place.
-3. Publish a GitHub Release from the tag.
+1. Confirm the `pypi` environment and `PYPI_PUBLISH_ENABLED=true` are in place.
+2. Publish a GitHub Release from the tag.
 
 The `release.published` trigger will publish to real PyPI automatically. If you
 prefer a manual path instead, run the `CD` workflow from the same tag with:

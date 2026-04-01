@@ -5,23 +5,23 @@
 [![PyPI version][pypi-version]][pypi-link]
 [![PyPI platforms][pypi-platforms]][pypi-link]
 
-Python toolkit for building reproducible complaint-intelligence outputs from NYC
-311 service-request data through both a thin CLI and a functional SDK.
+Python toolkit for reproducible NYC 311 complaint analysis via a typed SDK and
+CLI.
 
 ## Status
 
-`nyc311` is preparing its first public stable release in the `0.2` line with a
-complete first-pass toolkit for loading, analyzing, and exporting NYC 311
-complaint data.
+`nyc311` is now on the stable `0.2` line with a tested toolkit for loading,
+analyzing, and exporting NYC 311 complaint data.
 
-The `0.2` release line better matches the current scope than the older `v0.1`
-foundation framing that the project started from.
+The first public stable release shipped in `0.2.0`, and the `0.2.x` line focuses
+on packaging polish, developer ergonomics, and incremental workflow improvements
+on top of the current analysis surface.
 
-### Implemented in the `0.2` release line
+### What ships in the stable `0.2` line
 
 - load filtered NYC 311-style records from local CSV extracts or the live
   Socrata API
-- stage filtered live slices as reproducible local CSV snapshots
+- stage reproducible local CSV snapshots from live fetches
 - derive deterministic first-pass topic labels for supported complaint types
 - aggregate complaint topics by borough or community district
 - measure topic-rule coverage and summarize resolution gaps
@@ -67,14 +67,13 @@ implemented today.
 
 ## Core workflow
 
-The current `0.2` release line focuses on a deterministic, testable workflow:
+The stable `0.2` line focuses on a deterministic, testable workflow:
 
-1. read a local CSV extract of NYC 311-style records or load a filtered slice
-   from Socrata
-2. filter rows by date, geography, and complaint type
+1. load records from a local CSV extract or a filtered Socrata slice
+2. filter by date, geography, and complaint type
 3. assign a first-pass topic label using explicit keyword rules
 4. aggregate counts by borough or community district
-5. export the result as a CSV summary table or boundary-backed GeoJSON
+5. export a CSV summary table or boundary-backed GeoJSON artifact
 
 ### Supported topic extraction
 
@@ -90,16 +89,13 @@ clustering or advanced NLP.
 
 ## Quick links
 
-- Docs home: [nyc311.readthedocs.io](https://nyc311.readthedocs.io/en/latest/)
-- Getting started:
-  [Getting Started](https://nyc311.readthedocs.io/en/latest/getting-started/)
-- CLI reference: [CLI Reference](https://nyc311.readthedocs.io/en/latest/cli/)
-- SDK guide: [SDK Guide](https://nyc311.readthedocs.io/en/latest/sdk/)
-- Examples: [Examples](https://nyc311.readthedocs.io/en/latest/examples/)
-- Architecture:
-  [Architecture](https://nyc311.readthedocs.io/en/latest/architecture/)
-- Contributing:
-  [Contributing](https://nyc311.readthedocs.io/en/latest/contributing/)
+Docs: [Home](https://nyc311.readthedocs.io/en/latest/),
+[Getting Started](https://nyc311.readthedocs.io/en/latest/getting-started/),
+[CLI Reference](https://nyc311.readthedocs.io/en/latest/cli/),
+[SDK Guide](https://nyc311.readthedocs.io/en/latest/sdk/),
+[Examples](https://nyc311.readthedocs.io/en/latest/examples/),
+[Architecture](https://nyc311.readthedocs.io/en/latest/architecture/),
+[Contributing](https://nyc311.readthedocs.io/en/latest/contributing/)
 
 ## Example
 
@@ -206,19 +202,11 @@ The current public package surface is organized around explicit namespaces:
 ## Documentation
 
 The hosted docs site is the canonical reference:
+[nyc311.readthedocs.io](https://nyc311.readthedocs.io/).
 
-- [nyc311.readthedocs.io](https://nyc311.readthedocs.io/)
-
-If you are browsing in GitHub, the docs source lives in `docs/`:
-
-- `docs/index.md`
-- `docs/getting-started.md`
-- `docs/cli.md`
-- `docs/sdk.md`
-- `docs/examples.md`
-- `docs/api.md`
-- `docs/architecture.md`
-- `docs/contributing.md`
+If you are browsing in GitHub, the source docs live in `docs/`, including
+`index.md`, `getting-started.md`, `cli.md`, `sdk.md`, `examples.md`, `api.md`,
+`architecture.md`, and `contributing.md`.
 
 Runnable examples live in `examples/` as self-contained consumer projects.
 

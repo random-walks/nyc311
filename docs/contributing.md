@@ -120,18 +120,20 @@ content.
 
 ## Release Target
 
-This branch is preparing the first public stable release in the `0.2` line.
+The project is now on the stable `0.2` line.
 
 - Use the `0.2` line as the release framing for this branch.
-- Treat `0.2.0` as the default target for the first public stable release unless
-  release-specific validation shows that the scope needs to move.
+- Use the next semantic version tag that matches the change scope, such as
+  `0.2.1`, `0.2.2`, or a future `0.3.0`.
+- Prefer patch releases for docs, packaging, workflow, and metadata polish.
 - The project version remains VCS-derived through Hatch, so the actual package
   version will come from the eventual git tag rather than a hardcoded file edit.
 
 ## Package Publishing
 
-Distribution builds are always enabled in `.github/workflows/cd.yml`, but
-package publishing is intentionally opt-in.
+Distribution builds are always enabled in `.github/workflows/cd.yml`, and
+package publishing remains gated by the `PYPI_PUBLISH_ENABLED` repository
+variable.
 
 By default:
 
@@ -146,7 +148,7 @@ To switch publishing on later:
 1. Configure trusted publishing on TestPyPI and PyPI for this repository. The
    current workflow claims use repository `random-walks/nyc311`, workflow
    `.github/workflows/cd.yml`, and environment `pypi`.
-2. Set the repository variable `PYPI_PUBLISH_ENABLED=true`.
+2. Ensure the repository variable `PYPI_PUBLISH_ENABLED=true` is set.
 3. Use the manual `CD` workflow from the target tag with `publish=true` and
    `repository=testpypi` for a dry run.
 4. Publish to real PyPI by either: `a.` creating a GitHub release from the tag

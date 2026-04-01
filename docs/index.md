@@ -8,8 +8,7 @@ It is designed for two complementary use cases:
 - a thin CLI for repeatable batch runs
 - a functional SDK for scripts, interactive analysis, and data workflows
 
-These docs track the `0.2` release surface as the project prepares its first
-public stable launch.
+These docs track the current stable `0.2.x` surface.
 
 The `0.2` release line ships a complete first-pass analysis workflow:
 
@@ -86,7 +85,7 @@ pip install "nyc311[science]"
     )
     ```
 
-## What Ships In The `0.2` Release Line
+## What Ships In The `0.2` Line
 
 ### Implemented
 

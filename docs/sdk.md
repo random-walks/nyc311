@@ -3,8 +3,7 @@
 `nyc311` is usable as a functional SDK for scripts, scheduled jobs, interactive
 analysis, and data-processing workflows.
 
-This guide describes the SDK surface for the `0.2` release line the project is
-preparing for its first public stable launch.
+This guide describes the current stable SDK surface in the `0.2.x` line.
 
 The current SDK is built around small, typed steps:
 

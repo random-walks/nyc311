@@ -8,7 +8,7 @@ name = "nyc311"
 authors = [
   { name = "random-walks", email = "blaise@buenaola.io" },
 ]
-description = "NLP pipeline for extracting topics, anomalies, and resolution gaps from NYC 311 complaint data."
+description = "Python toolkit for reproducible NYC 311 complaint analysis via a typed SDK and CLI."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

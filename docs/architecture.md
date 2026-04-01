@@ -3,8 +3,7 @@
 `nyc311` implements a narrow but end-to-end pipeline for deterministic topic
 summarization over NYC 311-style complaint data.
 
-This architecture snapshot reflects the `0.2` release surface the project is
-preparing for its first public stable launch.
+This architecture snapshot reflects the current stable `0.2.x` release surface.
 
 ## Pipeline
 
