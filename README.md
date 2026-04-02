@@ -8,6 +8,8 @@
 Python toolkit for reproducible NYC 311 complaint analysis via a typed SDK and
 CLI.
 
+Authored by [Blaise Albis-Burdige](https://blaiseab.com/).
+
 ## Status
 
 `nyc311` is now on the stable `0.2` line with a tested toolkit for loading,

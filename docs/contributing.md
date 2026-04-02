@@ -3,6 +3,9 @@
 Contributions are welcome, especially when they keep the package honest about
 what is implemented today and improve the usefulness of the SDK, CLI, or docs.
 
+`nyc311` is authored and maintained by
+[Blaise Albis-Burdige](https://blaiseab.com/).
+
 ## Development Setup
 
 The fastest full setup is:

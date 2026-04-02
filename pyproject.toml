@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 [project]
 name = "nyc311"
 authors = [
-  { name = "random-walks", email = "blaise@buenaola.io" },
+  { name = "Blaise Albis-Burdige" },
 ]
 description = "Python toolkit for reproducible NYC 311 complaint analysis via a typed SDK and CLI."
 readme = "README.md"
@@ -49,6 +49,7 @@ nyc311 = "nyc311.cli:main"
 [project.urls]
 Homepage = "https://github.com/random-walks/nyc311"
 "Documentation" = "https://nyc311.readthedocs.io/"
+Portfolio = "https://blaiseab.com/"
 "Bug Tracker" = "https://github.com/random-walks/nyc311/issues"
 Discussions = "https://github.com/random-walks/nyc311/discussions"
 Changelog = "https://github.com/random-walks/nyc311/releases"

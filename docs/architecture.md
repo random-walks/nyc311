@@ -28,20 +28,20 @@ flowchart LR
 
 ## Module Responsibilities
 
-| Module               | Responsibility                                                     |
-| -------------------- | ------------------------------------------------------------------ |
-| `nyc311.models`      | Typed dataclasses, constants, configs, and normalization helpers   |
-| `nyc311.io`          | CSV and Socrata ingestion for service-request records              |
-| `nyc311.analysis`    | Deterministic topic extraction, coverage, gaps, and anomalies      |
+| Module               | Responsibility                                                                  |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `nyc311.models`      | Typed dataclasses, constants, configs, and normalization helpers                |
+| `nyc311.io`          | CSV and Socrata ingestion for service-request records                           |
+| `nyc311.analysis`    | Deterministic topic extraction, coverage, gaps, and anomalies                   |
 | `nyc311.geographies` | Compatibility layer over `nyc-geo-toolkit` plus 311-specific geography adapters |
-| `nyc311.samples`     | Packaged sample records and sample-aligned boundary subsets        |
-| `nyc311.export`      | CSV, GeoJSON, and markdown artifact generation                     |
-| `nyc311.dataframes`  | Optional pandas conversions for typed nyc311 models                |
-| `nyc311.spatial`     | Optional geopandas spatial helpers and joins                       |
-| `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers   |
-| `nyc311.presets`     | Reusable filter and Socrata config builders for common workflows   |
-| `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path              |
-| `nyc311.cli`         | Argparse-powered fetch and analysis entry points                   |
+| `nyc311.samples`     | Packaged sample records and sample-aligned boundary subsets                     |
+| `nyc311.export`      | CSV, GeoJSON, and markdown artifact generation                                  |
+| `nyc311.dataframes`  | Optional pandas conversions for typed nyc311 models                             |
+| `nyc311.spatial`     | Optional geopandas spatial helpers and joins                                    |
+| `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers                |
+| `nyc311.presets`     | Reusable filter and Socrata config builders for common workflows                |
+| `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path                           |
+| `nyc311.cli`         | Argparse-powered fetch and analysis entry points                                |
 
 ## Design Principles
 
@@ -81,8 +81,8 @@ Boundary-backed exports still expect feature properties with both:
 - `geography`
 - `geography_value`
 
-`nyc311` now consumes canonical packaged boundary layers from
-`nyc-geo-toolkit` for:
+`nyc311` now consumes canonical packaged boundary layers from `nyc-geo-toolkit`
+for:
 
 - `borough`
 - `community_district`

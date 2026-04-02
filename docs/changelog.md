@@ -2,11 +2,20 @@
 
 ## Next
 
-- integration branch work is migrating the reusable geography surface to the
-  standalone `nyc-geo-toolkit` package while preserving the public
-  `nyc311.geographies` API
-- the packaged boundary assets remain available through `nyc311`, but ownership
-  of the generic geography toolkit is moving out of this repo
+- no unreleased changes are currently documented
+
+## 0.2.3
+
+- refresh public authorship metadata to credit Blaise Albis-Burdige directly
+- add `blaiseab.com` as the portfolio link on package and docs surfaces
+- align README, docs, and site metadata with the same attribution model
+
+## 0.2.2
+
+- migrate reusable geography ownership to `nyc-geo-toolkit`
+- preserve the public `nyc311.geographies` API through compatibility adapters
+- remove duplicated bundled boundary assets from `nyc311` and depend on the
+  published toolkit package instead
 
 ## 0.2.1
 

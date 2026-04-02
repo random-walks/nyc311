@@ -3,6 +3,8 @@
 `nyc311` is a Python toolkit for turning NYC 311 service-request data into
 reproducible complaint-intelligence outputs.
 
+Authored by [Blaise Albis-Burdige](https://blaiseab.com/).
+
 It is designed for two complementary use cases:
 
 - a thin CLI for repeatable batch runs
