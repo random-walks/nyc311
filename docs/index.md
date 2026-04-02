@@ -12,7 +12,7 @@ It is designed for two complementary use cases:
 
 These docs track the current stable `0.2.x` surface.
 
-The `0.2` release line ships a complete first-pass analysis workflow:
+The current release line provides:
 
 - loading filtered NYC 311-style records from local CSV extracts
 - loading filtered records from the live NYC Socrata API
@@ -20,6 +20,13 @@ The `0.2` release line ships a complete first-pass analysis workflow:
 - aggregation by borough or community district
 - topic-coverage, resolution-gap, and anomaly analysis helpers
 - CSV, boundary-backed GeoJSON, and markdown report exports
+
+## Geography layer
+
+`nyc311.geographies` is the 311-facing compatibility layer over
+[`nyc-geo-toolkit`](https://github.com/random-walks/nyc-geo-toolkit). It keeps
+the packaged boundary workflow available inside `nyc311` while the generic
+boundary assets and normalization logic live in the shared toolkit package.
 
 ## Docs Paths
 
@@ -43,6 +50,18 @@ For pandas-backed conversion helpers:
 
 ```bash
 pip install "nyc311[dataframes]"
+```
+
+For geopandas-backed geography and spatial helpers:
+
+```bash
+pip install "nyc311[spatial]"
+```
+
+For plotting helpers:
+
+```bash
+pip install "nyc311[plotting]"
 ```
 
 For plotting and exploratory analysis without the geospatial stack:
