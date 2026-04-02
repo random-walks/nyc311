@@ -168,6 +168,11 @@ setup, lives in `docs/releasing.md`.
 - update docs when CLI or SDK behavior changes
 - keep install guidance aligned with optional dependency boundaries
 
+For reusable NYC boundary assets, canonical layer/value normalization, and other
+generic geography helpers, prefer contributing in `nyc-geo-toolkit` first and
+then updating `nyc311` only where a 311-specific adapter or compatibility layer
+is still needed.
+
 ## Release Quality Checks
 
 Before opening a PR, run:

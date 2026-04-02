@@ -33,7 +33,7 @@ flowchart LR
 | `nyc311.models`      | Typed dataclasses, constants, configs, and normalization helpers   |
 | `nyc311.io`          | CSV and Socrata ingestion for service-request records              |
 | `nyc311.analysis`    | Deterministic topic extraction, coverage, gaps, and anomalies      |
-| `nyc311.geographies` | Packaged NYC boundary layers, conversions, and boundary operations |
+| `nyc311.geographies` | Compatibility layer over `nyc-geo-toolkit` plus 311-specific geography adapters |
 | `nyc311.samples`     | Packaged sample records and sample-aligned boundary subsets        |
 | `nyc311.export`      | CSV, GeoJSON, and markdown artifact generation                     |
 | `nyc311.dataframes`  | Optional pandas conversions for typed nyc311 models                |
@@ -81,7 +81,8 @@ Boundary-backed exports still expect feature properties with both:
 - `geography`
 - `geography_value`
 
-`nyc311` now also ships packaged, library-owned canonical boundary layers for:
+`nyc311` now consumes canonical packaged boundary layers from
+`nyc-geo-toolkit` for:
 
 - `borough`
 - `community_district`
@@ -92,7 +93,9 @@ Boundary-backed exports still expect feature properties with both:
 
 These packaged layers are the preferred notebook and SDK path. File-backed
 boundary loading remains available through
-`nyc311.geographies.load_boundaries()` for scripts and custom workflows.
+`nyc311.geographies.load_boundaries()` for scripts and custom workflows, while
+the generic boundary assets and normalization logic now live in
+`nyc-geo-toolkit`.
 
 ## Maintainer Notes
 
