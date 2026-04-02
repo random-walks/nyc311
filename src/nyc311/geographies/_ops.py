@@ -1,28 +1,18 @@
-"""Boundary operations built on top of packaged NYC geography layers."""
+"""Boundary operations built on top of nyc311 and nyc_geo_toolkit."""
 
 from __future__ import annotations
 
-from importlib import import_module
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from ..models import BoundaryCollection, BoundaryFeature, ServiceRequestRecord
+from nyc_geo_toolkit import clip_boundaries_to_bbox as toolkit_clip_boundaries_to_bbox
+
+from ..models import BoundaryCollection, ServiceRequestRecord
 from ..spatial import records_to_geodataframe, spatial_join_records_to_boundaries
 from ._loaders import _boundary_collection_to_geodataframe, load_nyc_boundaries
 from ._normalize import normalize_boundary_layer
 
 if TYPE_CHECKING:
     import geopandas as gpd  # type: ignore[import-untyped]
-
-
-def _require_shapely() -> Any:
-    try:
-        shapely_geometry = import_module("shapely.geometry")
-    except ImportError as exc:  # pragma: no cover - exercised in optional tests
-        raise ImportError(
-            "shapely is required for nyc311 geography clipping helpers. "
-            "Install it with `pip install nyc311[spatial]` or `pip install shapely`."
-        ) from exc
-    return shapely_geometry
 
 
 def clip_boundaries_to_bbox(
@@ -34,36 +24,12 @@ def clip_boundaries_to_bbox(
     max_latitude: float,
 ) -> BoundaryCollection:
     """Clip boundary geometries to a longitude/latitude bounding box."""
-    if min_longitude >= max_longitude or min_latitude >= max_latitude:
-        raise ValueError("Bounding boxes must satisfy min < max on both axes.")
-
-    shapely_geometry = _require_shapely()
-    clip_box = shapely_geometry.box(
-        min_longitude,
-        min_latitude,
-        max_longitude,
-        max_latitude,
-    )
-    clipped_features: list[BoundaryFeature] = []
-    for feature in boundaries.features:
-        geometry = shapely_geometry.shape(feature.geometry)
-        clipped_geometry = geometry.intersection(clip_box)
-        if clipped_geometry.is_empty:
-            continue
-        clipped_features.append(
-            BoundaryFeature(
-                geography=feature.geography,
-                geography_value=feature.geography_value,
-                geometry=shapely_geometry.mapping(clipped_geometry),
-                properties=dict(feature.properties),
-            )
-        )
-
-    if not clipped_features:
-        raise ValueError("No boundaries intersect the requested bounding box.")
-    return BoundaryCollection(
-        geography=boundaries.geography,
-        features=tuple(clipped_features),
+    return toolkit_clip_boundaries_to_bbox(
+        boundaries,
+        min_longitude=min_longitude,
+        min_latitude=min_latitude,
+        max_longitude=max_longitude,
+        max_latitude=max_latitude,
     )
 
 

@@ -1481,8 +1481,20 @@ wheels = [
 ]
 
 [[package]]
+name = "nyc-geo-toolkit"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c9/d2/6369198ec8d9e013556e0da380defc74f79411742032350e229141614999/nyc_geo_toolkit-0.1.1.tar.gz", hash = "sha256:31fe08a1d0a4230b66df5cef44e2c0ecbd3ace45b61693fd2ee43f2b9501a67e", size = 8653730, upload-time = "2026-04-02T00:46:50.228Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b1/19/74a28d06569495676a62917dd9129a37d49bd19e0e010f4c93b1a5b48698/nyc_geo_toolkit-0.1.1-py3-none-any.whl", hash = "sha256:cef6634356525d91db5377101a0c1d2124f18951da8b6eac93b9559cfc07c16c", size = 8547524, upload-time = "2026-04-02T00:46:47.122Z" },
+]
+
+[[package]]
 name = "nyc311"
 source = { editable = "." }
+dependencies = [
+    { name = "nyc-geo-toolkit" },
+]
 
 [package.optional-dependencies]
 all = [
@@ -1547,6 +1559,7 @@ requires-dist = [
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'plotting'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'science'", specifier = ">=3.10.8" },
+    { name = "nyc-geo-toolkit", specifier = ">=0.1.1,<0.2.0" },
     { name = "pandas", marker = "extra == 'all'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'dataframes'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'science'", specifier = ">=2.3.3" },

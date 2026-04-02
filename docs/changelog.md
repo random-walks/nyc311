@@ -1,5 +1,13 @@
 # Changelog
 
+## Next
+
+- integration branch work is migrating the reusable geography surface to the
+  standalone `nyc-geo-toolkit` package while preserving the public
+  `nyc311.geographies` API
+- the packaged boundary assets remain available through `nyc311`, but ownership
+  of the generic geography toolkit is moving out of this repo
+
 ## 0.2.1
 
 - polish the README and package metadata for a cleaner PyPI project page
