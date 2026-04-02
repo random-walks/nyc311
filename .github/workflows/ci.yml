@@ -104,7 +104,9 @@ jobs:
         run: uv run --frozen mkdocs build --strict
 
   tests:
-    name: Test full install (Python ${{ matrix.python-version }})
+    name:
+      Test full install (Python ${{ matrix.python-version }}, toolkit ${{
+      matrix.toolkit-channel }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -113,6 +115,10 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+        toolkit-channel: ["released"]
+        include:
+          - python-version: "3.12"
+            toolkit-channel: "main"
 
     steps:
       - uses: actions/checkout@v6
@@ -130,23 +136,34 @@ jobs:
       - name: Install full test environment
         run: uv sync --frozen --all-extras
 
+      - name: Override nyc-geo-toolkit with main branch
+        if: matrix.toolkit-channel == 'main'
+        run: >-
+          uv pip install --python .venv/bin/python --upgrade --force-reinstall
+          "nyc-geo-toolkit @
+          git+https://github.com/random-walks/nyc-geo-toolkit.git@main"
+
       - name: Run full non-live test suite
         run: >-
           uv run --frozen pytest -m "not integration" -ra --cov --cov-report=xml
-          --cov-report=term --junitxml="junit/base-${{ matrix.python-version
-          }}.xml" --durations=20
+          --cov-report=term --junitxml="junit/${{ matrix.toolkit-channel }}-${{
+          matrix.python-version }}.xml" --durations=20
 
       - name: Publish test results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name:
-            Test Results (full non-live, Python ${{ matrix.python-version }})
+            Test Results (full non-live, Python ${{ matrix.python-version }},
+            toolkit ${{ matrix.toolkit-channel }})
           comment_mode: off
-          files: junit/base-${{ matrix.python-version }}.xml
+          files:
+            junit/${{ matrix.toolkit-channel }}-${{ matrix.python-version }}.xml
 
       - name: Upload coverage report
-        if: matrix.python-version == '3.12'
+        if:
+          matrix.python-version == '3.12' && matrix.toolkit-channel ==
+          'released'
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
