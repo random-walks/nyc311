@@ -23,6 +23,18 @@ For pandas-backed dataframe helpers, install:
 pip install "nyc311[dataframes]"
 ```
 
+For geopandas-backed geography and spatial helpers, install:
+
+```bash
+pip install "nyc311[spatial]"
+```
+
+For plotting helpers, install:
+
+```bash
+pip install "nyc311[plotting]"
+```
+
 For plotting and exploratory analysis without the geospatial stack, install:
 
 ```bash
@@ -55,6 +67,23 @@ The implemented loader expects NYC 311-style records with these columns:
 `summaries_to_dataframe()`, `gaps_to_dataframe()`, `anomalies_to_dataframe()`,
 `coverage_to_dataframe()`, and `dataframe_to_records()` require the `dataframes`
 extra (or the broader `science` extra) because they depend on pandas.
+
+## Geography helpers
+
+`nyc311.geographies` preserves a 311-facing packaged-boundary surface while the
+generic boundary assets and normalization logic live in `nyc-geo-toolkit`.
+
+The base install already supports typed packaged boundary loading:
+
+```python
+from nyc311 import geographies
+
+print(geographies.list_boundary_layers())
+boroughs = geographies.load_nyc_boundaries("borough")
+```
+
+If you want GeoDataFrame loaders, spatial joins, or plotting-backed notebooks,
+install the relevant optional extras first.
 
 ## First Snapshot Run
 

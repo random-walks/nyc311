@@ -85,14 +85,14 @@ session instead of running on every commit.
 Install a local hook if you want checks on commit:
 
 ```bash
-uv tool install pre-commit
-pre-commit install
+uv tool install prek
+prek install
 ```
 
 Or run the checks manually:
 
 ```bash
-pre-commit run --all-files
+prek run --all-files
 ```
 
 ## Documentation
@@ -123,43 +123,29 @@ content.
 
 ## Release Target
 
-The project is now on the stable `0.2` line.
+The project is on the stable `0.2.x` line.
 
-- Use the `0.2` line as the release framing for this branch.
+- Use the `0.2.x` line as the default release framing for this branch.
 - Use the next semantic version tag that matches the change scope, such as
-  `0.2.1`, `0.2.2`, or a future `0.3.0`.
+  `0.2.5` or a future `0.3.0`.
 - Prefer patch releases for docs, packaging, workflow, and metadata polish.
 - The project version remains VCS-derived through Hatch, so the actual package
   version will come from the eventual git tag rather than a hardcoded file edit.
 
 ## Package Publishing
 
-Distribution builds are always enabled in `.github/workflows/cd.yml`, and
-package publishing remains gated by the `PYPI_PUBLISH_ENABLED` repository
-variable.
+`nyc311` publishes through `.github/workflows/cd.yml` using the repository's
+trusted publishing setup.
 
-By default:
+The standard path is:
 
-- GitHub releases and manual `CD` runs build, validate, and smoke-test the
-  package artifacts.
-- The publish job is skipped unless publishing is explicitly enabled.
-- Artifact attestations are skipped automatically on private repositories,
-  because GitHub does not support them there.
+1. run the release-quality checks locally
+2. create and push the final tag
+3. publish the matching GitHub Release
+4. let the `release.published` trigger ship the package to PyPI
 
-To switch publishing on later:
-
-1. Configure trusted publishing on TestPyPI and PyPI for this repository. The
-   current workflow claims use repository `random-walks/nyc311`, workflow
-   `.github/workflows/cd.yml`, and environment `pypi`.
-2. Ensure the repository variable `PYPI_PUBLISH_ENABLED=true` is set.
-3. Use the manual `CD` workflow from the target tag with `publish=true` and
-   `repository=testpypi` for a dry run.
-4. Publish to real PyPI by either: `a.` creating a GitHub release from the tag
-   after enabling the variable, or `b.` running the `CD` workflow manually from
-   the target tag with `publish=true` and `repository=pypi`.
-
-The manual dispatch path is useful when you want to keep iterating on the branch
-and only publish a selected tag later.
+For a dry run, use the manual `CD` workflow on the tagged commit with
+`publish=true` and `repository=testpypi`.
 
 The full public launch checklist, including repo visibility and package-index
 setup, lives in `docs/releasing.md`.

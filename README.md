@@ -10,26 +10,33 @@ CLI.
 
 Authored by [Blaise Albis-Burdige](https://blaiseab.com/).
 
-## Status
+## What this package does
 
-`nyc311` is now on the stable `0.2` line with a tested toolkit for loading,
-analyzing, and exporting NYC 311 complaint data.
+`nyc311` is the stable `0.2.x` toolkit for turning NYC 311 service-request data
+into reproducible complaint-intelligence outputs.
 
-The first public stable release shipped in `0.2.0`, and the `0.2.x` line focuses
-on packaging polish, developer ergonomics, and incremental workflow improvements
-on top of the current analysis surface.
+It pairs a thin CLI with a typed SDK so the same workflow can run in batch jobs,
+scripts, notebooks, and consumer packages.
 
-### What ships in the stable `0.2` line
+The current release line provides:
 
 - load filtered NYC 311-style records from local CSV extracts or the live
   Socrata API
-- stage reproducible local CSV snapshots from live fetches
 - derive deterministic first-pass topic labels for supported complaint types
 - aggregate complaint topics by borough or community district
 - measure topic-rule coverage and summarize resolution gaps
 - score anomalies over aggregated topic summaries
 - export CSV tables, boundary-backed GeoJSON, and markdown report cards
-- run the workflow through both a thin CLI and a composable functional SDK
+- expose the workflow through both a thin CLI and a composable functional SDK
+
+## Geography layer
+
+`nyc311.geographies` is the 311-facing compatibility layer over
+[`nyc-geo-toolkit`](https://github.com/random-walks/nyc-geo-toolkit).
+
+Use `nyc311` when you want packaged NYC boundaries inside the 311 workflow. Use
+`nyc-geo-toolkit` directly when you only need the generic geography assets,
+normalization helpers, and boundary loaders.
 
 ## Install
 
@@ -51,6 +58,18 @@ For pandas-backed conversion helpers:
 pip install "nyc311[dataframes]"
 ```
 
+For geopandas-backed geography and spatial helpers:
+
+```bash
+pip install "nyc311[spatial]"
+```
+
+For plotting helpers:
+
+```bash
+pip install "nyc311[plotting]"
+```
+
 For plotting and exploratory analysis without the geospatial stack:
 
 ```bash
@@ -63,13 +82,12 @@ NYC 311 data is one of the richest public records of neighborhood
 quality-of-life complaints in the country, but much of the useful signal is
 locked inside short text fields such as complaint descriptors.
 
-This project aims to turn those records into reusable outputs for civic
-analysis, journalism, and research while staying honest about what is truly
-implemented today.
+`nyc311` turns those records into reusable outputs for civic analysis,
+journalism, and research through an explicit, testable workflow.
 
 ## Core workflow
 
-The stable `0.2` line focuses on a deterministic, testable workflow:
+The current stable workflow is:
 
 1. load records from a local CSV extract or a filtered Socrata slice
 2. filter by date, geography, and complaint type
@@ -97,7 +115,9 @@ Docs: [Home](https://nyc311.readthedocs.io/en/latest/),
 [SDK Guide](https://nyc311.readthedocs.io/en/latest/sdk/),
 [Examples](https://nyc311.readthedocs.io/en/latest/examples/),
 [Architecture](https://nyc311.readthedocs.io/en/latest/architecture/),
-[Contributing](https://nyc311.readthedocs.io/en/latest/contributing/)
+[Contributing](https://nyc311.readthedocs.io/en/latest/contributing/),
+[Releasing](https://nyc311.readthedocs.io/en/latest/releasing/),
+[Changelog](https://nyc311.readthedocs.io/en/latest/changelog/)
 
 ## Example
 
@@ -186,12 +206,13 @@ remains descriptor-driven.
 
 ## Public package surface
 
-The current public package surface is organized around explicit namespaces:
+The public API is organized around explicit namespaces:
 
 - `nyc311.models` for dataclasses, constants, and configs
 - `nyc311.io` for CSV and Socrata loading
 - `nyc311.analysis` for topic extraction, coverage, gaps, and anomalies
-- `nyc311.geographies` for packaged boundary layers and geometry helpers
+- `nyc311.geographies` for the 311-facing compatibility layer over
+  `nyc-geo-toolkit`
 - `nyc311.samples` for packaged sample records and sample-aligned boundaries
 - `nyc311.export` for CSV, GeoJSON, and report exports
 - `nyc311.pipeline` for one-call workflow helpers

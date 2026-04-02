@@ -4,6 +4,15 @@
 
 - no unreleased changes are currently documented
 
+## 0.2.4
+
+- delegate duplicated geography conversion and boundary-loading helpers back to
+  `nyc-geo-toolkit`
+- add CI coverage against `nyc-geo-toolkit` on `main` so downstream breakage is
+  caught before release
+- stabilize compatibility and version checks across local CI, release builds,
+  and the toolkit-main validation path
+
 ## 0.2.3
 
 - refresh public authorship metadata to credit Blaise Albis-Burdige directly

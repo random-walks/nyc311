@@ -48,10 +48,33 @@ flowchart LR
 - Keep the implemented surface explicit and namespaced.
 - Prefer typed inputs and outputs over implicit dictionaries.
 - Make the SDK composable for scripts, workflows, and interactive analysis.
-- Ship turnkey NYC geography layers as library-owned packaged resources.
+- Expose packaged geography access through a thin compatibility layer over
+  `nyc-geo-toolkit`.
 - Keep the CLI thin by delegating real work to importable functions.
 - Keep optional dependency boundaries explicit for dataframe, spatial, and
   notebook helpers.
+
+## Toolkit Relationship
+
+`nyc311` owns the 311-specific workflow, while `nyc-geo-toolkit` owns the
+generic NYC geography assets and normalization rules.
+
+```mermaid
+flowchart TB
+    toolkit["nyc-geo-toolkit"] --> geographies["nyc311.geographies"]
+    geographies --> exports["export_geojson()"]
+    geographies --> spatial["nyc311.spatial"]
+    geographies --> samples["nyc311.samples"]
+```
+
+That split keeps the package responsibilities clear:
+
+- `nyc311` owns complaint loading, topic analysis, exports, reports, and
+  package-specific compatibility helpers
+- `nyc-geo-toolkit` owns reusable boundary data, canonical geography
+  normalization, and generic boundary loaders
+- consumer-facing geography helpers in `nyc311` stay thin so they can track the
+  stable toolkit contract without duplicating shared implementation
 
 ## Implemented Scope
 
@@ -94,8 +117,7 @@ for:
 These packaged layers are the preferred notebook and SDK path. File-backed
 boundary loading remains available through
 `nyc311.geographies.load_boundaries()` for scripts and custom workflows, while
-the generic boundary assets and normalization logic now live in
-`nyc-geo-toolkit`.
+the generic boundary assets and normalization logic live in `nyc-geo-toolkit`.
 
 ## Maintainer Notes
 
