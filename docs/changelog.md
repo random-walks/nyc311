@@ -4,6 +4,21 @@
 
 - no unreleased changes are currently documented
 
+## 0.2.6
+
+- align the published changelog with the docs refresh that already shipped in
+  `0.2.5`
+- keep the public docs, release notes, and package history in sync after the
+  docs-only follow-up patch
+
+## 0.2.5
+
+- sharpen the README and core docs around the stable `0.2.x` package surface
+- document the `nyc311` and `nyc-geo-toolkit` relationship more clearly across
+  user-facing and maintainer docs
+- refresh install, contributor, and release guidance to match the current
+  workflow
+
 ## 0.2.4
 
 - delegate duplicated geography conversion and boundary-loading helpers back to
