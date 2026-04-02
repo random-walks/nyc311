@@ -104,7 +104,9 @@ jobs:
         run: uv run --frozen mkdocs build --strict
 
   tests:
-    name: Test full install (Python ${{ matrix.python-version }}, toolkit ${{ matrix.toolkit-channel }})
+    name:
+      Test full install (Python ${{ matrix.python-version }}, toolkit ${{
+      matrix.toolkit-channel }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -137,8 +139,9 @@ jobs:
       - name: Override nyc-geo-toolkit with main branch
         if: matrix.toolkit-channel == 'main'
         run: >-
-          uv run python -m pip install --upgrade --force-reinstall
-          "nyc-geo-toolkit @ git+https://github.com/random-walks/nyc-geo-toolkit.git@main"
+          uv pip install --python .venv/bin/python --upgrade --force-reinstall
+          "nyc-geo-toolkit @
+          git+https://github.com/random-walks/nyc-geo-toolkit.git@main"
 
       - name: Run full non-live test suite
         run: >-
@@ -150,12 +153,17 @@ jobs:
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          check_name: Test Results (full non-live, Python ${{ matrix.python-version }}, toolkit ${{ matrix.toolkit-channel }})
+          check_name:
+            Test Results (full non-live, Python ${{ matrix.python-version }},
+            toolkit ${{ matrix.toolkit-channel }})
           comment_mode: off
-          files: junit/${{ matrix.toolkit-channel }}-${{ matrix.python-version }}.xml
+          files:
+            junit/${{ matrix.toolkit-channel }}-${{ matrix.python-version }}.xml
 
       - name: Upload coverage report
-        if: matrix.python-version == '3.12' && matrix.toolkit-channel == 'released'
+        if:
+          matrix.python-version == '3.12' && matrix.toolkit-channel ==
+          'released'
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
