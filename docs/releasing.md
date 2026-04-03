@@ -62,31 +62,9 @@ If you ever need to recreate that setup, verify:
 - workflow: `.github/workflows/cd.yml`
 - environment: `pypi`
 
-## Bootstrap checklist
-
-These one-time steps must be completed by a human account owner before the
-trusted publishing flow can be used:
-
-1. Create or verify the PyPI account that will own `nyc311`, and enable 2FA.
-2. Create or verify a TestPyPI account if you want a dry run before production.
-3. Add a pending trusted publisher for project `nyc311` on both TestPyPI and
-   PyPI using:
-   - Owner: `random-walks`
-   - Repository: `nyc311`
-   - Workflow: `.github/workflows/cd.yml`
-   - Environment: `pypi`
-4. In GitHub, create the `pypi` environment and add any desired deployment
-   protection rules.
-5. Set the repository variable `PYPI_PUBLISH_ENABLED=true` only when you are
-   ready to allow publishing.
-6. Prepare the public GitHub repository settings:
-   - About description
-   - Topics
-   - Homepage / docs URL
-   - Social preview
-
-Important: a pending trusted publisher does not reserve the PyPI name until it
-is used successfully for the first publish.
+Repository-admin setup such as PyPI project creation, trusted publisher
+registration, Read the Docs project linking, and GitHub sidebar metadata is
+managed manually outside the repo and is intentionally not duplicated here.
 
 ## TestPyPI Dry Run
 
