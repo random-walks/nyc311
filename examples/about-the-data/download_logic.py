@@ -30,7 +30,9 @@ def borough_cache_dir(cache_root: Path, borough: str) -> Path:
 def parse_borough_list(raw: str | None) -> tuple[str, ...]:
     if raw is None or not raw.strip():
         return ALL_BOROUGHS
-    parts = tuple(p.strip().upper() for p in raw.split(",") if p.strip())
+    parts = tuple(
+        p.strip().upper().replace("_", " ") for p in raw.split(",") if p.strip()
+    )
     for p in parts:
         if p not in ALL_BOROUGHS:
             raise ValueError(f"Unknown borough {p!r}. Expected one of {ALL_BOROUGHS}.")
@@ -49,6 +51,26 @@ def parse_complaint_types(raw: str | None) -> tuple[str, ...]:
     return parts
 
 
+def borough_all_records_csv_path(
+    cache_root: Path,
+    borough: str,
+    *,
+    start_date: date,
+    end_date: date,
+    page_size: int,
+    app_token: str | None,
+) -> Path:
+    """Deterministic CSV path for the default per-borough bulk slice."""
+    cfg = presets.large_socrata_config(page_size=page_size, app_token=app_token)
+    filt = models.ServiceRequestFilter(
+        start_date=start_date,
+        end_date=end_date,
+        geography=models.GeographyFilter("borough", borough),
+    )
+    dest = borough_cache_dir(cache_root, borough)
+    return io.cache_path_for_request(cfg, filt, dest)
+
+
 def download_all_records(
     cache_root: Path,
     boroughs: tuple[str, ...],
@@ -59,8 +81,14 @@ def download_all_records(
     end_date: date,
     page_size: int,
     max_records_per_borough: int | None,
+    verbose: bool = False,
 ) -> dict[str, Path]:
-    """One cached CSV per borough (filtered query)."""
+    """One cached CSV per borough (filtered query).
+
+    Skips network when the expected CSV already exists and ``refresh`` is false
+    (same behavior as :func:`nyc311.io.cached_fetch`). Interrupted downloads leave
+    no complete CSV until the stream finishes (atomic rename from ``*.csv.part``).
+    """
     cfg = presets.large_socrata_config(page_size=page_size, app_token=app_token)
     out: dict[str, Path] = {}
     for borough in boroughs:
@@ -71,6 +99,12 @@ def download_all_records(
         )
         dest = borough_cache_dir(cache_root, borough)
         dest.mkdir(parents=True, exist_ok=True)
+        expected = io.cache_path_for_request(cfg, filt, dest)
+        if verbose:
+            if expected.is_file() and not refresh:
+                print(f"[skip] {borough}: {expected.name}", flush=True)
+            else:
+                print(f"[fetch] {borough} → {expected.name}", flush=True)
         path = io.cached_fetch(
             cfg,
             filt,
@@ -79,6 +113,11 @@ def download_all_records(
             request_open=urlopen,
             max_records=max_records_per_borough,
         )
+        if verbose and path.is_file():
+            print(
+                f"[done] {borough}: {path.name} ({path.stat().st_size:,} bytes)",
+                flush=True,
+            )
         out[borough] = path
     return out
 
@@ -94,6 +133,7 @@ def download_per_type_records(
     end_date: date,
     page_size: int,
     max_records_per_borough: int | None,
+    verbose: bool = False,
 ) -> dict[tuple[str, str], Path]:
     """Cached CSV per (borough, complaint type) pair."""
     cfg = presets.large_socrata_config(page_size=page_size, app_token=app_token)
@@ -108,6 +148,13 @@ def download_per_type_records(
             )
             dest = Path(cache_root) / "records_by_type" / borough_slug(borough)
             dest.mkdir(parents=True, exist_ok=True)
+            expected = io.cache_path_for_request(cfg, filt, dest)
+            if verbose:
+                label = f"{borough} / {ctype}"
+                if expected.is_file() and not refresh:
+                    print(f"[skip] {label}: {expected.name}", flush=True)
+                else:
+                    print(f"[fetch] {label} → {expected.name}", flush=True)
             path = io.cached_fetch(
                 cfg,
                 filt,

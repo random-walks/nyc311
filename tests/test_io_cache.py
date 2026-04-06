@@ -67,6 +67,30 @@ def test_cached_fetch_skips_when_exists(tmp_path: Path) -> None:
     assert out == target
 
 
+def test_cached_fetch_drops_stale_partial_without_final(tmp_path: Path) -> None:
+    cfg = SocrataConfig(page_size=10, max_pages=1)
+    flt = ServiceRequestFilter()
+    target = cache_path_for_request(cfg, flt, tmp_path)
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    partial = target.with_name(target.name + ".part")
+    partial.write_text("stale", encoding="utf-8")
+
+    recs = _sample_records()
+
+    def fake_iter(*_args, **_kwargs):
+        yield from recs
+
+    with patch(
+        "nyc311.io._cache.iter_service_requests_from_socrata", side_effect=fake_iter
+    ):
+        out = cached_fetch(cfg, flt, cache_dir=tmp_path, refresh=False)
+
+    assert not partial.exists()
+    text = out.read_text(encoding="utf-8")
+    assert "unique_key" in text
+    assert "1" in text
+
+
 def test_cached_fetch_writes_rows(tmp_path: Path) -> None:
     cfg = SocrataConfig(page_size=10, max_pages=1)
     flt = ServiceRequestFilter()
@@ -82,4 +106,5 @@ def test_cached_fetch_writes_rows(tmp_path: Path) -> None:
 
     text = out.read_text(encoding="utf-8")
     assert "unique_key" in text
-    assert "1" in text and "2" in text
+    assert "1" in text
+    assert "2" in text

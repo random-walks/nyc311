@@ -867,11 +867,11 @@ wheels = [
 
 [[package]]
 name = "nyc-geo-toolkit"
-version = "0.1.6"
+version = "0.1.7"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/65/73/e6cf955aacf96f755d592f8d973aa6d8905981ee7fe6bd10d9aaf664bbe4/nyc_geo_toolkit-0.1.6.tar.gz", hash = "sha256:9e1efbf8da782f23f132e7141f95b03ad5d7c894a6a9982a5a55160861083fb2", size = 8661198, upload-time = "2026-04-04T19:52:06.297Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1d/0f/6c2f9bbffc1aa6f05e5018664af9c7d8eaadc45171b8c4949b13245a6ec5/nyc_geo_toolkit-0.1.7.tar.gz", hash = "sha256:a3b50f49b6dfffbe8b86c6eae2a888de84a91181eec0975e3a3cd16923b9f79a", size = 8715852, upload-time = "2026-04-06T21:31:09.204Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ca/81/bfe568690967629f3551b4a92e05e5ec80a4363c188ac63728d54f9c883b/nyc_geo_toolkit-0.1.6-py3-none-any.whl", hash = "sha256:e3f5be4a8408b3d76a1c0d4fe359798c1462105da2ecec76237ea087003d4fa6", size = 8549161, upload-time = "2026-04-04T19:52:03.795Z" },
+    { url = "https://files.pythonhosted.org/packages/71/88/f4ed9a2dbb6d8d191c8e585205d993f7f7c9f92b0980c0acf2431085fc6d/nyc_geo_toolkit-0.1.7-py3-none-any.whl", hash = "sha256:1de94e99ad5af4c05376c4d36bffcda645503ea9918b82b40773d9ff2ff797e7", size = 8550164, upload-time = "2026-04-06T21:31:06.675Z" },
 ]
 
 [[package]]
@@ -902,7 +902,7 @@ requires-dist = [
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'plotting'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'science'", specifier = ">=3.10.8" },
-    { name = "nyc-geo-toolkit", specifier = ">=0.1.1,<0.2.0" },
+    { name = "nyc-geo-toolkit", specifier = ">=0.1.7,<0.2.0" },
     { name = "pandas", marker = "extra == 'all'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'dataframes'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'science'", specifier = ">=2.3.3" },

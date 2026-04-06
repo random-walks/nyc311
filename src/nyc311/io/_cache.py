@@ -17,6 +17,11 @@ from ._socrata import iter_service_requests_from_socrata
 _SLUG_PATTERN = re.compile(r"[^a-z0-9]+")
 
 
+def _partial_cache_path(output_path: Path) -> Path:
+    """While streaming, rows are written here; renamed to ``output_path`` when done."""
+    return output_path.with_name(output_path.name + ".part")
+
+
 def _slug(text: str, *, max_len: int = 80) -> str:
     lowered = text.strip().lower()
     slug = _SLUG_PATTERN.sub("_", lowered).strip("_")
@@ -92,23 +97,41 @@ def cached_fetch(
     cache_dir = Path(cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
     output_path = cache_path_for_request(socrata_config, filters, cache_dir)
+    partial_path = _partial_cache_path(output_path)
 
     if output_path.is_file() and not refresh:
         return output_path
 
+    if refresh:
+        if output_path.is_file():
+            output_path.unlink()
+        if partial_path.is_file():
+            partial_path.unlink()
+    elif partial_path.is_file() and not output_path.is_file():
+        # Interrupted previous run left a partial file; do not treat as complete.
+        partial_path.unlink()
+
     written = 0
-    with output_path.open("w", newline="", encoding="utf-8") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=SERVICE_REQUEST_EXPORT_COLUMNS)
-        writer.writeheader()
-        for record in iter_service_requests_from_socrata(
-            socrata_config, filters=filters, request_open=opener
-        ):
-            if not record_matches_service_request_filter(record, filters):
-                continue
-            _write_record_row(writer, record)
-            written += 1
-            if max_records is not None and written >= max_records:
-                break
+    try:
+        with partial_path.open("w", newline="", encoding="utf-8") as csv_file:
+            writer = csv.DictWriter(
+                csv_file, fieldnames=SERVICE_REQUEST_EXPORT_COLUMNS
+            )
+            writer.writeheader()
+            for record in iter_service_requests_from_socrata(
+                socrata_config, filters=filters, request_open=opener
+            ):
+                if not record_matches_service_request_filter(record, filters):
+                    continue
+                _write_record_row(writer, record)
+                written += 1
+                if max_records is not None and written >= max_records:
+                    break
+        partial_path.replace(output_path)
+    except BaseException:
+        if partial_path.is_file():
+            partial_path.unlink()
+        raise
 
     return output_path
 

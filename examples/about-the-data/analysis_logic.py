@@ -91,11 +91,18 @@ def build_catalogue(
     rows: list[BoroughCatalogueRow] = []
     for b in boroughs:
         bdir = borough_cache_dir(cache_root, b)
-        csvs = list(bdir.glob("*.csv"))
+        csvs = sorted(
+            bdir.glob("*.csv"),
+            key=lambda p: p.stat().st_size,
+            reverse=True,
+        )
         if not csvs:
             continue
+        # Prefer the largest on-disk slice as the primary borough extract (same
+        # folder can hold an older narrow-range test CSV alongside a full history).
         path = csvs[0]
         stats = _scan_borough_csv(path)
+        cache_bytes_total = sum(p.stat().st_size for p in csvs)
         rows.append(
             BoroughCatalogueRow(
                 borough=b,
@@ -107,7 +114,7 @@ def build_catalogue(
                 records_with_coords=stats["records_with_coords"],
                 records_with_resolution=stats["records_with_resolution"],
                 community_districts_seen=stats["community_districts_seen"],
-                cache_bytes=path.stat().st_size,
+                cache_bytes=cache_bytes_total,
             )
         )
     sources: list[tuple[str, str, int]] = [
