@@ -58,6 +58,76 @@ def _style_legend(axes: Any, *, title: str | None = None) -> None:
         frame.set_alpha(0.96)
 
 
+def _apply_top_n_categorical_point_legend(
+    axes: Any,
+    *,
+    point_frame: Any,
+    column: str,
+    top_n: int,
+    legend_kwds: dict[str, Any] | None = None,
+) -> None:
+    """Keep all points/colors; show only the top-N categories in the legend (by row count)."""
+    series = point_frame[column]
+    vc = series.value_counts()
+    top_cats = list(vc.head(top_n).index)
+    leg = axes.get_legend()
+    if leg is None:
+        return
+    handles = list(getattr(leg, "legend_handles", None) or getattr(leg, "legendHandles", []))
+    texts = [t.get_text() for t in leg.get_texts()]
+    n = min(len(handles), len(texts))
+    by_label: dict[str, Any] = dict(zip(texts[:n], handles[:n], strict=True))
+
+    def _resolve_handle(cat: Any) -> Any | None:
+        s = str(cat)
+        if s in by_label:
+            return by_label[s]
+        sl = s.lower()
+        for k, h in by_label.items():
+            if k.lower() == sl:
+                return h
+        return None
+
+    nh: list[Any] = []
+    nl: list[str] = []
+    for cat in top_cats:
+        handle = _resolve_handle(cat)
+        if handle is None:
+            continue
+        nh.append(handle)
+        lbl = str(cat)
+        if len(lbl) > 72:
+            lbl = lbl[:69] + "..."
+        cnt = int(vc.loc[cat])
+        nl.append(f"{lbl} ({cnt:,})")
+    if not nh:
+        _style_legend(axes)
+        return
+    default_kw: dict[str, Any] = {
+        "bbox_to_anchor": (1.02, 1),
+        "loc": "upper left",
+        "frameon": True,
+    }
+    if legend_kwds:
+        default_kw.update(legend_kwds)
+    leg.remove()
+    axes.legend(handles=nh, labels=nl, **default_kw)
+    _style_legend(axes)
+    n_other = max(0, len(vc) - top_n)
+    if n_other > 0:
+        fig = axes.figure
+        fig.text(
+            0.99,
+            0.012,
+            f"+ {n_other} other complaint types on map (same colors; not listed)",
+            ha="right",
+            fontsize=8,
+            va="bottom",
+            color="#444",
+            transform=fig.transFigure,
+        )
+
+
 def _point_style(point_count: int, *, matched: bool) -> dict[str, float]:
     if point_count >= 10_000:
         return {
@@ -298,6 +368,7 @@ def plot_timeseries(
     *,
     title: str,
     figsize: tuple[float, float] = (12, 5),
+    footnote: str | None = None,
 ) -> Any:
     """Line chart for a :class:`~pandas.DataFrame` with a DatetimeIndex or ``created_date`` column."""
     plt = _require_matplotlib()
@@ -316,6 +387,19 @@ def plot_timeseries(
     axes.set_xlabel("")
     axes.grid(True, alpha=0.3)
     axes.figure.patch.set_facecolor("white")
+    if footnote:
+        fig = axes.figure
+        fig.subplots_adjust(bottom=0.16)
+        fig.text(
+            0.5,
+            0.02,
+            footnote,
+            ha="center",
+            fontsize=8,
+            color="#555",
+            va="bottom",
+            wrap=True,
+        )
     return axes.figure
 
 
@@ -428,6 +512,7 @@ def plot_complaint_scatter(
     column: str = "complaint_type",
     add_basemap: bool = False,
     figsize: tuple[float, float] = (12, 10),
+    legend_top_n: int | None = None,
 ) -> Any:
     """Scatter plot of points colored by ``column`` over optional boundary outlines."""
     plt = _require_matplotlib()
@@ -438,6 +523,7 @@ def plot_complaint_scatter(
         raise TypeError("plot_complaint_scatter() requires a non-empty points GeoDataFrame.")
 
     _figure, axes = plt.subplots(figsize=figsize)
+    scatter_legend_kwds = {"bbox_to_anchor": (1.02, 1), "loc": "upper left"}
     if boundary_frame is not None and not boundary_frame.empty:
         boundary_frame.boundary.plot(ax=axes, color="#0f172a", linewidth=0.8, alpha=0.7)
     point_frame.plot(
@@ -448,7 +534,7 @@ def plot_complaint_scatter(
         alpha=0.5,
         categorical=True,
         cmap="tab20",
-        legend_kwds={"bbox_to_anchor": (1.02, 1), "loc": "upper left"},
+        legend_kwds=scatter_legend_kwds,
     )
     if add_basemap:
         contextily = _require_contextily()
@@ -457,6 +543,16 @@ def plot_complaint_scatter(
             source=contextily.providers.CartoDB.Positron,
             attribution_size=6,
         )
+    if legend_top_n is not None:
+        _apply_top_n_categorical_point_legend(
+            axes,
+            point_frame=point_frame,
+            column=column,
+            top_n=legend_top_n,
+            legend_kwds=scatter_legend_kwds,
+        )
+    else:
+        _style_legend(axes)
     _finish_axes(axes, title=title)
     return axes.figure
 
@@ -469,6 +565,7 @@ def plot_hero_banner(
     bbox: tuple[float, float, float, float] | None = None,
     column: str = "complaint_type",
     figsize: tuple[float, float] = (16, 5),
+    legend_top_n: int | None = None,
 ) -> Any:
     """Wide horizontal map with OSM basemap, points, and boundaries (Web Mercator)."""
     plt = _require_matplotlib()
@@ -487,6 +584,7 @@ def plot_hero_banner(
         raise TypeError("plot_hero_banner() requires a non-empty points GeoDataFrame.")
 
     _figure, axes = plt.subplots(figsize=figsize)
+    hero_legend_kwds = {"bbox_to_anchor": (1.01, 1), "loc": "upper left", "fontsize": 8}
     if boundary_frame is not None and not boundary_frame.empty:
         boundary_frame.boundary.plot(ax=axes, color="#0f172a", linewidth=0.9, alpha=0.85)
     point_frame.plot(
@@ -497,7 +595,7 @@ def plot_hero_banner(
         alpha=0.65,
         categorical=True,
         cmap="tab20",
-        legend_kwds={"bbox_to_anchor": (1.01, 1), "loc": "upper left", "fontsize": 8},
+        legend_kwds=hero_legend_kwds,
     )
     contextily = _require_contextily()
     contextily.add_basemap(
@@ -505,6 +603,16 @@ def plot_hero_banner(
         source=contextily.providers.CartoDB.Positron,
         attribution_size=5,
     )
+    if legend_top_n is not None:
+        _apply_top_n_categorical_point_legend(
+            axes,
+            point_frame=point_frame,
+            column=column,
+            top_n=legend_top_n,
+            legend_kwds=hero_legend_kwds,
+        )
+    else:
+        _style_legend(axes)
     axes.set_axis_off()
     axes.set_title(title, pad=10, fontsize=14, fontweight="600")
     axes.figure.patch.set_facecolor("white")

@@ -6,18 +6,22 @@ Kitchen-sink catalogue and figure pipeline for NYC 311: maximum Socrata surface
 Layout mirrors the ecosystem pattern used in
 [`subway-access` about-the-data](https://github.com/random-walks/subway-access/tree/main/examples/about-the-data):
 
-| Script | Role |
-| --- | --- |
-| [`download.py`](./download.py) | Socrata bulk slices + boundary GeoJSON under `cache/` |
-| [`analyze.py`](./analyze.py) | Catalogue + PNG figures + `reports/about-the-data-tearsheet.md` |
-| [`main.py`](./main.py) | Runs download then analysis (same flags as both) |
+
+| Script                         | Role                                                            |
+| ------------------------------ | --------------------------------------------------------------- |
+| `[download.py](./download.py)` | Socrata bulk slices + boundary GeoJSON under `cache/`           |
+| `[analyze.py](./analyze.py)`   | Catalogue + PNG figures + `reports/about-the-data-tearsheet.md` |
+| `[main.py](./main.py)`         | Runs download then analysis (same flags as both)                |
+
 
 ## Presets
 
-| `--preset` | Sort | Row cap | Default timeout / page |
-| --- | --- | --- | --- |
-| `full` (default) | Oldest first (`ASC`) | None (full history) | 300s per request, 5k rows/page |
-| `smoke` | **Most recent first** (`DESC`) | **100,000 rows per borough** | 120s per request, 5k rows/page |
+
+| `--preset`       | Sort                           | Row cap                      | Default timeout / page         |
+| ---------------- | ------------------------------ | ---------------------------- | ------------------------------ |
+| `full` (default) | Oldest first (`ASC`)           | None (full history)          | 300s per request, 5k rows/page |
+| `smoke`          | **Most recent first** (`DESC`) | **100,000 rows per borough** | 120s per request, 5k rows/page |
+
 
 Smoke mode is for **quick end-to-end checks** across all five boroughs without a multi-hour pull. Full mode is the long-running **chronological** extract.
 
@@ -41,6 +45,15 @@ uv run python download.py --preset smoke -v
 ```bash
 uv run python download.py --preset full -v
 ```
+
+**Since 2026-01-01, all boroughs, no per-borough row cap** (chronological `ASC` order; narrow window via `--start-date`):
+
+```bash
+uv run python download.py --preset full --start-date 2026-01-01 -v
+uv run python analyze.py --clear-figures --clear-report
+```
+
+Use `--refresh` if older CSVs in the same `cache/records/...` folders would otherwise be skipped. Smoke (`--preset smoke`) pulls **recent-first** (`DESC`) capped slices — fine for visuals, but **daily/monthly time-series levels are not representative** of long-run history; the tearsheet footnote calls this out when `_desc` cache files are present.
 
 ### Borough-by-borough (resumable)
 
@@ -100,7 +113,7 @@ before `analyze.py`. Figures read from `cache/` only; wiping `cache/` and runnin
 
 ## Full history vs small samples
 
-The **`full`** preset uses **no per-borough cap** unless you pass `--max-records-per-borough`
+The **full** preset uses **no per-borough cap** unless you pass `--max-records-per-borough`
 and streams **one CSV per borough** via `nyc311.io.cached_fetch` with
 `presets.large_socrata_config()` (**5,000 rows per HTTP page** by default). That is the path to the **full public dataset** (tens of millions of rows
 total, hours of runtime, large `cache/`).

@@ -4,7 +4,29 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pandas as pd
+
 import analysis_logic
+
+
+def _csv_preview_markdown(path: Path, *, max_rows: int = 14) -> str:
+    if not path.is_file():
+        return f"*(missing {path.name})*"
+    df = pd.read_csv(path, nrows=max_rows)
+    if df.empty:
+        return "*(empty)*"
+    cols = "| " + " | ".join(str(c) for c in df.columns) + " |"
+    sep = "|" + "|".join(["---"] * len(df.columns)) + "|"
+    lines = [cols, sep]
+    for _, row in df.iterrows():
+        cells = []
+        for x in row:
+            s = str(x)
+            if len(s) > 80:
+                s = s[:77] + "..."
+            cells.append(s)
+        lines.append("| " + " | ".join(cells) + " |")
+    return "\n".join(lines)
 
 
 def write_tearsheet(
@@ -12,6 +34,7 @@ def write_tearsheet(
     boroughs: tuple[str, ...],
     catalogue: analysis_logic.CatalogueSummary,
     figures_dir: Path,
+    tables_dir: Path,
     report_path: Path,
     reports_root: Path,
 ) -> Path:
@@ -45,6 +68,42 @@ def write_tearsheet(
     )
     for name, url, n in catalogue.sources:
         lines.append(f"| {name} | {url} | {n} |")
+    lines.extend(
+        [
+            "",
+            "## EDA tables (CSV)",
+            "",
+            "Machine-readable slices written next to this report. Preview (truncated) below.",
+            "",
+        ]
+    )
+    table_order = (
+        "sample_summary.csv",
+        "rows_by_borough.csv",
+        "top_complaint_types_citywide.csv",
+        "daily_counts_last_45_days.csv",
+    )
+    for name in table_order:
+        p = tables_dir / name
+        if not p.is_file():
+            continue
+        rel = p.relative_to(reports_root)
+        lines.append(f"### `{name}`")
+        lines.append("")
+        lines.append(f"[Download CSV]({rel.as_posix()})")
+        lines.append("")
+        lines.append(_csv_preview_markdown(p))
+        lines.append("")
+    for p in sorted(tables_dir.glob("*.csv")):
+        if p.name in table_order:
+            continue
+        rel = p.relative_to(reports_root)
+        lines.append(f"### `{p.name}`")
+        lines.append("")
+        lines.append(f"[Download CSV]({rel.as_posix()})")
+        lines.append("")
+        lines.append(_csv_preview_markdown(p))
+        lines.append("")
     lines.extend(["", "## Figures", ""])
     for png in sorted(figures_dir.glob("*.png")):
         rel = png.relative_to(reports_root)

@@ -15,6 +15,38 @@ from nyc311 import analysis, dataframes, geographies, models, plotting, spatial
 
 from download_logic import ALL_COMPLAINT_TYPES, borough_cache_dir, borough_slug
 
+SCATTER_LEGEND_TOP_N = 10
+
+
+def _cache_uses_desc_sample(cache_root: Path, boroughs: tuple[str, ...]) -> bool:
+    for b in boroughs:
+        for p in borough_cache_dir(cache_root, b).glob("*.csv"):
+            if "_desc" in p.name:
+                return True
+    return False
+
+
+def _desc_sample_footnote() -> str:
+    return (
+        "Note: DESC/recent-first CSV snapshots bias the sample toward recent dates; "
+        "daily or monthly counts are not representative of long-run history."
+    )
+
+
+def _footnote_figure(fig: Any, footnote: str | None) -> None:
+    if not footnote:
+        return
+    fig.subplots_adjust(bottom=0.12)
+    fig.text(
+        0.5,
+        0.02,
+        footnote,
+        ha="center",
+        fontsize=8,
+        color="#555",
+        va="bottom",
+    )
+
 # --- Section 1: catalogue ---
 
 
@@ -136,6 +168,56 @@ def build_catalogue(
     return CatalogueSummary(rows=rows, sources=sources)
 
 
+def write_eda_tables(
+    cache_root: Path,
+    boroughs: tuple[str, ...],
+    *,
+    tables_dir: Path,
+) -> None:
+    """Write CSV summaries under ``tables_dir`` for the tearsheet and downstream EDA."""
+    tables_dir.mkdir(parents=True, exist_ok=True)
+    frames: list[pd.DataFrame] = []
+    desc_sample = False
+    for b in boroughs:
+        for p in borough_cache_dir(cache_root, b).glob("*.csv"):
+            if "_desc" in p.name:
+                desc_sample = True
+            frames.append(
+                pd.read_csv(
+                    p,
+                    nrows=500_000,
+                    parse_dates=["created_date"],
+                )
+            )
+    if not frames:
+        pd.DataFrame([{"status": "no_cached_csv"}]).to_csv(
+            tables_dir / "sample_summary.csv",
+            index=False,
+        )
+        return
+    df = pd.concat(frames, ignore_index=True)
+    df.groupby("borough").size().rename("count").reset_index().to_csv(
+        tables_dir / "rows_by_borough.csv",
+        index=False,
+    )
+    vc = df["complaint_type"].value_counts().head(30).reset_index()
+    vc.columns = ["complaint_type", "count"]
+    vc.to_csv(tables_dir / "top_complaint_types_citywide.csv", index=False)
+    df["day"] = pd.to_datetime(df["created_date"]).dt.floor("D")
+    daily = df.groupby("day").size().reset_index(name="count").sort_values("day")
+    daily.tail(45).to_csv(tables_dir / "daily_counts_last_45_days.csv", index=False)
+    pd.DataFrame(
+        [
+            {
+                "desc_sample_cache": desc_sample,
+                "rows_loaded": len(df),
+                "min_created_date": df["created_date"].min(),
+                "max_created_date": df["created_date"].max(),
+            }
+        ]
+    ).to_csv(tables_dir / "sample_summary.csv", index=False)
+
+
 # --- Section 2: EDA ---
 
 
@@ -146,6 +228,8 @@ def sample_eda_figures(
     figures_dir: Path,
     artifacts_dir: Path,
 ) -> tuple[Path, ...]:
+    import matplotlib.pyplot as plt
+
     figures_dir.mkdir(parents=True, exist_ok=True)
     frames: list[pd.DataFrame] = []
     for b in boroughs:
@@ -170,6 +254,7 @@ def sample_eda_figures(
     )
     p1 = figures_dir / "record-counts-by-borough.png"
     fig.savefig(p1, bbox_inches="tight", dpi=150)
+    plt.close(fig)
     top_types = all_df["complaint_type"].value_counts().head(15)
     fig2 = plotting.plot_bar_counts(
         [str(x) for x in top_types.index],
@@ -179,6 +264,7 @@ def sample_eda_figures(
     )
     p2 = figures_dir / "complaint-type-distribution.png"
     fig2.savefig(p2, bbox_inches="tight", dpi=150)
+    plt.close(fig2)
     all_df["year"] = pd.to_datetime(all_df["created_date"]).dt.year
     per_year = all_df.groupby("year").size()
     ydf = pd.DataFrame({"count": per_year})
@@ -186,6 +272,7 @@ def sample_eda_figures(
     fig3 = plotting.plot_timeseries(ydf, title="Records per year")
     p3 = figures_dir / "records-per-year.png"
     fig3.savefig(p3, bbox_inches="tight", dpi=150)
+    plt.close(fig3)
     # resolution rate by CD (sample)
     cd_col = "community_district" if "community_district" in all_df.columns else "community_board"
     rates = []
@@ -202,6 +289,7 @@ def sample_eda_figures(
     )
     p4 = figures_dir / "resolution-rate-sample.png"
     fig4.savefig(p4, bbox_inches="tight", dpi=150)
+    plt.close(fig4)
     return (p1, p2, p3, p4)
 
 
@@ -224,6 +312,8 @@ def timeseries_figures(
     *,
     figures_dir: Path,
 ) -> TimeseriesPaths:
+    import matplotlib.pyplot as plt
+
     figures_dir.mkdir(parents=True, exist_ok=True)
     frames: list[pd.DataFrame] = []
     for b in boroughs:
@@ -238,6 +328,7 @@ def timeseries_figures(
             placeholder, placeholder, placeholder, placeholder, placeholder, None
         )
     df = pd.concat(frames, ignore_index=True)
+    fn = _desc_sample_footnote() if _cache_uses_desc_sample(cache_root, boroughs) else None
     df["day"] = pd.to_datetime(df["created_date"]).dt.floor("D")
     daily = df.groupby("day").size()
     daily_df = pd.DataFrame({"count": daily})
@@ -245,14 +336,17 @@ def timeseries_figures(
     fig = plotting.plot_timeseries(
         daily_df[["count", "roll7"]],
         title="Daily complaints (rolling 7d)",
+        footnote=fn,
     )
     p_daily = figures_dir / "timeseries-citywide-daily.png"
     fig.savefig(p_daily, bbox_inches="tight", dpi=150)
+    plt.close(fig)
     df["month"] = pd.to_datetime(df["created_date"]).dt.to_period("M").dt.to_timestamp()
     mb = df.groupby(["borough", "month"]).size().unstack(0, fill_value=0)
-    fig2 = plotting.plot_timeseries(mb, title="Monthly volume by borough")
+    fig2 = plotting.plot_timeseries(mb, title="Monthly volume by borough", footnote=fn)
     p_mb = figures_dir / "timeseries-by-borough-monthly.png"
     fig2.savefig(p_mb, bbox_inches="tight", dpi=150)
+    plt.close(fig2)
     # topic trends (monthly counts per type for supported types present)
     tdf = df[df["complaint_type"].isin(ALL_COMPLAINT_TYPES)]
     pivot = tdf.pivot_table(
@@ -264,17 +358,23 @@ def timeseries_figures(
     row_tot = pivot.sum(axis=1).replace(0, float("nan"))
     share = pivot.div(row_tot, axis=0).fillna(0)
     fig3 = plotting.plot_stacked_area(share, title="Monthly topic mix (share)", top_n=9)
+    _footnote_figure(fig3, fn)
     p_tt = figures_dir / "timeseries-topic-trends.png"
     fig3.savefig(p_tt, bbox_inches="tight", dpi=150)
+    plt.close(fig3)
     fig4 = plotting.plot_complaint_heatmap(df, title="Hour × weekday density")
+    _footnote_figure(fig4, fn)
     p_hm = figures_dir / "heatmap-hour-weekday.png"
     fig4.savefig(p_hm, bbox_inches="tight", dpi=150)
+    plt.close(fig4)
     top4 = df["complaint_type"].value_counts().head(4).index
     # faceted heatmap: concatenate subplots manually — single combined for v1
     sub = df[df["complaint_type"].isin(top4)]
     fig5 = plotting.plot_complaint_heatmap(sub, title="Hour × weekday (top types sample)")
+    _footnote_figure(fig5, fn)
     p_hmt = figures_dir / "heatmap-hour-weekday-by-type.png"
     fig5.savefig(p_hmt, bbox_inches="tight", dpi=150)
+    plt.close(fig5)
     seasonal_path: Path | None = None
     noise = df[df["complaint_type"] == "Noise - Residential"].copy()
     if len(noise) > 24:
@@ -325,6 +425,8 @@ def choropleth_figures(
     *,
     figures_dir: Path,
 ) -> ChoroplethPaths:
+    import matplotlib.pyplot as plt
+
     figures_dir.mkdir(parents=True, exist_ok=True)
     frames: list[pd.DataFrame] = []
     for b in boroughs:
@@ -356,6 +458,12 @@ def choropleth_figures(
     )
     p1 = figures_dir / "choropleth-complaint-density-community-district.png"
     fig.savefig(p1, bbox_inches="tight", dpi=150)
+    by_b: list[tuple[str, Path]] = []
+    for b in boroughs[:2]:
+        pb = figures_dir / f"choropleth-by-borough-{borough_slug(b)}.png"
+        fig.savefig(pb, bbox_inches="tight", dpi=150)
+        by_b.append((b, pb))
+    plt.close(fig)
     top4 = df["complaint_type"].value_counts().head(4).index
     # Facet: save first type only for file budget
     p2 = figures_dir / "choropleth-complaint-density-by-type.png"
@@ -371,6 +479,7 @@ def choropleth_figures(
         categorical=False,
     )
     figb.savefig(p2, bbox_inches="tight", dpi=150)
+    plt.close(figb)
     res_rate = df.groupby(cd_col)["resolution_description"].apply(lambda s: s.isna().mean())
     m3 = gdf.merge(res_rate.rename("gap"), left_on="geography_value", right_index=True, how="left")
     m3["gap"] = m3["gap"].fillna(0)
@@ -383,6 +492,7 @@ def choropleth_figures(
     )
     p3 = figures_dir / "choropleth-resolution-gap.png"
     figc.savefig(p3, bbox_inches="tight", dpi=150)
+    plt.close(figc)
     noise_df = df[df["complaint_type"] == "Noise - Residential"].copy()
     if "unique_key" in noise_df.columns:
         noise_df = noise_df.rename(columns={"unique_key": "service_request_id"})
@@ -407,11 +517,7 @@ def choropleth_figures(
     )
     p4 = figures_dir / "choropleth-dominant-topic.png"
     figd.savefig(p4, bbox_inches="tight", dpi=150)
-    by_b: list[tuple[str, Path]] = []
-    for b in boroughs[:2]:
-        pb = figures_dir / f"choropleth-by-borough-{borough_slug(b)}.png"
-        fig.savefig(pb, bbox_inches="tight", dpi=150)
-        by_b.append((b, pb))
+    plt.close(figd)
     return ChoroplethPaths(p1, p2, p3, p4, by_b)
 
 
@@ -421,6 +527,7 @@ def choropleth_figures(
 @dataclass
 class ScatterMapPaths:
     nyc: Path
+    lib_cover: Path
     by_borough: list[tuple[str, Path]]
     faceted_by_type: Path
 
@@ -431,6 +538,8 @@ def scatter_map_figures(
     *,
     figures_dir: Path,
 ) -> ScatterMapPaths:
+    import matplotlib.pyplot as plt
+
     figures_dir.mkdir(parents=True, exist_ok=True)
     frames: list[pd.DataFrame] = []
     for b in boroughs:
@@ -439,7 +548,7 @@ def scatter_map_figures(
     if not frames:
         ph = figures_dir / "scatter-placeholder.png"
         ph.write_bytes(b"")
-        return ScatterMapPaths(ph, [], ph)
+        return ScatterMapPaths(ph, ph, [], ph)
     df = pd.concat(frames, ignore_index=True)
     df = df.dropna(subset=["latitude", "longitude"])
     if "unique_key" in df.columns:
@@ -452,9 +561,13 @@ def scatter_map_figures(
         boundaries_gdf=gdf_b,
         title="Geocoded complaints",
         add_basemap=False,
+        legend_top_n=SCATTER_LEGEND_TOP_N,
     )
     p1 = figures_dir / "scatter-all-complaints-nyc.png"
     fig.savefig(p1, bbox_inches="tight", dpi=150)
+    p_cover = figures_dir / "all-scatter-lib-cover.png"
+    fig.savefig(p_cover, bbox_inches="tight", dpi=150)
+    plt.close(fig)
     by_b: list[tuple[str, Path]] = []
     for b in boroughs:
         sub = gdf_pts[gdf_pts["borough"] == b]
@@ -465,9 +578,11 @@ def scatter_map_figures(
             boundaries_gdf=gdf_b,
             title=f"Complaints — {b}",
             add_basemap=False,
+            legend_top_n=SCATTER_LEGEND_TOP_N,
         )
         outp = figures_dir / f"scatter-complaints-{borough_slug(b)}.png"
         figb.savefig(outp, bbox_inches="tight", dpi=150)
+        plt.close(figb)
         by_b.append((b, outp))
     top4 = df["complaint_type"].value_counts().head(4).index
     sub = gdf_pts[gdf_pts["complaint_type"].isin(top4)]
@@ -476,10 +591,12 @@ def scatter_map_figures(
         boundaries_gdf=gdf_b,
         title="Complaints — top types",
         add_basemap=False,
+        legend_top_n=SCATTER_LEGEND_TOP_N,
     )
     pf = figures_dir / "scatter-complaints-by-type-faceted.png"
     figf.savefig(pf, bbox_inches="tight", dpi=150)
-    return ScatterMapPaths(p1, by_b, pf)
+    plt.close(figf)
+    return ScatterMapPaths(p1, p_cover, by_b, pf)
 
 
 # --- Section 6: hero ---
@@ -497,6 +614,8 @@ def hero_image_figures(
     *,
     figures_dir: Path,
 ) -> HeroImagePaths:
+    import matplotlib.pyplot as plt
+
     figures_dir.mkdir(parents=True, exist_ok=True)
     frames: list[pd.DataFrame] = []
     for b in boroughs:
@@ -520,9 +639,11 @@ def hero_image_figures(
         boundaries_gdf=gdf_cd,
         title="NYC 311 — complaint density (sample)",
         bbox=bbox,
+        legend_top_n=SCATTER_LEGEND_TOP_N,
     )
     p1 = figures_dir / "map-library-header-horizontal.png"
     fig.savefig(p1, bbox_inches="tight", dpi=150)
+    plt.close(fig)
     cx = 0.5 * (minx + maxx)
     cy = 0.5 * (miny + maxy)
     zoom_bbox = (cx - 0.02, cy - 0.015, cx + 0.02, cy + 0.015)
@@ -532,9 +653,11 @@ def hero_image_figures(
         title="Zoom — block scale",
         bbox=zoom_bbox,
         figsize=(12, 8),
+        legend_top_n=SCATTER_LEGEND_TOP_N,
     )
     p2 = figures_dir / "map-zoom-detail.png"
     fig2.savefig(p2, bbox_inches="tight", dpi=150)
+    plt.close(fig2)
     return HeroImagePaths(p1, p2)
 
 
@@ -555,6 +678,8 @@ def analysis_figures(
     *,
     figures_dir: Path,
 ) -> AnalysisFigurePaths:
+    import matplotlib.pyplot as plt
+
     figures_dir.mkdir(parents=True, exist_ok=True)
     frames: list[pd.DataFrame] = []
     for b in boroughs:
@@ -582,6 +707,7 @@ def analysis_figures(
     )
     p1 = figures_dir / "topic-coverage-by-complaint-type.png"
     fig.savefig(p1, bbox_inches="tight", dpi=150)
+    plt.close(fig)
     # z-scores: topic counts by borough vs mean
     assigns_all: list[models.TopicAssignment] = []
     for ct in ALL_COMPLAINT_TYPES[:3]:
@@ -601,6 +727,7 @@ def analysis_figures(
     )
     p2 = figures_dir / "topic-anomaly-zscores.png"
     fig2.savefig(p2, bbox_inches="tight", dpi=150)
+    plt.close(fig2)
     rep0 = analysis.analyze_topic_coverage(recs, models.TopicQuery(ALL_COMPLAINT_TYPES[0]))
     fig3 = plotting.plot_bar_counts(
         [d for d, _ in rep0.top_unmatched_descriptors],
@@ -610,6 +737,7 @@ def analysis_figures(
     )
     p3 = figures_dir / "top-unmatched-descriptors.png"
     fig3.savefig(p3, bbox_inches="tight", dpi=150)
+    plt.close(fig3)
     br = df.groupby("borough")["resolution_description"].apply(lambda s: s.isna().mean())
     fig4 = plotting.plot_bar_counts(
         [str(x) for x in br.index],
@@ -619,4 +747,5 @@ def analysis_figures(
     )
     p4 = figures_dir / "resolution-gap-by-borough.png"
     fig4.savefig(p4, bbox_inches="tight", dpi=150)
+    plt.close(fig4)
     return AnalysisFigurePaths(p1, p2, p3, p4)
