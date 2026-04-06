@@ -17,7 +17,7 @@ Layout mirrors the ecosystem pattern used in
 | `--preset` | Sort | Row cap | Default timeout / page |
 | --- | --- | --- | --- |
 | `full` (default) | Oldest first (`ASC`) | None (full history) | 300s per request, 5k rows/page |
-| `smoke` | **Most recent first** (`DESC`) | **10,000 rows per borough** | 120s per request, 5k rows/page |
+| `smoke` | **Most recent first** (`DESC`) | **100,000 rows per borough** | 120s per request, 5k rows/page |
 
 Smoke mode is for **quick end-to-end checks** across all five boroughs without a multi-hour pull. Full mode is the long-running **chronological** extract.
 
@@ -30,7 +30,7 @@ uv sync
 uv run python main.py
 ```
 
-**Smoke test (all boroughs, ~10k rows each, recent data first):**
+**Smoke test (all boroughs, 100k rows each, recent data first — large enough for figures, small enough to finish in reasonable time):**
 
 ```bash
 uv run python download.py --preset smoke -v

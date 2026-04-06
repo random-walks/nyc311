@@ -29,7 +29,7 @@ def build_download_parser() -> ArgumentParser:
         default="full",
         help=(
             "full: chronological order (oldest first), no row cap unless "
-            "--max-records-per-borough. smoke: ~10k most recent rows per borough "
+            "--max-records-per-borough. smoke: 100k most recent rows per borough "
             "(DESC), smaller default timeouts."
         ),
     )

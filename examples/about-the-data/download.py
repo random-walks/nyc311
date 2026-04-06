@@ -38,7 +38,7 @@ def run_download(args: argparse.Namespace) -> None:
         max_records = (
             args.max_records_per_borough
             if args.max_records_per_borough is not None
-            else 10_000
+            else 100_000
         )
         sort_order: Literal["asc", "desc"] = "desc"
     else:

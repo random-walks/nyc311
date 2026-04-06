@@ -105,7 +105,7 @@ def smoke_socrata_config(
     app_token: str | None = None,
     request_timeout_seconds: float = 120.0,
 ) -> models.SocrataConfig:
-    """Small, recent-first Socrata config for quick multi-borough smoke downloads."""
+    """Recent-first Socrata config used with a per-borough row cap (see about-the-data ``--preset smoke``)."""
     return models.SocrataConfig(
         app_token=app_token,
         page_size=page_size,
