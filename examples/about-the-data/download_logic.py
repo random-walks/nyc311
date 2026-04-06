@@ -59,9 +59,14 @@ def borough_all_records_csv_path(
     end_date: date,
     page_size: int,
     app_token: str | None,
+    request_timeout_seconds: float = 300.0,
 ) -> Path:
     """Deterministic CSV path for the default per-borough bulk slice."""
-    cfg = presets.large_socrata_config(page_size=page_size, app_token=app_token)
+    cfg = presets.large_socrata_config(
+        page_size=page_size,
+        app_token=app_token,
+        request_timeout_seconds=request_timeout_seconds,
+    )
     filt = models.ServiceRequestFilter(
         start_date=start_date,
         end_date=end_date,
@@ -81,6 +86,7 @@ def download_all_records(
     end_date: date,
     page_size: int,
     max_records_per_borough: int | None,
+    request_timeout_seconds: float = 300.0,
     verbose: bool = False,
 ) -> dict[str, Path]:
     """One cached CSV per borough (filtered query).
@@ -89,7 +95,11 @@ def download_all_records(
     (same behavior as :func:`nyc311.io.cached_fetch`). Interrupted downloads leave
     no complete CSV until the stream finishes (atomic rename from ``*.csv.part``).
     """
-    cfg = presets.large_socrata_config(page_size=page_size, app_token=app_token)
+    cfg = presets.large_socrata_config(
+        page_size=page_size,
+        app_token=app_token,
+        request_timeout_seconds=request_timeout_seconds,
+    )
     out: dict[str, Path] = {}
     for borough in boroughs:
         filt = models.ServiceRequestFilter(
@@ -133,10 +143,15 @@ def download_per_type_records(
     end_date: date,
     page_size: int,
     max_records_per_borough: int | None,
+    request_timeout_seconds: float = 300.0,
     verbose: bool = False,
 ) -> dict[tuple[str, str], Path]:
     """Cached CSV per (borough, complaint type) pair."""
-    cfg = presets.large_socrata_config(page_size=page_size, app_token=app_token)
+    cfg = presets.large_socrata_config(
+        page_size=page_size,
+        app_token=app_token,
+        request_timeout_seconds=request_timeout_seconds,
+    )
     out: dict[tuple[str, str], Path] = {}
     for borough in boroughs:
         for ctype in types:

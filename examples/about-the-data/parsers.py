@@ -33,6 +33,16 @@ def build_download_parser() -> ArgumentParser:
     p.add_argument("--refresh", action="store_true")
     p.add_argument("--app-token", default=os.environ.get("NYC_OPEN_DATA_APP_TOKEN"))
     p.add_argument("--page-size", type=int, default=50_000)
+    p.add_argument(
+        "--request-timeout",
+        type=float,
+        default=300.0,
+        metavar="SECONDS",
+        help=(
+            "Per-request HTTP timeout for each Socrata page (large 50k pages need "
+            "minutes; increase on slow links, e.g. 600)."
+        ),
+    )
     p.add_argument("--max-records-per-borough", type=int, default=None)
     p.add_argument(
         "--download-by-type",

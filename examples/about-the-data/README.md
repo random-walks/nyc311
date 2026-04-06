@@ -68,7 +68,12 @@ uv run python main.py \
 ```
 
 Set `NYC_OPEN_DATA_APP_TOKEN` (or pass `--app-token`) for higher Socrata rate
-limits on large pulls.
+limits on large pulls. If you see `TimeoutError` while reading a page, raise
+`--request-timeout` (default 300 seconds per request; try `600` on slow links).
+
+**Order of operations:** finish `download.py` (or `main.py` without `--skip-download`)
+before `analyze.py`. Figures read from `cache/` only; wiping `cache/` and running
+`analyze.py` alone will not pull new data.
 
 ## Full history vs small samples
 

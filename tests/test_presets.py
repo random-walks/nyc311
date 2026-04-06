@@ -63,3 +63,4 @@ def test_large_socrata_config_uses_bulk_defaults() -> None:
     assert config.app_token == "demo-token"
     assert config.page_size == 50_000
     assert config.max_pages is None
+    assert config.request_timeout_seconds == 300.0

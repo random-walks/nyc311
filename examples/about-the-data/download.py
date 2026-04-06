@@ -39,6 +39,7 @@ def run_download(args: argparse.Namespace) -> None:
         end_date=end,
         page_size=args.page_size,
         max_records_per_borough=args.max_records_per_borough,
+        request_timeout_seconds=args.request_timeout,
         verbose=args.verbose,
     )
     if args.download_by_type:
@@ -52,6 +53,7 @@ def run_download(args: argparse.Namespace) -> None:
             end_date=end,
             page_size=args.page_size,
             max_records_per_borough=args.max_records_per_borough,
+            request_timeout_seconds=args.request_timeout,
             verbose=args.verbose,
         )
 
