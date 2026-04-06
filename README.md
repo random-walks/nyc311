@@ -137,8 +137,8 @@ panel.xs("BROOKLYN")["Noise - Residential"].plot()
 
 - **Socrata:** dataset `erm2-nwe9` (NYC 311 Service Requests from 2010 onward;
   tens of millions of rows). Use `presets.large_socrata_config()` for bulk
-  pagination and `nyc311.io.cached_fetch` to stream pages to CSV without holding
-  the full history in memory.
+  pagination (default 5,000 rows per HTTP request) and `nyc311.io.cached_fetch` to
+  stream pages to CSV without holding the full history in memory.
 - **Boundaries:** borough, community district, council district, NTA, census
   tract, and ZCTA layers ship through `nyc311.geographies` (built on
   `nyc-geo-toolkit`).

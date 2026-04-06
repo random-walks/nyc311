@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Literal
 
 from ._constants import SOCRATA_DATASET_IDENTIFIER, SUPPORTED_GEOGRAPHIES
 from ._normalize import _normalize_value, normalize_borough_name
@@ -74,6 +75,7 @@ class SocrataConfig:
     page_size: int = 1000
     request_timeout_seconds: float = 30.0
     max_pages: int | None = None
+    created_date_sort: Literal["asc", "desc"] = "asc"
     extra_where_clauses: tuple[str, ...] = field(default_factory=tuple)
 
     def __post_init__(self) -> None:
@@ -90,6 +92,8 @@ class SocrataConfig:
             raise ValueError("request_timeout_seconds must be positive.")
         if self.max_pages is not None and self.max_pages < 1:
             raise ValueError("max_pages must be at least 1 when provided.")
+        if self.created_date_sort not in ("asc", "desc"):
+            raise ValueError("created_date_sort must be 'asc' or 'desc'.")
 
         normalized_extra_where_clauses = tuple(
             normalized

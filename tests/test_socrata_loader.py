@@ -29,6 +29,29 @@ class FakeResponse:
         return json.dumps(self._payload).encode("utf-8")
 
 
+def test_load_service_requests_uses_desc_order_when_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requested_urls: list[str] = []
+
+    def fake_urlopen(request: object, *, timeout: float | None = None) -> FakeResponse:
+        del timeout
+        request_url = request.full_url  # type: ignore[attr-defined]
+        requested_urls.append(str(request_url))
+        return FakeResponse([])
+
+    monkeypatch.setattr("nyc311.io._service_requests.urlopen", fake_urlopen)
+
+    load_service_requests(
+        SocrataConfig(created_date_sort="desc"),
+        filters=ServiceRequestFilter(),
+    )
+
+    parsed = urlparse(requested_urls[0])
+    query_string = parse_qs(parsed.query)
+    assert "DESC" in query_string["$order"][0]
+
+
 def test_load_service_requests_supports_socrata_json(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

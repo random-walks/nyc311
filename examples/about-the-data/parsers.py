@@ -23,6 +23,16 @@ def build_common_parser() -> ArgumentParser:
 
 def build_download_parser() -> ArgumentParser:
     p = ArgumentParser(add_help=False)
+    p.add_argument(
+        "--preset",
+        choices=("full", "smoke"),
+        default="full",
+        help=(
+            "full: chronological order (oldest first), no row cap unless "
+            "--max-records-per-borough. smoke: ~10k most recent rows per borough "
+            "(DESC), smaller default timeouts."
+        ),
+    )
     p.add_argument("--start-date", default="2010-01-01")
     p.add_argument("--end-date", default=None)
     p.add_argument(
@@ -32,15 +42,20 @@ def build_download_parser() -> ArgumentParser:
     )
     p.add_argument("--refresh", action="store_true")
     p.add_argument("--app-token", default=os.environ.get("NYC_OPEN_DATA_APP_TOKEN"))
-    p.add_argument("--page-size", type=int, default=50_000)
+    p.add_argument(
+        "--page-size",
+        type=int,
+        default=5_000,
+        help="Rows per Socrata HTTP request (default 5000 for smaller pages).",
+    )
     p.add_argument(
         "--request-timeout",
         type=float,
-        default=300.0,
+        default=None,
         metavar="SECONDS",
         help=(
-            "Per-request HTTP timeout for each Socrata page (large 50k pages need "
-            "minutes; increase on slow links, e.g. 600)."
+            "Per-request HTTP timeout (default: 300s for full, 120s for smoke; "
+            "override explicitly, e.g. 600 on slow links)."
         ),
     )
     p.add_argument("--max-records-per-borough", type=int, default=None)
@@ -59,6 +74,11 @@ def build_download_parser() -> ArgumentParser:
         "--verbose",
         action="store_true",
         help="Print per-borough skip/fetch status.",
+    )
+    p.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable per-page row count lines (pages still use small batches).",
     )
     return p
 

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from datetime import date
 from pathlib import Path
+from typing import Literal
 from urllib.request import urlopen
 
 from nyc311 import geographies, io, models, presets
@@ -60,12 +62,14 @@ def borough_all_records_csv_path(
     page_size: int,
     app_token: str | None,
     request_timeout_seconds: float = 300.0,
+    created_date_sort: Literal["asc", "desc"] = "asc",
 ) -> Path:
     """Deterministic CSV path for the default per-borough bulk slice."""
     cfg = presets.large_socrata_config(
         page_size=page_size,
         app_token=app_token,
         request_timeout_seconds=request_timeout_seconds,
+        created_date_sort=created_date_sort,
     )
     filt = models.ServiceRequestFilter(
         start_date=start_date,
@@ -74,6 +78,20 @@ def borough_all_records_csv_path(
     )
     dest = borough_cache_dir(cache_root, borough)
     return io.cache_path_for_request(cfg, filt, dest)
+
+
+def _page_progress_callback(borough: str) -> Callable[[int, int], None]:
+    total = 0
+
+    def _on_page(page_idx: int, n: int) -> None:
+        nonlocal total
+        total += n
+        print(
+            f"  [{borough}] page {page_idx + 1}: {n} rows (running total {total})",
+            flush=True,
+        )
+
+    return _on_page
 
 
 def download_all_records(
@@ -87,6 +105,8 @@ def download_all_records(
     page_size: int,
     max_records_per_borough: int | None,
     request_timeout_seconds: float = 300.0,
+    created_date_sort: Literal["asc", "desc"] = "asc",
+    progress: bool = True,
     verbose: bool = False,
 ) -> dict[str, Path]:
     """One cached CSV per borough (filtered query).
@@ -99,6 +119,7 @@ def download_all_records(
         page_size=page_size,
         app_token=app_token,
         request_timeout_seconds=request_timeout_seconds,
+        created_date_sort=created_date_sort,
     )
     out: dict[str, Path] = {}
     for borough in boroughs:
@@ -115,6 +136,7 @@ def download_all_records(
                 print(f"[skip] {borough}: {expected.name}", flush=True)
             else:
                 print(f"[fetch] {borough} → {expected.name}", flush=True)
+        on_page = _page_progress_callback(borough) if progress else None
         path = io.cached_fetch(
             cfg,
             filt,
@@ -122,6 +144,7 @@ def download_all_records(
             refresh=refresh,
             request_open=urlopen,
             max_records=max_records_per_borough,
+            on_page=on_page,
         )
         if verbose and path.is_file():
             print(
@@ -144,6 +167,8 @@ def download_per_type_records(
     page_size: int,
     max_records_per_borough: int | None,
     request_timeout_seconds: float = 300.0,
+    created_date_sort: Literal["asc", "desc"] = "asc",
+    progress: bool = True,
     verbose: bool = False,
 ) -> dict[tuple[str, str], Path]:
     """Cached CSV per (borough, complaint type) pair."""
@@ -151,6 +176,7 @@ def download_per_type_records(
         page_size=page_size,
         app_token=app_token,
         request_timeout_seconds=request_timeout_seconds,
+        created_date_sort=created_date_sort,
     )
     out: dict[tuple[str, str], Path] = {}
     for borough in boroughs:
@@ -170,6 +196,8 @@ def download_per_type_records(
                     print(f"[skip] {label}: {expected.name}", flush=True)
                 else:
                     print(f"[fetch] {label} → {expected.name}", flush=True)
+            label = f"{borough}/{ctype}"
+            on_page = _page_progress_callback(label) if progress else None
             path = io.cached_fetch(
                 cfg,
                 filt,
@@ -177,6 +205,7 @@ def download_per_type_records(
                 refresh=refresh,
                 request_open=urlopen,
                 max_records=max_records_per_borough,
+                on_page=on_page,
             )
             out[(borough, ctype)] = path
     return out

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from typing import Literal
 
 from dates import parse_cli_date
 from download_logic import (
@@ -28,6 +29,24 @@ def run_download(args: argparse.Namespace) -> None:
     cache_root = Path(args.cache_dir).expanduser().resolve()
     app_token: str | None = args.app_token
 
+    if args.request_timeout is None:
+        request_timeout = 120.0 if args.preset == "smoke" else 300.0
+    else:
+        request_timeout = args.request_timeout
+
+    if args.preset == "smoke":
+        max_records = (
+            args.max_records_per_borough
+            if args.max_records_per_borough is not None
+            else 10_000
+        )
+        sort_order: Literal["asc", "desc"] = "desc"
+    else:
+        max_records = args.max_records_per_borough
+        sort_order = "asc"
+
+    progress = not args.no_progress
+
     if not args.skip_boundaries:
         download_boundary_layers(cache_root, refresh=args.refresh)
     download_all_records(
@@ -38,8 +57,10 @@ def run_download(args: argparse.Namespace) -> None:
         start_date=start,
         end_date=end,
         page_size=args.page_size,
-        max_records_per_borough=args.max_records_per_borough,
-        request_timeout_seconds=args.request_timeout,
+        max_records_per_borough=max_records,
+        request_timeout_seconds=request_timeout,
+        created_date_sort=sort_order,
+        progress=progress,
         verbose=args.verbose,
     )
     if args.download_by_type:
@@ -52,8 +73,10 @@ def run_download(args: argparse.Namespace) -> None:
             start_date=start,
             end_date=end,
             page_size=args.page_size,
-            max_records_per_borough=args.max_records_per_borough,
-            request_timeout_seconds=args.request_timeout,
+            max_records_per_borough=max_records,
+            request_timeout_seconds=request_timeout,
+            created_date_sort=sort_order,
+            progress=progress,
             verbose=args.verbose,
         )
 

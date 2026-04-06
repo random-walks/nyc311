@@ -11,6 +11,7 @@ from nyc311.presets import (
     large_socrata_config,
     manhattan_borough_filter,
     small_socrata_config,
+    smoke_socrata_config,
 )
 
 pytestmark = pytest.mark.unit
@@ -61,6 +62,15 @@ def test_large_socrata_config_uses_bulk_defaults() -> None:
     config = large_socrata_config(app_token="demo-token")
 
     assert config.app_token == "demo-token"
-    assert config.page_size == 50_000
+    assert config.page_size == 5_000
     assert config.max_pages is None
     assert config.request_timeout_seconds == 300.0
+    assert config.created_date_sort == "asc"
+
+
+def test_smoke_socrata_config_is_recent_first() -> None:
+    config = smoke_socrata_config(app_token="demo-token")
+
+    assert config.created_date_sort == "desc"
+    assert config.page_size == 5_000
+    assert config.request_timeout_seconds == 120.0

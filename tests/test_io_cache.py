@@ -54,6 +54,17 @@ def test_cache_path_borough_and_types() -> None:
     assert "noise_residential" in p.name
 
 
+def test_cache_path_desc_suffix() -> None:
+    cfg = SocrataConfig(page_size=5_000, created_date_sort="desc")
+    flt = ServiceRequestFilter(
+        start_date=date(2024, 1, 1),
+        end_date=date(2024, 1, 31),
+        geography=GeographyFilter("borough", "BROOKLYN"),
+    )
+    p = cache_path_for_request(cfg, flt, Path("/tmp/cache"))
+    assert p.name.endswith("_desc.csv")
+
+
 def test_cached_fetch_skips_when_exists(tmp_path: Path) -> None:
     cfg = SocrataConfig(page_size=10, max_pages=1)
     flt = ServiceRequestFilter()

@@ -37,9 +37,10 @@ def cache_path_for_request(
     start = filters.start_date.isoformat() if filters.start_date else "none"
     end = filters.end_date.isoformat() if filters.end_date else "none"
     page = socrata_config.page_size
+    sort_suffix = "_desc" if socrata_config.created_date_sort == "desc" else ""
 
     if filters.geography is None and not filters.complaint_types:
-        name = f"all_{start}_{end}_{page}.csv"
+        name = f"all_{start}_{end}_{page}{sort_suffix}.csv"
         return cache_dir / name
 
     borough = "all"
@@ -55,7 +56,7 @@ def cache_path_for_request(
         joined = "_".join(sorted(_slug(c) for c in complaint_types))
         ct_slug = joined[:120]
 
-    name = f"{borough}_{ct_slug}_{start}_{end}_{page}.csv"
+    name = f"{borough}_{ct_slug}_{start}_{end}_{page}{sort_suffix}.csv"
     return cache_dir / name
 
 
@@ -83,6 +84,7 @@ def cached_fetch(
     refresh: bool = False,
     request_open: Callable[..., Any] | None = None,
     max_records: int | None = None,
+    on_page: Callable[[int, int], None] | None = None,
 ) -> Path:
     """Stream a Socrata query to a CSV file under ``cache_dir``; return the path.
 
@@ -92,6 +94,9 @@ def cached_fetch(
     For multi-gigabyte extracts, prefer this function and analyze with chunked
     ``pandas.read_csv`` instead of loading via :func:`load_service_requests`, which
     materializes rows in memory.
+
+    Optional ``on_page`` is forwarded to :func:`nyc311.io.iter_service_requests_from_socrata`
+    for per-HTTP-page progress (page index and row count for that page).
     """
     opener = urlopen if request_open is None else request_open
     cache_dir = Path(cache_dir)
@@ -119,7 +124,10 @@ def cached_fetch(
             )
             writer.writeheader()
             for record in iter_service_requests_from_socrata(
-                socrata_config, filters=filters, request_open=opener
+                socrata_config,
+                filters=filters,
+                request_open=opener,
+                on_page=on_page,
             ):
                 if not record_matches_service_request_filter(record, filters):
                     continue
