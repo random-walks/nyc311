@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any, Final
 from urllib.parse import urlencode
 from urllib.request import Request
@@ -116,13 +116,13 @@ def _build_socrata_url(
     return f"{socrata_config.base_url}/{socrata_config.dataset_identifier}.json?{encoded_query}"
 
 
-def load_service_requests_from_socrata(
+def iter_service_requests_from_socrata(
     socrata_config: SocrataConfig,
     *,
     filters: ServiceRequestFilter,
     request_open: Callable[..., Any],
-) -> list[ServiceRequestRecord]:
-    """Load and filter service-request records from the live Socrata API."""
+) -> Iterator[ServiceRequestRecord]:
+    """Yield service-request records from Socrata without holding all pages in memory."""
     headers = {"Accept": "application/json"}
     if socrata_config.app_token is not None:
         headers["X-App-Token"] = socrata_config.app_token
@@ -130,7 +130,6 @@ def load_service_requests_from_socrata(
     request_limit = socrata_config.page_size
     offset = 0
     page_count = 0
-    records: list[ServiceRequestRecord] = []
 
     while True:
         if (
@@ -153,7 +152,6 @@ def load_service_requests_from_socrata(
         if not payload:
             break
 
-        batch_records: list[ServiceRequestRecord] = []
         for raw_row in payload:
             if not isinstance(raw_row, dict):
                 raise ValueError(
@@ -165,14 +163,24 @@ def load_service_requests_from_socrata(
                 if "community_district" in normalized_row
                 else "community_board"
             )
-            batch_records.append(
-                _record_from_mapping(normalized_row, community_district_column)
-            )
+            yield _record_from_mapping(normalized_row, community_district_column)
 
-        records.extend(batch_records)
         if len(payload) < request_limit:
             break
         offset += request_limit
         page_count += 1
 
+
+def load_service_requests_from_socrata(
+    socrata_config: SocrataConfig,
+    *,
+    filters: ServiceRequestFilter,
+    request_open: Callable[..., Any],
+) -> list[ServiceRequestRecord]:
+    """Load and filter service-request records from the live Socrata API."""
+    records = list(
+        iter_service_requests_from_socrata(
+            socrata_config, filters=filters, request_open=request_open
+        )
+    )
     return _apply_filters(records, filters)

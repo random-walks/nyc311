@@ -60,7 +60,13 @@ class ServiceRequestFilter:
 
 @dataclass(frozen=True)
 class SocrataConfig:
-    """Configuration for the implemented live Socrata loader path."""
+    """Configuration for the implemented live Socrata loader path.
+
+    ``extra_where_clauses`` holds additional ``$where`` fragments (Socrata SoQL) that
+    are AND-joined after the predicates derived from :class:`ServiceRequestFilter`.
+    Use for predicates not covered by the filter (e.g. ``latitude IS NOT NULL``).
+    Values are stripped; empty strings are dropped.
+    """
 
     dataset_identifier: str = SOCRATA_DATASET_IDENTIFIER
     base_url: str = "https://data.cityofnewyork.us/resource"

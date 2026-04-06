@@ -74,9 +74,24 @@ def small_socrata_config(
     )
 
 
+def large_socrata_config(
+    *,
+    page_size: int = 50_000,
+    max_pages: int | None = None,
+    app_token: str | None = None,
+) -> models.SocrataConfig:
+    """Build a high-throughput Socrata config for bulk downloads (e.g. full history)."""
+    return models.SocrataConfig(
+        app_token=app_token,
+        page_size=page_size,
+        max_pages=max_pages,
+    )
+
+
 __all__ = [
     "brooklyn_borough_filter",
     "build_filter",
+    "large_socrata_config",
     "manhattan_borough_filter",
     "small_socrata_config",
 ]

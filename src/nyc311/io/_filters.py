@@ -48,17 +48,25 @@ def _matches_date_range(
     return True
 
 
+def record_matches_service_request_filter(
+    record: ServiceRequestRecord, service_request_filter: ServiceRequestFilter
+) -> bool:
+    """Return whether a record satisfies the given filter (post-load check)."""
+    if not _matches_date_range(record, service_request_filter):
+        return False
+    if not _matches_geography(record, service_request_filter.geography):
+        return False
+    if not _matches_complaint_type(record, service_request_filter.complaint_types):
+        return False
+    return True
+
+
 def _apply_filters(
     records: list[ServiceRequestRecord],
     service_request_filter: ServiceRequestFilter,
 ) -> list[ServiceRequestRecord]:
-    filtered_records: list[ServiceRequestRecord] = []
-    for record in records:
-        if not _matches_date_range(record, service_request_filter):
-            continue
-        if not _matches_geography(record, service_request_filter.geography):
-            continue
-        if not _matches_complaint_type(record, service_request_filter.complaint_types):
-            continue
-        filtered_records.append(record)
-    return filtered_records
+    return [
+        record
+        for record in records
+        if record_matches_service_request_filter(record, service_request_filter)
+    ]

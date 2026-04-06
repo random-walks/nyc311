@@ -105,12 +105,16 @@ def plot_boundary_choropleth(
     if plot_gdf is None:
         raise TypeError("plot_boundary_choropleth() requires a geodataframe.")
     _figure, axes = plt.subplots(figsize=figsize)
-    effective_legend_kwds = {
-        "loc": "upper left",
-        "bbox_to_anchor": (1.02, 1),
-        "frameon": True,
-        "borderaxespad": 0.0,
-    }
+    if categorical:
+        effective_legend_kwds: dict[str, Any] = {
+            "loc": "upper left",
+            "bbox_to_anchor": (1.02, 1),
+            "frameon": True,
+            "borderaxespad": 0.0,
+        }
+    else:
+        # Continuous choropleth uses a matplotlib colorbar (not a legend).
+        effective_legend_kwds = {"shrink": 0.72, "label": column}
     if legend_kwds is not None:
         effective_legend_kwds.update(legend_kwds)
     missing_mask = plot_gdf[column].isna()
@@ -289,8 +293,232 @@ def plot_boundary_point_groups(
     return figure
 
 
+def plot_timeseries(
+    dataframe: Any,
+    *,
+    title: str,
+    figsize: tuple[float, float] = (12, 5),
+) -> Any:
+    """Line chart for a :class:`~pandas.DataFrame` with a DatetimeIndex or ``created_date`` column."""
+    plt = _require_matplotlib()
+    pd = import_module("pandas")
+    plt.style.use("seaborn-v0_8-whitegrid")
+    _figure, axes = plt.subplots(figsize=figsize)
+    plot_df = dataframe
+    if isinstance(dataframe.index, pd.DatetimeIndex):
+        plot_df = dataframe
+    elif "created_date" in getattr(dataframe, "columns", ()):
+        plot_df = dataframe.set_index("created_date").sort_index()
+    else:
+        plot_df = dataframe.copy()
+    plot_df.plot(ax=axes, legend=True)
+    axes.set_title(title, pad=12)
+    axes.set_xlabel("")
+    axes.grid(True, alpha=0.3)
+    axes.figure.patch.set_facecolor("white")
+    return axes.figure
+
+
+def plot_complaint_heatmap(
+    dataframe: Any,
+    *,
+    title: str,
+    time_column: str = "created_date",
+    figsize: tuple[float, float] = (10, 6),
+) -> Any:
+    """Hour-of-day x day-of-week density heatmap (expects datetime resolution in ``time_column``)."""
+    plt = _require_matplotlib()
+    pd = import_module("pandas")
+    np = import_module("numpy")
+    plt.style.use("seaborn-v0_8-whitegrid")
+    if time_column not in dataframe.columns:
+        raise ValueError(f"DataFrame must include column {time_column!r}.")
+
+    times = pd.to_datetime(dataframe[time_column])
+    hour = times.dt.hour
+    weekday = times.dt.dayofweek
+    grid = (
+        pd.DataFrame({"hour": hour, "weekday": weekday})
+        .assign(n=1)
+        .groupby(["weekday", "hour"], observed=False)["n"]
+        .sum()
+        .unstack(fill_value=0)
+        .reindex(index=range(7), columns=range(24), fill_value=0)
+    )
+    labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    _figure, axes = plt.subplots(figsize=figsize)
+    im = axes.imshow(np.asarray(grid), aspect="auto", cmap="YlOrRd", origin="lower")
+    axes.set_xticks(range(0, 24, 2))
+    axes.set_yticks(range(7))
+    axes.set_yticklabels(labels)
+    axes.set_xlabel("Hour of day")
+    axes.set_ylabel("Weekday")
+    axes.set_title(title, pad=12)
+    plt.colorbar(im, ax=axes, fraction=0.046, pad=0.04, label="Complaints")
+    axes.figure.patch.set_facecolor("white")
+    return axes.figure
+
+
+def plot_stacked_area(
+    dataframe: Any,
+    *,
+    title: str,
+    top_n: int = 8,
+    figsize: tuple[float, float] = (12, 6),
+) -> Any:
+    """Stacked area chart of the top-N columns (by total) over a DatetimeIndex."""
+    plt = _require_matplotlib()
+    pd = import_module("pandas")
+    plt.style.use("seaborn-v0_8-whitegrid")
+    if not isinstance(dataframe.index, pd.DatetimeIndex):
+        raise TypeError("plot_stacked_area() expects a DatetimeIndex-indexed DataFrame.")
+    totals = dataframe.sum().sort_values(ascending=False)
+    cols = list(totals.head(top_n).index)
+    sub = dataframe[cols].fillna(0)
+    if sub.shape[1] == 0:
+        sub = dataframe.fillna(0)
+    mdates = import_module("matplotlib.dates")
+    _figure, axes = plt.subplots(figsize=figsize)
+    xnum = mdates.date2num(pd.DatetimeIndex(sub.index).to_pydatetime())
+    axes.stackplot(
+        xnum,
+        *[sub[c].to_numpy() for c in sub.columns],
+        labels=list(sub.columns),
+        alpha=0.85,
+    )
+    axes.xaxis_date()
+    ax_fig = axes.figure
+    ax_fig.autofmt_xdate()
+    axes.legend(loc="upper left", bbox_to_anchor=(1.02, 1), frameon=True)
+    axes.set_title(title, pad=12)
+    axes.set_xlabel("")
+    axes.grid(True, alpha=0.25)
+    axes.figure.patch.set_facecolor("white")
+    return axes.figure
+
+
+def plot_bar_counts(
+    labels: list[str],
+    counts: list[float],
+    *,
+    title: str,
+    horizontal: bool = False,
+    figsize: tuple[float, float] = (10, 6),
+) -> Any:
+    """Simple bar chart for categorical counts."""
+    plt = _require_matplotlib()
+    plt.style.use("seaborn-v0_8-whitegrid")
+    _figure, axes = plt.subplots(figsize=figsize)
+    if horizontal:
+        axes.barh(labels, counts, color="#3b82f6", edgecolor="#1e40af", linewidth=0.5)
+    else:
+        axes.bar(labels, counts, color="#3b82f6", edgecolor="#1e40af", linewidth=0.5)
+        plt.setp(axes.xaxis.get_majorticklabels(), rotation=45, ha="right")
+    axes.set_title(title, pad=12)
+    axes.grid(True, axis="y", alpha=0.3)
+    axes.figure.patch.set_facecolor("white")
+    return axes.figure
+
+
+def plot_complaint_scatter(
+    points_gdf: Any,
+    *,
+    boundaries_gdf: Any | None = None,
+    title: str,
+    column: str = "complaint_type",
+    add_basemap: bool = False,
+    figsize: tuple[float, float] = (12, 10),
+) -> Any:
+    """Scatter plot of points colored by ``column`` over optional boundary outlines."""
+    plt = _require_matplotlib()
+    plt.style.use("seaborn-v0_8-whitegrid")
+    point_frame = _prepare_plot_frame(points_gdf, add_basemap=add_basemap)
+    boundary_frame = _prepare_plot_frame(boundaries_gdf, add_basemap=add_basemap)
+    if point_frame is None or point_frame.empty:
+        raise TypeError("plot_complaint_scatter() requires a non-empty points GeoDataFrame.")
+
+    _figure, axes = plt.subplots(figsize=figsize)
+    if boundary_frame is not None and not boundary_frame.empty:
+        boundary_frame.boundary.plot(ax=axes, color="#0f172a", linewidth=0.8, alpha=0.7)
+    point_frame.plot(
+        ax=axes,
+        column=column,
+        legend=True,
+        markersize=12,
+        alpha=0.5,
+        categorical=True,
+        cmap="tab20",
+        legend_kwds={"bbox_to_anchor": (1.02, 1), "loc": "upper left"},
+    )
+    if add_basemap:
+        contextily = _require_contextily()
+        contextily.add_basemap(
+            axes,
+            source=contextily.providers.CartoDB.Positron,
+            attribution_size=6,
+        )
+    _finish_axes(axes, title=title)
+    return axes.figure
+
+
+def plot_hero_banner(
+    points_gdf: Any,
+    *,
+    boundaries_gdf: Any | None = None,
+    title: str,
+    bbox: tuple[float, float, float, float] | None = None,
+    column: str = "complaint_type",
+    figsize: tuple[float, float] = (16, 5),
+) -> Any:
+    """Wide horizontal map with OSM basemap, points, and boundaries (Web Mercator)."""
+    plt = _require_matplotlib()
+    plt.style.use("seaborn-v0_8-whitegrid")
+    point_frame = points_gdf
+    boundary_frame = boundaries_gdf
+    if bbox is not None:
+        minx, miny, maxx, maxy = bbox
+        point_frame = points_gdf.cx[minx:maxx, miny:maxy]
+        if boundaries_gdf is not None:
+            boundary_frame = boundaries_gdf.cx[minx:maxx, miny:maxy]
+
+    point_frame = _prepare_plot_frame(point_frame, add_basemap=True)
+    boundary_frame = _prepare_plot_frame(boundary_frame, add_basemap=True)
+    if point_frame is None or point_frame.empty:
+        raise TypeError("plot_hero_banner() requires a non-empty points GeoDataFrame.")
+
+    _figure, axes = plt.subplots(figsize=figsize)
+    if boundary_frame is not None and not boundary_frame.empty:
+        boundary_frame.boundary.plot(ax=axes, color="#0f172a", linewidth=0.9, alpha=0.85)
+    point_frame.plot(
+        ax=axes,
+        column=column,
+        legend=True,
+        markersize=8,
+        alpha=0.65,
+        categorical=True,
+        cmap="tab20",
+        legend_kwds={"bbox_to_anchor": (1.01, 1), "loc": "upper left", "fontsize": 8},
+    )
+    contextily = _require_contextily()
+    contextily.add_basemap(
+        axes,
+        source=contextily.providers.CartoDB.Positron,
+        attribution_size=5,
+    )
+    axes.set_axis_off()
+    axes.set_title(title, pad=10, fontsize=14, fontweight="600")
+    axes.figure.patch.set_facecolor("white")
+    return axes.figure
+
+
 __all__ = [
+    "plot_bar_counts",
     "plot_boundary_choropleth",
     "plot_boundary_preview",
     "plot_boundary_point_groups",
+    "plot_complaint_heatmap",
+    "plot_complaint_scatter",
+    "plot_hero_banner",
+    "plot_stacked_area",
+    "plot_timeseries",
 ]
