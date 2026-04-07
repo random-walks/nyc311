@@ -90,6 +90,7 @@ test = [
 dev = [
   { include-group = "test" },
   "mypy >=1.18",
+  "pandas-stubs >=2.3.0",
   "pylint >=3.3",
   "ruff >=0.12",
 ]
