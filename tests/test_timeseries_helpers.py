@@ -14,7 +14,11 @@ from nyc311.dataframes import (
 from nyc311.io import load_service_requests
 from nyc311.models import TopicQuery
 
-FIXTURE_PATH = __import__("pathlib").Path(__file__).parent / "fixtures" / "service_requests_fixture.csv"
+FIXTURE_PATH = (
+    __import__("pathlib").Path(__file__).parent
+    / "fixtures"
+    / "service_requests_fixture.csv"
+)
 
 
 def test_to_timeseries_shape() -> None:

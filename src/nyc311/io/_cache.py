@@ -119,9 +119,7 @@ def cached_fetch(
     written = 0
     try:
         with partial_path.open("w", newline="", encoding="utf-8") as csv_file:
-            writer = csv.DictWriter(
-                csv_file, fieldnames=SERVICE_REQUEST_EXPORT_COLUMNS
-            )
+            writer = csv.DictWriter(csv_file, fieldnames=SERVICE_REQUEST_EXPORT_COLUMNS)
             writer.writeheader()
             for record in iter_service_requests_from_socrata(
                 socrata_config,

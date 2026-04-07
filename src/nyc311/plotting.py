@@ -73,7 +73,9 @@ def _apply_top_n_categorical_point_legend(
     leg = axes.get_legend()
     if leg is None:
         return
-    handles = list(getattr(leg, "legend_handles", None) or getattr(leg, "legendHandles", []))
+    handles = list(
+        getattr(leg, "legend_handles", None) or getattr(leg, "legendHandles", [])
+    )
     texts = [t.get_text() for t in leg.get_texts()]
     n = min(len(handles), len(texts))
     by_label: dict[str, Any] = dict(zip(texts[:n], handles[:n], strict=True))
@@ -455,7 +457,9 @@ def plot_stacked_area(
     pd = import_module("pandas")
     plt.style.use("seaborn-v0_8-whitegrid")
     if not isinstance(dataframe.index, pd.DatetimeIndex):
-        raise TypeError("plot_stacked_area() expects a DatetimeIndex-indexed DataFrame.")
+        raise TypeError(
+            "plot_stacked_area() expects a DatetimeIndex-indexed DataFrame."
+        )
     totals = dataframe.sum().sort_values(ascending=False)
     cols = list(totals.head(top_n).index)
     sub = dataframe[cols].fillna(0)
@@ -520,7 +524,9 @@ def plot_complaint_scatter(
     point_frame = _prepare_plot_frame(points_gdf, add_basemap=add_basemap)
     boundary_frame = _prepare_plot_frame(boundaries_gdf, add_basemap=add_basemap)
     if point_frame is None or point_frame.empty:
-        raise TypeError("plot_complaint_scatter() requires a non-empty points GeoDataFrame.")
+        raise TypeError(
+            "plot_complaint_scatter() requires a non-empty points GeoDataFrame."
+        )
 
     _figure, axes = plt.subplots(figsize=figsize)
     scatter_legend_kwds = {"bbox_to_anchor": (1.02, 1), "loc": "upper left"}
@@ -586,7 +592,9 @@ def plot_hero_banner(
     _figure, axes = plt.subplots(figsize=figsize)
     hero_legend_kwds = {"bbox_to_anchor": (1.01, 1), "loc": "upper left", "fontsize": 8}
     if boundary_frame is not None and not boundary_frame.empty:
-        boundary_frame.boundary.plot(ax=axes, color="#0f172a", linewidth=0.9, alpha=0.85)
+        boundary_frame.boundary.plot(
+            ax=axes, color="#0f172a", linewidth=0.9, alpha=0.85
+        )
     point_frame.plot(
         ax=axes,
         column=column,

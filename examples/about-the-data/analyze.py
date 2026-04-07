@@ -57,7 +57,9 @@ def run_analyze(args: argparse.Namespace) -> None:
     if not args.skip_choropleth:
         analysis_logic.choropleth_figures(cache_root, boroughs, figures_dir=FIGURES_DIR)
     if not args.skip_scatter:
-        analysis_logic.scatter_map_figures(cache_root, boroughs, figures_dir=FIGURES_DIR)
+        analysis_logic.scatter_map_figures(
+            cache_root, boroughs, figures_dir=FIGURES_DIR
+        )
         _publish_readme_hero_from_scatter_cover()
     if not args.skip_hero:
         analysis_logic.hero_image_figures(cache_root, boroughs, figures_dir=FIGURES_DIR)

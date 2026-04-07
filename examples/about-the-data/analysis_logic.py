@@ -47,6 +47,7 @@ def _footnote_figure(fig: Any, footnote: str | None) -> None:
         va="bottom",
     )
 
+
 # --- Section 1: catalogue ---
 
 
@@ -100,10 +101,18 @@ def _scan_borough_csv(csv_path: Path) -> dict[str, Any]:
         cmin = chunk["created_date"].min()
         cmax = chunk["created_date"].max()
         if pd.notna(cmin):
-            dmin = cmin.date() if hasattr(cmin, "date") else date.fromisoformat(str(cmin)[:10])
+            dmin = (
+                cmin.date()
+                if hasattr(cmin, "date")
+                else date.fromisoformat(str(cmin)[:10])
+            )
             min_d = dmin if min_d is None else min(min_d, dmin)
         if pd.notna(cmax):
-            dmax = cmax.date() if hasattr(cmax, "date") else date.fromisoformat(str(cmax)[:10])
+            dmax = (
+                cmax.date()
+                if hasattr(cmax, "date")
+                else date.fromisoformat(str(cmax)[:10])
+            )
             max_d = dmax if max_d is None else max(max_d, dmax)
     return {
         "total": total,
@@ -117,9 +126,7 @@ def _scan_borough_csv(csv_path: Path) -> dict[str, Any]:
     }
 
 
-def build_catalogue(
-    cache_root: Path, boroughs: tuple[str, ...]
-) -> CatalogueSummary:
+def build_catalogue(cache_root: Path, boroughs: tuple[str, ...]) -> CatalogueSummary:
     rows: list[BoroughCatalogueRow] = []
     for b in boroughs:
         bdir = borough_cache_dir(cache_root, b)
@@ -274,12 +281,20 @@ def sample_eda_figures(
     fig3.savefig(p3, bbox_inches="tight", dpi=150)
     plt.close(fig3)
     # resolution rate by CD (sample)
-    cd_col = "community_district" if "community_district" in all_df.columns else "community_board"
+    cd_col = (
+        "community_district"
+        if "community_district" in all_df.columns
+        else "community_board"
+    )
     rates = []
     for cd, g in all_df.groupby(cd_col):
         if len(g) < 5:
             continue
-        r = g["resolution_description"].notna().mean() if "resolution_description" in g.columns else 0.0
+        r = (
+            g["resolution_description"].notna().mean()
+            if "resolution_description" in g.columns
+            else 0.0
+        )
         rates.append(float(r))
     fig4 = plotting.plot_bar_counts(
         [str(i) for i in range(len(rates))],
@@ -318,9 +333,7 @@ def timeseries_figures(
     frames: list[pd.DataFrame] = []
     for b in boroughs:
         for p in borough_cache_dir(cache_root, b).glob("*.csv"):
-            frames.append(
-                pd.read_csv(p, nrows=800_000, parse_dates=["created_date"])
-            )
+            frames.append(pd.read_csv(p, nrows=800_000, parse_dates=["created_date"]))
     if not frames:
         placeholder = figures_dir / "timeseries-placeholder.png"
         placeholder.write_bytes(b"")
@@ -328,7 +341,11 @@ def timeseries_figures(
             placeholder, placeholder, placeholder, placeholder, placeholder, None
         )
     df = pd.concat(frames, ignore_index=True)
-    fn = _desc_sample_footnote() if _cache_uses_desc_sample(cache_root, boroughs) else None
+    fn = (
+        _desc_sample_footnote()
+        if _cache_uses_desc_sample(cache_root, boroughs)
+        else None
+    )
     df["day"] = pd.to_datetime(df["created_date"]).dt.floor("D")
     daily = df.groupby("day").size()
     daily_df = pd.DataFrame({"count": daily})
@@ -370,7 +387,9 @@ def timeseries_figures(
     top4 = df["complaint_type"].value_counts().head(4).index
     # faceted heatmap: concatenate subplots manually — single combined for v1
     sub = df[df["complaint_type"].isin(top4)]
-    fig5 = plotting.plot_complaint_heatmap(sub, title="Hour × weekday (top types sample)")
+    fig5 = plotting.plot_complaint_heatmap(
+        sub, title="Hour × weekday (top types sample)"
+    )
     _footnote_figure(fig5, fn)
     p_hmt = figures_dir / "heatmap-hour-weekday-by-type.png"
     fig5.savefig(p_hmt, bbox_inches="tight", dpi=150)
@@ -378,7 +397,9 @@ def timeseries_figures(
     seasonal_path: Path | None = None
     noise = df[df["complaint_type"] == "Noise - Residential"].copy()
     if len(noise) > 24:
-        noise["m"] = pd.to_datetime(noise["created_date"]).dt.to_period("M").dt.to_timestamp()
+        noise["m"] = (
+            pd.to_datetime(noise["created_date"]).dt.to_period("M").dt.to_timestamp()
+        )
         monthly_n = noise.groupby("m").size()
         try:
             from statsmodels.tsa.seasonal import STL
@@ -438,7 +459,11 @@ def choropleth_figures(
         empty: list[tuple[str, Path]] = []
         return ChoroplethPaths(ph, ph, ph, ph, empty)
     df = pd.concat(frames, ignore_index=True)
-    cd_col = "community_district" if "community_district" in df.columns else "community_board"
+    cd_col = (
+        "community_district"
+        if "community_district" in df.columns
+        else "community_board"
+    )
     cd_counts = df.groupby(cd_col).size().rename("n")
     gdf = geographies.load_nyc_boundaries_geodataframe("community_district")
     merged = gdf.merge(
@@ -480,8 +505,12 @@ def choropleth_figures(
     )
     figb.savefig(p2, bbox_inches="tight", dpi=150)
     plt.close(figb)
-    res_rate = df.groupby(cd_col)["resolution_description"].apply(lambda s: s.isna().mean())
-    m3 = gdf.merge(res_rate.rename("gap"), left_on="geography_value", right_index=True, how="left")
+    res_rate = df.groupby(cd_col)["resolution_description"].apply(
+        lambda s: s.isna().mean()
+    )
+    m3 = gdf.merge(
+        res_rate.rename("gap"), left_on="geography_value", right_index=True, how="left"
+    )
     m3["gap"] = m3["gap"].fillna(0)
     figc = plotting.plot_boundary_choropleth(
         m3,
@@ -728,7 +757,9 @@ def analysis_figures(
     p2 = figures_dir / "topic-anomaly-zscores.png"
     fig2.savefig(p2, bbox_inches="tight", dpi=150)
     plt.close(fig2)
-    rep0 = analysis.analyze_topic_coverage(recs, models.TopicQuery(ALL_COMPLAINT_TYPES[0]))
+    rep0 = analysis.analyze_topic_coverage(
+        recs, models.TopicQuery(ALL_COMPLAINT_TYPES[0])
+    )
     fig3 = plotting.plot_bar_counts(
         [d for d, _ in rep0.top_unmatched_descriptors],
         [float(c) for _, c in rep0.top_unmatched_descriptors],
@@ -738,7 +769,9 @@ def analysis_figures(
     p3 = figures_dir / "top-unmatched-descriptors.png"
     fig3.savefig(p3, bbox_inches="tight", dpi=150)
     plt.close(fig3)
-    br = df.groupby("borough")["resolution_description"].apply(lambda s: s.isna().mean())
+    br = df.groupby("borough")["resolution_description"].apply(
+        lambda s: s.isna().mean()
+    )
     fig4 = plotting.plot_bar_counts(
         [str(x) for x in br.index],
         [float(x) for x in br.values],
