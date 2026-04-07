@@ -13,6 +13,12 @@ from ._records import (
     dataframe_to_records,
     records_to_dataframe,
 )
+from ._timeseries import (
+    resample_and_fill,
+    to_panel,
+    to_timeseries,
+    to_topic_timeseries,
+)
 
 __all__ = [
     "anomalies_to_dataframe",
@@ -21,5 +27,9 @@ __all__ = [
     "dataframe_to_records",
     "gaps_to_dataframe",
     "records_to_dataframe",
+    "resample_and_fill",
     "summaries_to_dataframe",
+    "to_panel",
+    "to_timeseries",
+    "to_topic_timeseries",
 ]

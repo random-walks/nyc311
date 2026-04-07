@@ -1,5 +1,7 @@
 # nyc311
 
+![nyc311 — NYC 311 complaint analysis](docs/images/nyc311-hero.png)
+
 [![Actions Status][actions-badge]][actions-link]
 [![Documentation Status][rtd-badge]][rtd-link]
 [![PyPI version][pypi-version]][pypi-link]
@@ -97,15 +99,52 @@ The current stable workflow is:
 
 ### Supported topic extraction
 
-The current rules-based topic extractor is implemented only for:
-
-- `Blocked Driveway`
-- `Illegal Parking`
-- `Noise - Residential`
-- `Rodent`
+The current rules-based topic extractor is implemented for the complaint types
+returned by `nyc311.models.supported_topic_queries()` (nine high-volume types
+including noise, rodents, street condition, heat/hot water, sanitary, and
+abandoned vehicles).
 
 This is intentionally described as **first-pass topic extraction**, not
 clustering or advanced NLP.
+
+## Time series
+
+Use `nyc311.dataframes` helpers for DatetimeIndex complaint counts and panel
+layouts:
+
+```python
+from nyc311 import pipeline, presets
+from nyc311.dataframes import to_timeseries, to_panel
+
+records = pipeline.fetch_service_requests(
+    filters=presets.brooklyn_borough_filter(
+        start_date="2024-01-01",
+        end_date="2024-12-31",
+        complaint_types=("Noise - Residential", "Rodent"),
+    ),
+    socrata_config=presets.large_socrata_config(),
+    cache_dir="./cache",
+)
+
+ts = to_timeseries(records, freq="W")
+ts.plot(title="Weekly complaint volume")
+
+panel = to_panel(records, freq="ME", geography="borough")
+panel.xs("BROOKLYN")["Noise - Residential"].plot()
+```
+
+## Data surface
+
+- **Socrata:** dataset `erm2-nwe9` (NYC 311 Service Requests from 2010 onward;
+  tens of millions of rows). Use `presets.large_socrata_config()` for bulk
+  pagination (default 5,000 rows per HTTP request) and `nyc311.io.cached_fetch`
+  to stream pages to CSV without holding the full history in memory.
+- **Boundaries:** borough, community district, council district, NTA, census
+  tract, and ZCTA layers ship through `nyc311.geographies` (built on
+  `nyc-geo-toolkit`).
+- **Caching:** pass `cache_dir` and optional `refresh` / `max_cached_records` to
+  `pipeline.fetch_service_requests` or `io.load_service_requests` so repeated
+  runs reuse deterministic CSV snapshots under `cache_dir`.
 
 ## Quick links
 

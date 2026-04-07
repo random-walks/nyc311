@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+import time
+from collections.abc import Callable, Iterator
 from typing import Any, Final
+from urllib.error import URLError
 from urllib.parse import urlencode
 from urllib.request import Request
 
@@ -95,6 +97,12 @@ def _socrata_where_clauses(service_request_filter: ServiceRequestFilter) -> list
     return clauses
 
 
+def _socrata_order_clause(socrata_config: SocrataConfig) -> str:
+    if socrata_config.created_date_sort == "desc":
+        return "created_date DESC, unique_key DESC"
+    return "created_date ASC, unique_key ASC"
+
+
 def _build_socrata_url(
     socrata_config: SocrataConfig,
     service_request_filter: ServiceRequestFilter,
@@ -105,7 +113,7 @@ def _build_socrata_url(
         "$select": _socrata_select_fields(),
         "$limit": str(socrata_config.page_size),
         "$offset": str(offset),
-        "$order": "created_date ASC, unique_key ASC",
+        "$order": _socrata_order_clause(socrata_config),
     }
     where_clauses = _socrata_where_clauses(service_request_filter)
     if socrata_config.extra_where_clauses:
@@ -116,13 +124,53 @@ def _build_socrata_url(
     return f"{socrata_config.base_url}/{socrata_config.dataset_identifier}.json?{encoded_query}"
 
 
-def load_service_requests_from_socrata(
+def _read_socrata_page_once(
+    request: Request,
+    request_open: Callable[..., Any],
+    timeout: float,
+) -> list[object]:
+    with request_open(request, timeout=timeout) as response:
+        raw = response.read().decode("utf-8")
+    payload = json.loads(raw)
+    if not isinstance(payload, list):
+        raise ValueError("Unexpected Socrata response payload; expected a JSON list.")
+    return payload
+
+
+def _fetch_socrata_page_json(
+    request: Request,
+    *,
+    request_open: Callable[..., Any],
+    timeout: float,
+    _attempt: int = 0,
+) -> list[object]:
+    """Load one JSON list page with retries on transient network timeouts."""
+    try:
+        return _read_socrata_page_once(request, request_open, timeout)
+    except (TimeoutError, URLError):
+        if _attempt >= 3:
+            raise
+        time.sleep(min(8.0, 2.0**_attempt))
+        return _fetch_socrata_page_json(
+            request,
+            request_open=request_open,
+            timeout=timeout,
+            _attempt=_attempt + 1,
+        )
+
+
+def iter_service_requests_from_socrata(
     socrata_config: SocrataConfig,
     *,
     filters: ServiceRequestFilter,
     request_open: Callable[..., Any],
-) -> list[ServiceRequestRecord]:
-    """Load and filter service-request records from the live Socrata API."""
+    on_page: Callable[[int, int], None] | None = None,
+) -> Iterator[ServiceRequestRecord]:
+    """Yield service-request records from Socrata without holding all pages in memory.
+
+    ``on_page`` is invoked after each successful HTTP response with
+    ``(page_index, row_count_in_page)`` (0-based page index).
+    """
     headers = {"Accept": "application/json"}
     if socrata_config.app_token is not None:
         headers["X-App-Token"] = socrata_config.app_token
@@ -130,7 +178,6 @@ def load_service_requests_from_socrata(
     request_limit = socrata_config.page_size
     offset = 0
     page_count = 0
-    records: list[ServiceRequestRecord] = []
 
     while True:
         if (
@@ -141,19 +188,18 @@ def load_service_requests_from_socrata(
 
         request_url = _build_socrata_url(socrata_config, filters, offset=offset)
         request = Request(request_url, headers=headers)
-        with request_open(
-            request, timeout=socrata_config.request_timeout_seconds
-        ) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        payload = _fetch_socrata_page_json(
+            request,
+            request_open=request_open,
+            timeout=socrata_config.request_timeout_seconds,
+        )
 
-        if not isinstance(payload, list):
-            raise ValueError(
-                "Unexpected Socrata response payload; expected a JSON list."
-            )
+        if on_page is not None:
+            on_page(page_count, len(payload))
+
         if not payload:
             break
 
-        batch_records: list[ServiceRequestRecord] = []
         for raw_row in payload:
             if not isinstance(raw_row, dict):
                 raise ValueError(
@@ -165,14 +211,24 @@ def load_service_requests_from_socrata(
                 if "community_district" in normalized_row
                 else "community_board"
             )
-            batch_records.append(
-                _record_from_mapping(normalized_row, community_district_column)
-            )
+            yield _record_from_mapping(normalized_row, community_district_column)
 
-        records.extend(batch_records)
         if len(payload) < request_limit:
             break
         offset += request_limit
         page_count += 1
 
+
+def load_service_requests_from_socrata(
+    socrata_config: SocrataConfig,
+    *,
+    filters: ServiceRequestFilter,
+    request_open: Callable[..., Any],
+) -> list[ServiceRequestRecord]:
+    """Load and filter service-request records from the live Socrata API."""
+    records = list(
+        iter_service_requests_from_socrata(
+            socrata_config, filters=filters, request_open=request_open
+        )
+    )
     return _apply_filters(records, filters)

@@ -35,6 +35,11 @@ That covers:
 If the release touches `nyc311.geographies` or dependency ranges, also verify
 the current `nyc-geo-toolkit` compatibility path before tagging.
 
+After publishing a new **`nyc-geo-toolkit`** line that raises the minimum useful
+version (for example a release that adds shared basemap helpers), bump
+`dependencies.nyc-geo-toolkit` in `pyproject.toml` if you want `uv lock` to
+resolve that floor, then run `uv lock` and commit the updated `uv.lock`.
+
 ## Release path
 
 The standard production path is:

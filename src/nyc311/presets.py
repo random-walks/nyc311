@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from . import models
 
@@ -74,9 +75,51 @@ def small_socrata_config(
     )
 
 
+def large_socrata_config(
+    *,
+    page_size: int = 5_000,
+    max_pages: int | None = None,
+    app_token: str | None = None,
+    request_timeout_seconds: float = 300.0,
+    created_date_sort: Literal["asc", "desc"] = "asc",
+) -> models.SocrataConfig:
+    """Build a high-throughput Socrata config for bulk downloads (e.g. full history).
+
+    Default ``page_size`` is 5,000 rows per request so each HTTP round-trip stays
+    smaller than very large pages, with a five-minute read timeout per request.
+    Use ``created_date_sort='desc'`` when you want the most recent rows first
+    (e.g. capped smoke samples).
+    """
+    return models.SocrataConfig(
+        app_token=app_token,
+        page_size=page_size,
+        max_pages=max_pages,
+        request_timeout_seconds=request_timeout_seconds,
+        created_date_sort=created_date_sort,
+    )
+
+
+def smoke_socrata_config(
+    *,
+    page_size: int = 5_000,
+    app_token: str | None = None,
+    request_timeout_seconds: float = 120.0,
+) -> models.SocrataConfig:
+    """Recent-first Socrata config used with a per-borough row cap (see about-the-data ``--preset smoke``)."""
+    return models.SocrataConfig(
+        app_token=app_token,
+        page_size=page_size,
+        max_pages=None,
+        request_timeout_seconds=request_timeout_seconds,
+        created_date_sort="desc",
+    )
+
+
 __all__ = [
     "brooklyn_borough_filter",
     "build_filter",
+    "large_socrata_config",
     "manhattan_borough_filter",
+    "smoke_socrata_config",
     "small_socrata_config",
 ]

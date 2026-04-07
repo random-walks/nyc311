@@ -1,0 +1,244 @@
+"""Download Socrata 311 slices and packaged boundary layers into ``cache/``."""
+
+from __future__ import annotations
+
+import json
+from collections.abc import Callable
+from datetime import date
+from pathlib import Path
+from typing import Literal
+from urllib.request import urlopen
+
+from nyc311 import geographies, io, models, presets
+
+ALL_BOROUGHS = (
+    "BRONX",
+    "BROOKLYN",
+    "MANHATTAN",
+    "QUEENS",
+    "STATEN ISLAND",
+)
+ALL_COMPLAINT_TYPES = models.supported_topic_queries()
+
+
+def borough_slug(name: str) -> str:
+    return name.strip().lower().replace(" ", "_")
+
+
+def borough_cache_dir(cache_root: Path, borough: str) -> Path:
+    return Path(cache_root) / "records" / borough_slug(borough)
+
+
+def parse_borough_list(raw: str | None) -> tuple[str, ...]:
+    if raw is None or not raw.strip():
+        return ALL_BOROUGHS
+    parts = tuple(
+        p.strip().upper().replace("_", " ") for p in raw.split(",") if p.strip()
+    )
+    for p in parts:
+        if p not in ALL_BOROUGHS:
+            raise ValueError(f"Unknown borough {p!r}. Expected one of {ALL_BOROUGHS}.")
+    return parts
+
+
+def parse_complaint_types(raw: str | None) -> tuple[str, ...]:
+    if raw is None or not raw.strip():
+        return ALL_COMPLAINT_TYPES
+    parts = tuple(p.strip() for p in raw.split(",") if p.strip())
+    for p in parts:
+        if p not in ALL_COMPLAINT_TYPES:
+            raise ValueError(
+                f"Complaint type {p!r} is not in supported_topic_queries()."
+            )
+    return parts
+
+
+def borough_all_records_csv_path(
+    cache_root: Path,
+    borough: str,
+    *,
+    start_date: date,
+    end_date: date,
+    page_size: int,
+    app_token: str | None,
+    request_timeout_seconds: float = 300.0,
+    created_date_sort: Literal["asc", "desc"] = "asc",
+) -> Path:
+    """Deterministic CSV path for the default per-borough bulk slice."""
+    cfg = presets.large_socrata_config(
+        page_size=page_size,
+        app_token=app_token,
+        request_timeout_seconds=request_timeout_seconds,
+        created_date_sort=created_date_sort,
+    )
+    filt = models.ServiceRequestFilter(
+        start_date=start_date,
+        end_date=end_date,
+        geography=models.GeographyFilter("borough", borough),
+    )
+    dest = borough_cache_dir(cache_root, borough)
+    return io.cache_path_for_request(cfg, filt, dest)
+
+
+def _page_progress_callback(borough: str) -> Callable[[int, int], None]:
+    total = 0
+
+    def _on_page(page_idx: int, n: int) -> None:
+        nonlocal total
+        total += n
+        print(
+            f"  [{borough}] page {page_idx + 1}: {n} rows (running total {total})",
+            flush=True,
+        )
+
+    return _on_page
+
+
+def download_all_records(
+    cache_root: Path,
+    boroughs: tuple[str, ...],
+    *,
+    refresh: bool,
+    app_token: str | None,
+    start_date: date,
+    end_date: date,
+    page_size: int,
+    max_records_per_borough: int | None,
+    request_timeout_seconds: float = 300.0,
+    created_date_sort: Literal["asc", "desc"] = "asc",
+    progress: bool = True,
+    verbose: bool = False,
+) -> dict[str, Path]:
+    """One cached CSV per borough (filtered query).
+
+    Skips network when the expected CSV already exists and ``refresh`` is false
+    (same behavior as :func:`nyc311.io.cached_fetch`). Interrupted downloads leave
+    no complete CSV until the stream finishes (atomic rename from ``*.csv.part``).
+    """
+    cfg = presets.large_socrata_config(
+        page_size=page_size,
+        app_token=app_token,
+        request_timeout_seconds=request_timeout_seconds,
+        created_date_sort=created_date_sort,
+    )
+    out: dict[str, Path] = {}
+    for borough in boroughs:
+        filt = models.ServiceRequestFilter(
+            start_date=start_date,
+            end_date=end_date,
+            geography=models.GeographyFilter("borough", borough),
+        )
+        dest = borough_cache_dir(cache_root, borough)
+        dest.mkdir(parents=True, exist_ok=True)
+        expected = io.cache_path_for_request(cfg, filt, dest)
+        if verbose:
+            if expected.is_file() and not refresh:
+                print(f"[skip] {borough}: {expected.name}", flush=True)
+            else:
+                print(f"[fetch] {borough} → {expected.name}", flush=True)
+        on_page = _page_progress_callback(borough) if progress else None
+        path = io.cached_fetch(
+            cfg,
+            filt,
+            cache_dir=dest,
+            refresh=refresh,
+            request_open=urlopen,
+            max_records=max_records_per_borough,
+            on_page=on_page,
+        )
+        if verbose and path.is_file():
+            print(
+                f"[done] {borough}: {path.name} ({path.stat().st_size:,} bytes)",
+                flush=True,
+            )
+        out[borough] = path
+    return out
+
+
+def download_per_type_records(
+    cache_root: Path,
+    boroughs: tuple[str, ...],
+    types: tuple[str, ...],
+    *,
+    refresh: bool,
+    app_token: str | None,
+    start_date: date,
+    end_date: date,
+    page_size: int,
+    max_records_per_borough: int | None,
+    request_timeout_seconds: float = 300.0,
+    created_date_sort: Literal["asc", "desc"] = "asc",
+    progress: bool = True,
+    verbose: bool = False,
+) -> dict[tuple[str, str], Path]:
+    """Cached CSV per (borough, complaint type) pair."""
+    cfg = presets.large_socrata_config(
+        page_size=page_size,
+        app_token=app_token,
+        request_timeout_seconds=request_timeout_seconds,
+        created_date_sort=created_date_sort,
+    )
+    out: dict[tuple[str, str], Path] = {}
+    for borough in boroughs:
+        for ctype in types:
+            filt = models.ServiceRequestFilter(
+                start_date=start_date,
+                end_date=end_date,
+                geography=models.GeographyFilter("borough", borough),
+                complaint_types=(ctype,),
+            )
+            dest = Path(cache_root) / "records_by_type" / borough_slug(borough)
+            dest.mkdir(parents=True, exist_ok=True)
+            expected = io.cache_path_for_request(cfg, filt, dest)
+            if verbose:
+                label = f"{borough} / {ctype}"
+                if expected.is_file() and not refresh:
+                    print(f"[skip] {label}: {expected.name}", flush=True)
+                else:
+                    print(f"[fetch] {label} → {expected.name}", flush=True)
+            label = f"{borough}/{ctype}"
+            on_page = _page_progress_callback(label) if progress else None
+            path = io.cached_fetch(
+                cfg,
+                filt,
+                cache_dir=dest,
+                refresh=refresh,
+                request_open=urlopen,
+                max_records=max_records_per_borough,
+                on_page=on_page,
+            )
+            out[(borough, ctype)] = path
+    return out
+
+
+def download_boundary_layers(cache_root: Path, *, refresh: bool) -> dict[str, Path]:
+    """Write packaged boundary layers as GeoJSON under ``cache/boundaries/``."""
+    root = Path(cache_root) / "boundaries"
+    root.mkdir(parents=True, exist_ok=True)
+    layers: dict[str, str] = {
+        "borough": "borough",
+        "community_district": "community_district",
+        "council_district": "council_district",
+        "neighborhood_tabulation_area": "neighborhood_tabulation_area",
+        "zcta": "zcta",
+    }
+    out: dict[str, Path] = {}
+    for key, layer in layers.items():
+        path = root / f"{key}.geojson"
+        if path.is_file() and not refresh:
+            out[key] = path
+            continue
+        collection = geographies.load_nyc_boundaries(layer)
+        payload = geographies.boundaries_to_geojson(collection)
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        out[key] = path
+
+    tract_path = root / "census_tract.geojson"
+    if not tract_path.is_file() or refresh:
+        collection = geographies.load_nyc_census_tracts()
+        tract_path.write_text(
+            json.dumps(geographies.boundaries_to_geojson(collection)),
+            encoding="utf-8",
+        )
+    out["census_tract"] = tract_path
+    return out

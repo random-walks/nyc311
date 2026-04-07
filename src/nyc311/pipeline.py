@@ -24,16 +24,26 @@ def fetch_service_requests(
     filters: ServiceRequestFilter | None = None,
     socrata_config: SocrataConfig | None = None,
     output: str | Path | None = None,
+    cache_dir: Path | str | None = None,
+    refresh: bool = False,
+    max_cached_records: int | None = None,
 ) -> list[ServiceRequestRecord]:
     """Fetch a live Socrata slice into memory and optionally stage it as CSV.
 
     This is the intended SDK helper for notebook and workflow users who want to
     fetch once, inspect records in memory, and only export a local snapshot when
     they decide the filtered slice is worth keeping.
+
+    When ``cache_dir`` is set, responses are streamed to a CSV cache first (see
+    :func:`nyc311.io.cached_fetch`), then loaded—avoid huge slices unless you use
+    chunked analysis on the cache file.
     """
     records = load_service_requests(
         socrata_config or SocrataConfig(),
         filters=filters,
+        cache_dir=cache_dir,
+        refresh=refresh,
+        max_cached_records=max_cached_records,
     )
     if output is not None:
         export_service_requests_csv(

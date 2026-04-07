@@ -40,7 +40,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "nyc-geo-toolkit>=0.1.1,<0.2.0",
+  "nyc-geo-toolkit>=0.1.7,<0.2.0",
 ]
 
 [project.scripts]
@@ -90,6 +90,7 @@ test = [
 dev = [
   { include-group = "test" },
   "mypy >=1.18",
+  "pandas-stubs >=2.3.0",
   "pylint >=3.3",
   "ruff >=0.12",
 ]
@@ -220,6 +221,19 @@ ignore = [
 "tests/**" = ["T20"]
 "noxfile.py" = ["EXE001", "T20"]
 "examples/**/*.py" = ["T20"]
+"examples/about-the-data/**/*.py" = [
+  "ARG001",
+  "BLE001",
+  "B007",
+  "DTZ",
+  "I001",
+  "PD010",
+  "PD011",
+  "PERF203",
+  "PERF401",
+  "PLC0415",
+  "RUF001",
+]
 "docs/examples/**" = ["T20"]
 
 

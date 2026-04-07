@@ -48,6 +48,7 @@ learning tracks. Use the table below as the fast GitHub skim.
 
 | Example                                   | Skill level  | Track                   | Best for                                                            | Default data mode                 |
 | ----------------------------------------- | ------------ | ----------------------- | ------------------------------------------------------------------- | --------------------------------- |
+| `examples/about-the-data/`                | Advanced     | catalogue + scale       | full data-surface download, tearsheet, and time-series figures      | live Socrata + boundary GeoJSON   |
 | `examples/quickstart-sdk/`                | Easy         | first run               | smallest end-to-end SDK walkthrough                                 | packaged sample records           |
 | `examples/borough-choropleth/`            | Easy         | visual intro            | first polished geospatial tearsheet                                 | packaged sample records           |
 | `examples/fetch-filtered-snapshot/`       | Easy         | live data               | first cache-backed fetch pattern with a larger default slice        | live fetch with local cache reuse |

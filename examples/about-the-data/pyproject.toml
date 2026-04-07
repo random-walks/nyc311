@@ -1,0 +1,13 @@
+[project]
+name = "nyc311-about-the-data"
+version = "0.0.0"
+description = "NYC-wide data catalogue and maximum public 311 download."
+requires-python = ">=3.10"
+dependencies = [
+    "nyc311[all]",
+    "geopandas>=1.0",
+    "contextily>=1.6",
+]
+
+[tool.uv.sources]
+nyc311 = { path = "../..", editable = true }
