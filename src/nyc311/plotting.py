@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from importlib import import_module
-from typing import Any
+from typing import Any, cast
 
 
 def _require_matplotlib() -> Any:
@@ -580,9 +580,12 @@ def plot_hero_banner(
     boundary_frame = boundaries_gdf
     if bbox is not None:
         minx, miny, maxx, maxy = bbox
-        point_frame = points_gdf.cx[minx:maxx, miny:maxy]
+        # GeoPandas uses float coordinate bounds; slice() in typeshed is int-only.
+        x_slice = slice(cast(Any, minx), cast(Any, maxx))
+        y_slice = slice(cast(Any, miny), cast(Any, maxy))
+        point_frame = points_gdf.cx[x_slice, y_slice]
         if boundaries_gdf is not None:
-            boundary_frame = boundaries_gdf.cx[minx:maxx, miny:maxy]
+            boundary_frame = boundaries_gdf.cx[x_slice, y_slice]
 
     point_frame = _prepare_plot_frame(point_frame, add_basemap=True)
     boundary_frame = _prepare_plot_frame(boundary_frame, add_basemap=True)

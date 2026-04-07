@@ -60,7 +60,9 @@ def cache_path_for_request(
     return cache_dir / name
 
 
-def _write_record_row(writer: csv.DictWriter, record: ServiceRequestRecord) -> None:
+def _write_record_row(
+    writer: csv.DictWriter[str], record: ServiceRequestRecord
+) -> None:
     writer.writerow(
         {
             "unique_key": record.service_request_id,
