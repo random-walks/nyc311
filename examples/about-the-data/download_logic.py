@@ -211,9 +211,7 @@ def download_per_type_records(
     return out
 
 
-def download_boundary_layers(
-    cache_root: Path, *, refresh: bool
-) -> dict[str, Path]:
+def download_boundary_layers(cache_root: Path, *, refresh: bool) -> dict[str, Path]:
     """Write packaged boundary layers as GeoJSON under ``cache/boundaries/``."""
     root = Path(cache_root) / "boundaries"
     root.mkdir(parents=True, exist_ok=True)

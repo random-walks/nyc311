@@ -60,7 +60,9 @@ def cache_path_for_request(
     return cache_dir / name
 
 
-def _write_record_row(writer: csv.DictWriter, record: ServiceRequestRecord) -> None:
+def _write_record_row(
+    writer: csv.DictWriter[str], record: ServiceRequestRecord
+) -> None:
     writer.writerow(
         {
             "unique_key": record.service_request_id,
@@ -119,9 +121,7 @@ def cached_fetch(
     written = 0
     try:
         with partial_path.open("w", newline="", encoding="utf-8") as csv_file:
-            writer = csv.DictWriter(
-                csv_file, fieldnames=SERVICE_REQUEST_EXPORT_COLUMNS
-            )
+            writer = csv.DictWriter(csv_file, fieldnames=SERVICE_REQUEST_EXPORT_COLUMNS)
             writer.writeheader()
             for record in iter_service_requests_from_socrata(
                 socrata_config,

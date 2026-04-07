@@ -34,9 +34,7 @@ def _sample_records() -> list[ServiceRequestRecord]:
 
 def test_cache_path_unfiltered() -> None:
     cfg = SocrataConfig(page_size=1000)
-    flt = ServiceRequestFilter(
-        start_date=date(2024, 1, 1), end_date=date(2024, 1, 31)
-    )
+    flt = ServiceRequestFilter(start_date=date(2024, 1, 1), end_date=date(2024, 1, 31))
     p = cache_path_for_request(cfg, flt, Path("/tmp/cache"))
     assert p.name == "all_2024-01-01_2024-01-31_1000.csv"
 

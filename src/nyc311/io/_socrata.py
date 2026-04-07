@@ -133,9 +133,7 @@ def _read_socrata_page_once(
         raw = response.read().decode("utf-8")
     payload = json.loads(raw)
     if not isinstance(payload, list):
-        raise ValueError(
-            "Unexpected Socrata response payload; expected a JSON list."
-        )
+        raise ValueError("Unexpected Socrata response payload; expected a JSON list.")
     return payload
 
 

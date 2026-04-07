@@ -14,7 +14,7 @@ from nyc_geo_toolkit import (
 from ..models import BoundaryCollection
 
 if TYPE_CHECKING:
-    import pandas as pd  # type: ignore[import-untyped]
+    import pandas as pd
 
 
 def boundaries_to_geojson(boundaries: BoundaryCollection) -> dict[str, object]:

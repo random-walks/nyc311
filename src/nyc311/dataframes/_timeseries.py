@@ -31,9 +31,7 @@ def to_timeseries(
     freq = _normalize_pandas_freq(freq)
     dataframe = records_to_dataframe(records)
     counts = (
-        dataframe.groupby(
-            [pd.Grouper(key="created_date", freq=freq), "complaint_type"]
-        )
+        dataframe.groupby([pd.Grouper(key="created_date", freq=freq), "complaint_type"])
         .size()
         .unstack(fill_value=0)
     )
