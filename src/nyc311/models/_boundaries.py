@@ -19,7 +19,7 @@ BoundaryCollection = ToolkitBoundaryCollection
 BoundaryFeature = ToolkitBoundaryFeature
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class BoundaryGeoJSONExport:
     """Combined boundary + summary payload for GeoJSON export."""
 

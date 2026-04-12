@@ -1,0 +1,10 @@
+{
+  "record_count": 200000,
+  "sha256": "e28b08efebfd76d74658c693b7c5da22a988e6decb40a38cb070af5a3a7123fd",
+  "fetched_at": "2026-04-12T00:28:29.811587+00:00",
+  "start_date": "2020-01-01",
+  "end_date": "2024-12-31",
+  "borough": "MANHATTAN",
+  "complaint_types": [],
+  "page_size": 5000
+}

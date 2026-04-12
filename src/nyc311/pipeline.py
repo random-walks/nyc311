@@ -2,21 +2,27 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from datetime import date
 from pathlib import Path
 
 from .analysis import aggregate_by_geography, extract_topics
 from .export import export_geojson, export_service_requests_csv, export_topic_table
 from .geographies import load_boundaries
 from .io import load_service_requests
+from .io._cache import cached_fetch
 from .models import (
     BoundaryGeoJSONExport,
     ExportTarget,
+    GeographyFilter,
     GeographyTopicSummary,
     ServiceRequestFilter,
     ServiceRequestRecord,
     SocrataConfig,
     TopicQuery,
 )
+from .models._constants import SUPPORTED_BOROUGHS
+from .presets import large_socrata_config
 
 
 def fetch_service_requests(
@@ -110,7 +116,85 @@ def run_topic_pipeline(
     return summaries
 
 
+def bulk_fetch(
+    *,
+    complaint_types: tuple[str, ...] = (),
+    start_date: date | str | None = None,
+    end_date: date | str | None = None,
+    cache_dir: Path | str = Path("data/cache"),
+    boroughs: tuple[str, ...] | None = None,
+    app_token: str | None = None,
+    page_size: int = 5_000,
+    on_progress: Callable[[str, int, int], None] | None = None,
+) -> list[Path]:
+    """Fetch full-city 311 data split by borough for manageable file sizes.
+
+    Downloads are split per-borough so that each CSV stays under a few
+    hundred megabytes.  Files are written to ``cache_dir`` with
+    deterministic names; subsequent calls skip any borough whose file
+    already exists.
+
+    Parameters
+    ----------
+    complaint_types:
+        Optional whitelist of complaint types.
+    start_date / end_date:
+        Date range (accepts ``date`` or ISO-8601 string).
+    cache_dir:
+        Directory to write CSV files into.
+    boroughs:
+        Boroughs to include.  Defaults to all five.
+    app_token:
+        Socrata app token for higher rate limits.
+    page_size:
+        Rows per Socrata HTTP request.
+    on_progress:
+        Callback ``(borough, page_index, page_row_count)`` after each page.
+
+    Returns
+    -------
+    list[Path]
+        Paths to the completed per-borough CSV files.
+    """
+    target_boroughs = boroughs or SUPPORTED_BOROUGHS
+    cache_path = Path(cache_dir)
+
+    parsed_start = (
+        date.fromisoformat(start_date) if isinstance(start_date, str) else start_date
+    )
+    parsed_end = date.fromisoformat(end_date) if isinstance(end_date, str) else end_date
+
+    config = large_socrata_config(
+        page_size=page_size,
+        app_token=app_token,
+    )
+
+    paths: list[Path] = []
+    for borough_name in target_boroughs:
+        filters = ServiceRequestFilter(
+            start_date=parsed_start,
+            end_date=parsed_end,
+            geography=GeographyFilter(geography="borough", value=borough_name),
+            complaint_types=complaint_types,
+        )
+
+        def _on_page(page_idx: int, row_count: int, _boro: str = borough_name) -> None:
+            if on_progress is not None:
+                on_progress(_boro, page_idx, row_count)
+
+        result_path = cached_fetch(
+            config,
+            filters,
+            cache_dir=cache_path,
+            on_page=_on_page,
+        )
+        paths.append(result_path)
+
+    return paths
+
+
 __all__ = [
+    "bulk_fetch",
     "fetch_service_requests",
     "run_topic_pipeline",
 ]

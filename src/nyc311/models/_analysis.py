@@ -9,7 +9,7 @@ from ._constants import SUPPORTED_GEOGRAPHIES
 from ._normalize import _normalize_value
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class AnalysisWindow:
     """Rolling time window used for trend and anomaly calculations."""
 
@@ -20,7 +20,7 @@ class AnalysisWindow:
             raise ValueError("days must be at least 1.")
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TopicQuery:
     """Topic-analysis parameters for the implemented rules-based workflow."""
 
@@ -36,7 +36,7 @@ class TopicQuery:
         object.__setattr__(self, "complaint_type", normalized_complaint_type)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TopicCoverageReport:
     """Coverage metadata that shows how much a topic ruleset matched."""
 
@@ -67,7 +67,7 @@ class TopicCoverageReport:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ExportTarget:
     """Destination metadata for supported exporters."""
 
@@ -82,7 +82,7 @@ class ExportTarget:
         object.__setattr__(self, "output_path", Path(self.output_path))
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class GeographyTopicSummary:
     """An export-ready summary row for topic counts within one geography."""
 
@@ -129,7 +129,7 @@ class GeographyTopicSummary:
         object.__setattr__(self, "topic", _normalize_value(self.topic))
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ResolutionGapSummary:
     """A first-pass borough-level summary of unresolved complaint volume."""
 
@@ -179,7 +179,7 @@ class ResolutionGapSummary:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class AnomalyResult:
     """A standardized anomaly score for one aggregated topic summary."""
 

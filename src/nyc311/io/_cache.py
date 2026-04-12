@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import csv
+import hashlib
+import json
 import re
 from collections.abc import Callable
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.request import urlopen
@@ -141,7 +144,38 @@ def cached_fetch(
             partial_path.unlink()
         raise
 
+    _write_meta(output_path, written, socrata_config, filters)
     return output_path
+
+
+def _write_meta(
+    csv_path: Path,
+    record_count: int,
+    socrata_config: SocrataConfig,
+    filters: ServiceRequestFilter,
+) -> None:
+    """Write a ``.meta.json`` sidecar with download integrity metadata."""
+    sha256 = hashlib.sha256()
+    with csv_path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 16), b""):
+            sha256.update(chunk)
+
+    meta = {
+        "record_count": record_count,
+        "sha256": sha256.hexdigest(),
+        "fetched_at": datetime.now(tz=timezone.utc).isoformat(),
+        "start_date": filters.start_date.isoformat() if filters.start_date else None,
+        "end_date": filters.end_date.isoformat() if filters.end_date else None,
+        "borough": (
+            filters.geography.value
+            if filters.geography and filters.geography.geography == "borough"
+            else None
+        ),
+        "complaint_types": list(filters.complaint_types),
+        "page_size": socrata_config.page_size,
+    }
+    meta_path = csv_path.with_suffix(".meta.json")
+    meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
 
 
 __all__ = ["cache_path_for_request", "cached_fetch"]

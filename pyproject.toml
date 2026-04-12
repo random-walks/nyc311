@@ -71,13 +71,27 @@ science = [
     "pandas>=2.3.3",
     "scipy>=1.15.3",
 ]
+stats = [
+    "esda>=2.6",
+    "libpysal>=4.10",
+    "linearmodels>=6.0",
+    "pandas>=2.3.3",
+    "ruptures>=1.1",
+    "scipy>=1.15.3",
+    "statsmodels>=0.14",
+]
 all = [
     "contextily>=1.6.2",
+    "esda>=2.6",
     "geopandas>=1.1",
+    "libpysal>=4.10",
+    "linearmodels>=6.0",
     "matplotlib>=3.10.8",
     "pandas>=2.3.3",
+    "ruptures>=1.1",
     "scipy>=1.15.3",
     "shapely>=2.1",
+    "statsmodels>=0.14",
 ]
 
 
@@ -161,6 +175,23 @@ module = "nyc311.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
+[[tool.mypy.overrides]]
+module = [
+    "esda",
+    "esda.*",
+    "libpysal",
+    "libpysal.*",
+    "linearmodels",
+    "linearmodels.*",
+    "ruptures",
+    "ruptures.*",
+    "spreg",
+    "spreg.*",
+    "statsmodels",
+    "statsmodels.*",
+]
+ignore_missing_imports = true
+
 
 [tool.ruff]
 show-fixes = true
@@ -218,7 +249,11 @@ ignore = [
 # typing-modules = ["nyc311._compat.typing"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["T20"]
+"tests/**" = ["T20", "PLC0415"]
+"src/nyc311/_version.py" = ["Q000", "RUF022"]
+"src/nyc311/factors/_base.py" = ["PLC0415"]
+"src/nyc311/temporal/*.py" = ["PLC0415"]
+"src/nyc311/stats/*.py" = ["PLC0415"]
 "noxfile.py" = ["EXE001", "T20"]
 "examples/**/*.py" = ["T20"]
 "examples/about-the-data/**/*.py" = [

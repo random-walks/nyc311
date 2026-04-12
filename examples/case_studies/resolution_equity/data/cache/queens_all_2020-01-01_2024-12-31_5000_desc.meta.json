@@ -1,0 +1,10 @@
+{
+  "record_count": 200000,
+  "sha256": "16ba34ef82d88d732ae8c246a5a3d1658edcecb5cb7a828c6d8fe7872a56d481",
+  "fetched_at": "2026-04-12T00:29:29.733874+00:00",
+  "start_date": "2020-01-01",
+  "end_date": "2024-12-31",
+  "borough": "QUEENS",
+  "complaint_types": [],
+  "page_size": 5000
+}
