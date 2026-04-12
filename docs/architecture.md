@@ -64,8 +64,8 @@ flowchart LR
 - Keep the CLI thin by delegating real work to importable functions.
 - Keep optional dependency boundaries explicit for dataframe, spatial, and
   notebook helpers.
-- Provide publication-quality statistical methods with clear academic
-  references for every modeling primitive.
+- Provide publication-quality statistical methods with clear academic references
+  for every modeling primitive.
 
 ## Toolkit Relationship
 
@@ -109,22 +109,21 @@ That split keeps the package responsibilities clear:
 - a one-call SDK pipeline helper
 - thin CLI fetch and export paths
 - a namespace-based public API audit script for maintainers
-- a composable factor pipeline with nine built-in domain factors
-  (including SpatialLagFactor and EquityGapFactor)
+- a composable factor pipeline with nine built-in domain factors (including
+  SpatialLagFactor and EquityGapFactor)
 - a balanced temporal panel builder with treatment-event modeling and
   inverse-distance spatial weights
-- a statistics module with interrupted time series, PELT changepoint
-  detection, STL seasonal decomposition, Moran's I / LISA spatial
-  autocorrelation, panel fixed/random-effects regression wrappers,
-  synthetic control, staggered difference-in-differences, event-study
-  plots, regression discontinuity, spatial lag/error models, GWR,
-  Oaxaca-Blinder decomposition, Theil index, reporting-bias adjustment,
-  BYM2 small-area smoothing, Hawkes process, seasonality-adjusted
-  anomaly detection, and power analysis / MDE calculator
-- a `bulk_fetch()` per-borough downloader that emits `.meta.json`
-  integrity sidecars
-- the resolution-equity case study, which exercises the full v0.3.0
-  surface against ~1M real records
+- a statistics module with interrupted time series, PELT changepoint detection,
+  STL seasonal decomposition, Moran's I / LISA spatial autocorrelation, panel
+  fixed/random-effects regression wrappers, synthetic control, staggered
+  difference-in-differences, event-study plots, regression discontinuity,
+  spatial lag/error models, GWR, Oaxaca-Blinder decomposition, Theil index,
+  reporting-bias adjustment, BYM2 small-area smoothing, Hawkes process,
+  seasonality-adjusted anomaly detection, and power analysis / MDE calculator
+- a `bulk_fetch()` per-borough downloader that emits `.meta.json` integrity
+  sidecars
+- the resolution-equity case study, which exercises the full v0.3.0 surface
+  against ~1M real records
 
 ## Boundaries
 

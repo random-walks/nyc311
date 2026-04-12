@@ -24,11 +24,13 @@ body:
     id: proposal
     attributes:
       label: Proposed solution
-      description: Describe the behavior, API shape, or docs change you have in mind.
+      description:
+        Describe the behavior, API shape, or docs change you have in mind.
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered
-      description: Any workarounds or alternative approaches you have already tried?
+      description:
+        Any workarounds or alternative approaches you have already tried?

@@ -208,8 +208,8 @@ Boundary files must currently include:
 ## Bulk Per-Borough Downloads
 
 For multi-year, full-city extracts, `nyc311.pipeline.bulk_fetch()` splits a
-single logical query into one CSV per borough. Each completed CSV is paired
-with a `.meta.json` sidecar capturing the row count, SHA-256 checksum, fetch
+single logical query into one CSV per borough. Each completed CSV is paired with
+a `.meta.json` sidecar capturing the row count, SHA-256 checksum, fetch
 timestamp, and the filter parameters used. Subsequent calls skip any borough
 whose file already exists, so you can resume an interrupted download.
 
@@ -235,9 +235,9 @@ for csv_path in paths:
 
 `nyc311.factors` provides a composable, immutable pipeline for computing
 domain-specific metrics over geographic units. Each `Factor` consumes a
-`FactorContext` (one geographic unit, one time window, the complaints inside
-it, and optional population/extras) and returns a single value. A `Pipeline`
-runs many factors over many contexts in a single pass and produces a columnar
+`FactorContext` (one geographic unit, one time window, the complaints inside it,
+and optional population/extras) and returns a single value. A `Pipeline` runs
+many factors over many contexts in a single pass and produces a columnar
 `PipelineResult`.
 
 ```python
@@ -287,8 +287,8 @@ df = result.to_dataframe()  # requires nyc311[dataframes]
 print(df.sort_values("complaint_volume", ascending=False).head())
 ```
 
-`Pipeline.add()` returns a **new** pipeline rather than mutating in place,
-so pipelines are safe to compose and share between callers.
+`Pipeline.add()` returns a **new** pipeline rather than mutating in place, so
+pipelines are safe to compose and share between callers.
 
 ## Temporal Panels
 
@@ -339,9 +339,8 @@ weights = build_distance_weights(centroids, threshold_meters=2000.0)
 ## Statistical Modeling
 
 `nyc311.stats` is a thin, typed layer over `statsmodels`, `ruptures`,
-`linearmodels`, and `esda` / `libpysal`. Every routine is opt-in via the
-`stats` extra and degrades cleanly with an `ImportError` when its dependency
-is missing.
+`linearmodels`, and `esda` / `libpysal`. Every routine is opt-in via the `stats`
+extra and degrades cleanly with an `ImportError` when its dependency is missing.
 
 ```python
 from datetime import date
@@ -391,7 +390,12 @@ lisa = local_morans_i(values, weights, permutations=999)
 ### Causal Inference
 
 ```python
-from nyc311.stats import synthetic_control, staggered_did, event_study, regression_discontinuity
+from nyc311.stats import (
+    synthetic_control,
+    staggered_did,
+    event_study,
+    regression_discontinuity,
+)
 
 # Synthetic control — counterfactual from donor units
 result = synthetic_control(panel, treated_unit="BROOKLYN 03", outcome="complaint_count")

@@ -350,20 +350,20 @@ If you are browsing in GitHub, the source docs live in `docs/`, including
 `index.md`, `getting-started.md`, `cli.md`, `sdk.md`, `examples.md`, `api.md`,
 `architecture.md`, and `contributing.md`.
 
-Runnable examples live in `examples/` as self-contained consumer projects.
-The `examples/case_studies/` directory holds two complete research
-analyses on real NYC 311 data:
+Runnable examples live in `examples/` as self-contained consumer projects. The
+`examples/case_studies/` directory holds two complete research analyses on real
+NYC 311 data:
 
-- **[Rat Containerization](examples/case_studies/rat_containerization/)**
-  -- Evaluates the 2024 NYC containerization mandate using 81K real
-  rodent complaints, the factor pipeline, STL decomposition, Moran's I,
-  Theil inequality, synthetic control, staggered DiD, event study, RDD,
-  and power analysis across 70 community districts.
-- **[Resolution Equity](examples/case_studies/resolution_equity/)**
-  -- Investigates whether resolution times vary by neighborhood
-  demographics using 1M real 311 requests, two-way FE regression,
-  Oaxaca-Blinder decomposition with ACS census data, spatial
-  autocorrelation, ITS, and latent reporting-bias estimation.
+- **[Rat Containerization](examples/case_studies/rat_containerization/)** --
+  Evaluates the 2024 NYC containerization mandate using 81K real rodent
+  complaints, the factor pipeline, STL decomposition, Moran's I, Theil
+  inequality, synthetic control, staggered DiD, event study, RDD, and power
+  analysis across 70 community districts.
+- **[Resolution Equity](examples/case_studies/resolution_equity/)** --
+  Investigates whether resolution times vary by neighborhood demographics using
+  1M real 311 requests, two-way FE regression, Oaxaca-Blinder decomposition with
+  ACS census data, spatial autocorrelation, ITS, and latent reporting-bias
+  estimation.
 
 For local preview:
 

@@ -105,15 +105,15 @@ That same pattern is mirrored inside the cache-backed example projects.
 
 ## Case Studies
 
-Longer-form analyses live under `examples/case_studies/`. Unlike the
-short-form examples above, these projects exercise the full v0.3.0 modeling
-surface against real data and ship with research-grade findings.
+Longer-form analyses live under `examples/case_studies/`. Unlike the short-form
+examples above, these projects exercise the full v0.3.0 modeling surface against
+real data and ship with research-grade findings.
 
 ### `examples/case_studies/resolution_equity/`
 
-A longitudinal study of NYC 311 resolution times across 59 community
-districts over 60 monthly periods (January 2020 - December 2024). It walks
-the entire `nyc311` v0.3.0 surface end-to-end:
+A longitudinal study of NYC 311 resolution times across 59 community districts
+over 60 monthly periods (January 2020 - December 2024). It walks the entire
+`nyc311` v0.3.0 surface end-to-end:
 
 - `nyc311.pipeline.bulk_fetch()` downloads 5 years of data split per borough
   with `.meta.json` integrity sidecars
@@ -146,14 +146,14 @@ written-up results.
 Evaluates the 2024 NYC rat containerization mandate using the full causal
 inference toolkit:
 
-- `nyc311.stats.synthetic_control()` builds a data-driven counterfactual for
-  the first treated community district
-- `nyc311.stats.staggered_did()` estimates group-time ATTs across the
-  staggered rollout, correcting for TWFE bias
-- `nyc311.stats.event_study()` produces event-time coefficients with
-  pre-trend diagnostics
-- `nyc311.stats.regression_discontinuity()` estimates the local treatment
-  effect at the policy boundary
+- `nyc311.stats.synthetic_control()` builds a data-driven counterfactual for the
+  first treated community district
+- `nyc311.stats.staggered_did()` estimates group-time ATTs across the staggered
+  rollout, correcting for TWFE bias
+- `nyc311.stats.event_study()` produces event-time coefficients with pre-trend
+  diagnostics
+- `nyc311.stats.regression_discontinuity()` estimates the local treatment effect
+  at the policy boundary
 - `nyc311.factors` composes supporting metrics via `SpatialLagFactor` and
   `EquityGapFactor`
 
