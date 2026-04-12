@@ -140,3 +140,25 @@ python run_analysis.py
 The numbered scripts (`01_fetch_data.py` through `06_changepoint_detection.py`)
 can also be run individually. See `FINDINGS.md` in that directory for the
 written-up results.
+
+### `examples/case_studies/rat_containerization/`
+
+Evaluates the 2024 NYC rat containerization mandate using the full causal
+inference toolkit:
+
+- `nyc311.stats.synthetic_control()` builds a data-driven counterfactual for
+  the first treated community district
+- `nyc311.stats.staggered_did()` estimates group-time ATTs across the
+  staggered rollout, correcting for TWFE bias
+- `nyc311.stats.event_study()` produces event-time coefficients with
+  pre-trend diagnostics
+- `nyc311.stats.regression_discontinuity()` estimates the local treatment
+  effect at the policy boundary
+- `nyc311.factors` composes supporting metrics via `SpatialLagFactor` and
+  `EquityGapFactor`
+
+```bash
+pip install "nyc311[stats,spatial,dataframes]"
+cd examples/case_studies/rat_containerization
+python run_analysis.py
+```

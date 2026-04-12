@@ -1,6 +1,5 @@
 {
   "panel": {
-    "n_records": 1000000,
     "n_units": 76,
     "n_periods": 20,
     "n_observations": 1520,
@@ -17,10 +16,29 @@
     "seasonal_amplitude": 269484.34362139914,
     "seasonal_peak_month": "December",
     "seasonal_trough_month": "April",
-    "seasonal_peak_value": 103008.08839163235,
-    "seasonal_trough_value": -31995.307355967085,
-    "residual_std": 7.26982893925047e-12,
-    "residual_mean": -3.4049207897624e-12
+    "residual_std": 7.26982893925047e-12
+  },
+  "equity": {
+    "coefficients": {
+      "log_complaints": {
+        "coef": 4.0083382838422175,
+        "se": 0.9732979555211368,
+        "t": 4.11830545939657,
+        "p": 5.309960613830711e-05
+      }
+    },
+    "significant_predictors": [
+      "log_complaints"
+    ],
+    "r_squared": 0.0
+  },
+  "spatial": {
+    "lisa_cluster_counts": {
+      "ns": 42,
+      "HL": 9,
+      "LL": 6,
+      "HH": 2
+    }
   },
   "changepoints": {
     "n_segments": 2,
@@ -34,165 +52,11 @@
       }
     ]
   },
-  "factors": {
-    "n_contexts": 1520,
-    "factors_computed": [
-      "complaint_volume",
-      "response_rate",
-      "topic_concentration",
-      "recurrence_rate"
-    ],
-    "mean_volume": 657.8947368421053,
-    "mean_response_rate": 0.2130292536338144,
-    "mean_topic_concentration": 0.0271764175064798,
-    "mean_recurrence_rate": 0.08177358194619784,
-    "top_5_by_volume": {
-      "BRONX 12": 10103,
-      "MANHATTAN 12": 9348
-    },
-    "bottom_5_response_rate": {
-      "BRONX 01": 0.0
-    }
-  },
-  "geographic": {
-    "top_10_volume_districts": {
-      "STATEN ISLAND 01": 4114.9,
-      "STATEN ISLAND 03": 3131.2,
-      "BRONX 12": 2819.8,
-      "STATEN ISLAND 02": 2649.0,
-      "MANHATTAN 12": 1454.7,
-      "MANHATTAN 10": 1170.7,
-      "QUEENS 01": 990.0,
-      "BRONX 07": 983.5,
-      "BRONX 04": 978.5,
-      "MANHATTAN 07": 977.4
-    },
-    "bottom_10_volume_districts": {
-      "QUEENS 84": 0.7,
-      "BRONX 27": 1.2,
-      "BRONX 28": 4.2,
-      "BROOKLYN 56": 4.2,
-      "QUEENS 82": 4.4,
-      "BRONX 26": 10.1,
-      "BROOKLYN 55": 11.3,
-      "QUEENS 81": 11.8,
-      "QUEENS 80": 16.2,
-      "STATEN ISLAND 95": 20.7
-    },
-    "top_10_resolution_districts": {
-      "STATEN ISLAND 95": 0.9991,
-      "STATEN ISLAND 01": 0.9921,
-      "STATEN ISLAND 02": 0.9846,
-      "STATEN ISLAND 03": 0.9843,
-      "Unspecified STATEN ISLAND": 0.9704,
-      "MANHATTAN 12": 0.1995,
-      "MANHATTAN 10": 0.1993,
-      "BRONX 08": 0.1989,
-      "MANHATTAN 11": 0.1987,
-      "MANHATTAN 09": 0.1986
-    },
-    "bottom_10_resolution_districts": {
-      "QUEENS 80": 0.1302,
-      "QUEENS 83": 0.1367,
-      "QUEENS 10": 0.1433,
-      "Unspecified BROOKLYN": 0.1458,
-      "BROOKLYN 01": 0.1459,
-      "Unspecified QUEENS": 0.1461,
-      "BROOKLYN 18": 0.1466,
-      "QUEENS 81": 0.1469,
-      "Unspecified BRONX": 0.1473,
-      "BROOKLYN 55": 0.1476
-    },
-    "borough_mean_complaints": {
-      "BRONX": 665.2,
-      "BROOKLYN": 496.0,
-      "MANHATTAN": 751.1,
-      "QUEENS": 520.0,
-      "STATEN ISLAND": 2479.0,
-      "Unspecified": 114.6,
-      "Unspecified STATEN": 84.2
-    },
-    "borough_mean_resolution": {
-      "BRONX": 0.1529,
-      "BROOKLYN": 0.1486,
-      "MANHATTAN": 0.1972,
-      "QUEENS": 0.1472,
-      "STATEN ISLAND": 0.99,
-      "Unspecified": 0.1587,
-      "Unspecified STATEN": 0.9704
-    },
-    "overall_cv_complaints": 1.0518385633631806,
-    "overall_cv_resolution": 0.9738883335484079
-  },
-  "complaint_types": {
-    "total_complaint_types": 199,
-    "top_20_types": {
-      "Illegal Parking": 127533,
-      "Noise - Residential": 127507,
-      "HEAT/HOT WATER": 120231,
-      "Blocked Driveway": 45706,
-      "Noise - Street/Sidewalk": 30782,
-      "UNSANITARY CONDITION": 29746,
-      "Street Condition": 20929,
-      "Water System": 20409,
-      "Abandoned Vehicle": 20130,
-      "PLUMBING": 17166,
-      "Noise - Commercial": 16674,
-      "Dirty Condition": 16622,
-      "Lead": 16483,
-      "Noise": 15128,
-      "Missed Collection": 14888,
-      "PAINT/PLASTER": 14553,
-      "Traffic Signal Condition": 12196,
-      "Encampment": 11782,
-      "DOOR/WINDOW": 11746,
-      "Derelict Vehicles": 11326
-    },
-    "top_20_shares": {
-      "Illegal Parking": 12.75,
-      "Noise - Residential": 12.75,
-      "HEAT/HOT WATER": 12.02,
-      "Blocked Driveway": 4.57,
-      "Noise - Street/Sidewalk": 3.08,
-      "UNSANITARY CONDITION": 2.97,
-      "Street Condition": 2.09,
-      "Water System": 2.04,
-      "Abandoned Vehicle": 2.01,
-      "PLUMBING": 1.72,
-      "Noise - Commercial": 1.67,
-      "Dirty Condition": 1.66,
-      "Lead": 1.65,
-      "Noise": 1.51,
-      "Missed Collection": 1.49,
-      "PAINT/PLASTER": 1.46,
-      "Traffic Signal Condition": 1.22,
-      "Encampment": 1.18,
-      "DOOR/WINDOW": 1.17,
-      "Derelict Vehicles": 1.13
-    },
-    "top_20_resolution_rates": {
-      "Illegal Parking": 1.0,
-      "Noise - Residential": 1.0,
-      "HEAT/HOT WATER": 0.9999,
-      "Blocked Driveway": 1.0,
-      "Noise - Street/Sidewalk": 1.0,
-      "UNSANITARY CONDITION": 1.0,
-      "Street Condition": 0.9995,
-      "Water System": 0.9955,
-      "Abandoned Vehicle": 0.9999,
-      "PLUMBING": 1.0,
-      "Noise - Commercial": 0.9999,
-      "Dirty Condition": 0.9829,
-      "Lead": 0.9797,
-      "Noise": 0.9999,
-      "Missed Collection": 1.0,
-      "PAINT/PLASTER": 1.0,
-      "Traffic Signal Condition": 0.9999,
-      "Encampment": 0.9999,
-      "DOOR/WINDOW": 1.0,
-      "Derelict Vehicles": 1.0
-    },
-    "concentration_top5": 45.18,
-    "concentration_top10": 56.01
+  "reporting_bias": {
+    "converged": true,
+    "n_iterations": 2,
+    "rho_min": 0.5,
+    "rho_max": 0.5,
+    "rho_mean": 0.5
   }
 }

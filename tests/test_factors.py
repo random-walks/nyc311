@@ -9,6 +9,7 @@ import pytest
 from nyc311.factors import (
     AnomalyScoreFactor,
     ComplaintVolumeFactor,
+    EquityGapFactor,
     FactorContext,
     Pipeline,
     PipelineResult,
@@ -16,6 +17,7 @@ from nyc311.factors import (
     ResolutionTimeFactor,
     ResponseRateFactor,
     SeasonalityFactor,
+    SpatialLagFactor,
     TopicConcentrationFactor,
 )
 from nyc311.models import ServiceRequestRecord
@@ -403,3 +405,58 @@ class TestPipelineResult:
         assert df.index.name == "geography_id"
         assert list(df.columns) == ["complaint_volume", "response_rate"]
         assert df.loc["BK01", "complaint_volume"] == 10
+
+
+# ---------------------------------------------------------------------------
+# Advanced factors
+# ---------------------------------------------------------------------------
+
+
+class TestSpatialLagFactor:
+    def test_computes_weighted_sum(self) -> None:
+        weights = {"A": {"B": 0.6, "C": 0.4}, "B": {"A": 1.0}, "C": {"A": 1.0}}
+        values = {"A": 10.0, "B": 20.0, "C": 30.0}
+        factor = SpatialLagFactor(weights=weights, values=values)
+        ctx = _make_context(geography_value="A")
+        result = factor.compute(ctx)
+        expected = 0.6 * 20.0 + 0.4 * 30.0
+        assert result == pytest.approx(expected)
+
+    def test_no_neighbors(self) -> None:
+        factor = SpatialLagFactor(weights={}, values={"A": 10.0})
+        ctx = _make_context(geography_value="A")
+        assert factor.compute(ctx) == 0.0
+
+
+class TestEquityGapFactor:
+    def test_ratio_above_one(self) -> None:
+        records = tuple(
+            _make_record(
+                service_request_id=f"SR-{i}",
+                resolution_description="Resolved",
+                created_date=date(2024, 5, 1),
+            )
+            for i in range(5)
+        )
+        ctx = FactorContext(
+            geography="test",
+            geography_value="SLOW_DISTRICT",
+            complaints=records,
+            time_window_start=date(2024, 5, 1),
+            time_window_end=date(2024, 6, 15),
+        )
+        factor = EquityGapFactor(citywide_median_days=10.0)
+        result = factor.compute(ctx)
+        assert result > 0.0
+
+    def test_no_resolved(self) -> None:
+        records = (_make_record(resolution_description=None),)
+        ctx = FactorContext(
+            geography="test",
+            geography_value="X",
+            complaints=records,
+            time_window_start=date(2024, 6, 1),
+            time_window_end=date(2024, 6, 30),
+        )
+        factor = EquityGapFactor(citywide_median_days=10.0)
+        assert factor.compute(ctx) == 0.0

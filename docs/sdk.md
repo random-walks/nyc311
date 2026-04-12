@@ -388,10 +388,110 @@ moran = global_morans_i(values, weights)
 lisa = local_morans_i(values, weights, permutations=999)
 ```
 
+### Causal Inference
+
+```python
+from nyc311.stats import synthetic_control, staggered_did, event_study, regression_discontinuity
+
+# Synthetic control — counterfactual from donor units
+result = synthetic_control(panel, treated_unit="BROOKLYN 03", outcome="complaint_count")
+print(result.att, result.donor_weights)
+
+# Staggered difference-in-differences (Callaway–Sant'Anna 2021)
+did = staggered_did(panel, outcome="complaint_count")
+print(did.aggregated_att, did.aggregated_p_value)
+
+# Event-study plot with pre-trend test
+es = event_study(panel, outcome="complaint_count", pre_periods=5, post_periods=5)
+print(es.coefficients, es.pre_trend_p_value)
+
+# Sharp regression discontinuity
+rd = regression_discontinuity(running_var, outcome, cutoff=0.0)
+print(rd.treatment_effect, rd.p_value)
+```
+
+### Spatial Econometrics
+
+```python
+from nyc311.stats import spatial_lag_model, spatial_error_model, geographically_weighted_regression
+
+# Spatial lag model (Anselin 1988)
+slm = spatial_lag_model(panel, weights, "complaint_count", ("income", "density"))
+print(slm.rho, slm.coefficients)
+
+# Spatial error model
+sem = spatial_error_model(panel, weights, "complaint_count", ("income", "density"))
+print(sem.lam, sem.coefficients)
+
+# Geographically weighted regression (Brunsdon et al. 1996)
+gwr = geographically_weighted_regression(values, regressors, coordinates)
+print(gwr.local_coefficients, gwr.bandwidth)
+```
+
+### Equity & Bias Analysis
+
+```python
+from nyc311.stats import (
+    oaxaca_blinder_decomposition, theil_index,
+    reporting_rate_adjustment, latent_reporting_bias_em,
+)
+
+# Oaxaca-Blinder decomposition — explain resolution-time gaps
+ob = oaxaca_blinder_decomposition(group_a_df, group_b_df, "resolution_days", ("income", "density"))
+print(ob.explained, ob.unexplained, ob.total_gap)
+
+# Theil index — population-weighted inequality
+ti = theil_index(rates, populations, groups=borough_map)
+print(ti.total, ti.between_group, ti.within_group)
+
+# Ecometric reporting-rate adjustment (O'Brien 2015)
+adj = reporting_rate_adjustment(panel, "complaint_rate", ("median_income", "pop_density"))
+print(adj.adjusted_rates, adj.icc)
+
+# Latent reporting-bias EM (Agostini et al. 2025)
+em = latent_reporting_bias_em(counts, populations, covariates=covs)
+print(em.estimated_true_rates, em.reporting_probabilities)
+```
+
+### Anomaly Detection & Power Analysis
+
+```python
+from nyc311.stats import detect_stl_anomalies, minimum_detectable_effect
+
+# STL-residual anomaly detection
+anomalies = detect_stl_anomalies(monthly_series, threshold=2.0)
+print(anomalies.anomaly_dates, anomalies.n_anomalies)
+
+# Power analysis for panel experiments
+power = minimum_detectable_effect(n_units=59, n_periods=24, icc=0.05)
+print(f"MDE: {power.mde:.3f} at 80% power")
+```
+
+### Bayesian Small-Area Smoothing
+
+```python
+from nyc311.stats import bym2_smooth
+
+# BYM2 model (Riebler et al. 2016) — requires nyc311[bayes]
+result = bym2_smooth(observed_counts, expected_counts, adjacency)
+print(result.smoothed_rates, result.mixing_parameter)
+```
+
+### Self-Exciting Point Processes
+
+```python
+from nyc311.stats import fit_hawkes_process
+
+# Hawkes process for complaint clustering (Mohler 2011)
+hawkes = fit_hawkes_process(event_timestamps)
+print(hawkes.background_rate, hawkes.branching_ratio)
+```
+
 Install the optional stats extra first:
 
 ```bash
 pip install "nyc311[stats]"
+pip install "nyc311[bayes]"            # BYM2 small-area smoothing (PyMC)
 ```
 
 ## Public Surface
@@ -411,7 +511,9 @@ pip install "nyc311[stats]"
 - `nyc311.presets`
 - `nyc311.factors`
 - `nyc311.temporal`
-- `nyc311.stats`
+- `nyc311.stats` — time series, panel regression, spatial autocorrelation,
+  causal inference, spatial econometrics, equity/bias analysis, anomaly
+  detection, power analysis, Bayesian smoothing, and point processes
 
 ## When To Use The CLI Instead
 

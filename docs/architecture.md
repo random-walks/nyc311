@@ -49,9 +49,9 @@ flowchart LR
 | `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers                |
 | `nyc311.presets`     | Reusable filter and Socrata config builders for common workflows                |
 | `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path                           |
-| `nyc311.factors`     | Composable factor pipeline for domain-specific metrics over geographic units    |
+| `nyc311.factors`     | Composable factor pipeline with 9 built-in factors including SpatialLagFactor and EquityGapFactor |
 | `nyc311.temporal`    | Balanced panel datasets, treatment events, and inverse-distance spatial weights |
-| `nyc311.stats`       | Statistical modeling: ITS, PELT changepoints, STL, Moran's I / LISA, panel FE/RE |
+| `nyc311.stats`       | Statistical modeling: ITS, PELT, STL, panel FE/RE, Moran/LISA, synthetic control, staggered DiD, event study, RDD, spatial lag/error, GWR, Oaxaca-Blinder, Theil, reporting-bias adjustment, BYM2, Hawkes, anomaly detection, power analysis |
 | `nyc311.cli`         | Argparse-powered fetch and analysis entry points                                |
 
 ## Design Principles
@@ -109,12 +109,18 @@ That split keeps the package responsibilities clear:
 - a one-call SDK pipeline helper
 - thin CLI fetch and export paths
 - a namespace-based public API audit script for maintainers
-- a composable factor pipeline with seven built-in domain factors
+- a composable factor pipeline with nine built-in domain factors
+  (including SpatialLagFactor and EquityGapFactor)
 - a balanced temporal panel builder with treatment-event modeling and
   inverse-distance spatial weights
 - a statistics module with interrupted time series, PELT changepoint
   detection, STL seasonal decomposition, Moran's I / LISA spatial
-  autocorrelation, and panel fixed/random-effects regression wrappers
+  autocorrelation, panel fixed/random-effects regression wrappers,
+  synthetic control, staggered difference-in-differences, event-study
+  plots, regression discontinuity, spatial lag/error models, GWR,
+  Oaxaca-Blinder decomposition, Theil index, reporting-bias adjustment,
+  BYM2 small-area smoothing, Hawkes process, seasonality-adjusted
+  anomaly detection, and power analysis / MDE calculator
 - a `bulk_fetch()` per-borough downloader that emits ``.meta.json``
   integrity sidecars
 - the resolution-equity case study, which exercises the full v0.3.0

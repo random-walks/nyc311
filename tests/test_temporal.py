@@ -453,7 +453,10 @@ class TestCentroidsFromBoundaries:
                 _StubFeature("EMPTY", {"type": "Polygon", "coordinates": []}),
                 _StubFeature(
                     "CD03",
-                    {"type": "Polygon", "coordinates": [[[-74.0, 40.7], [-73.9, 40.7]]]},
+                    {
+                        "type": "Polygon",
+                        "coordinates": [[[-74.0, 40.7], [-73.9, 40.7]]],
+                    },
                 ),
             ]
         )

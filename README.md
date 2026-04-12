@@ -36,6 +36,16 @@ The current release line provides:
   inverse-distance spatial weights
 - run interrupted-time-series, PELT changepoint, STL decomposition, Moran's I /
   LISA, and panel fixed/random-effects regressions
+- causal inference: synthetic control, staggered difference-in-differences,
+  event-study plots, regression discontinuity
+- spatial econometrics: spatial lag and error models, geographically weighted
+  regression
+- equity analysis: Oaxaca-Blinder decomposition, Theil index, reporting-rate
+  adjustment, latent reporting-bias EM
+- diagnostics: seasonality-adjusted anomaly detection, power analysis / MDE
+  calculator
+- Bayesian: BYM2 small-area smoothing (behind `nyc311[bayes]`)
+- point processes: Hawkes self-exciting process for complaint contagion
 - bulk-fetch full-city extracts split per borough with `.meta.json` integrity
   sidecars
 
@@ -91,6 +101,12 @@ panel regressions):
 
 ```bash
 pip install "nyc311[stats]"
+```
+
+For BYM2 small-area smoothing (PyMC):
+
+```bash
+pip install "nyc311[bayes]"
 ```
 
 ## Why this exists
@@ -247,9 +263,11 @@ from datetime import date
 
 from nyc311.factors import (
     ComplaintVolumeFactor,
+    EquityGapFactor,
     FactorContext,
     Pipeline,
     ResponseRateFactor,
+    SpatialLagFactor,
     TopicConcentrationFactor,
 )
 
@@ -314,11 +332,13 @@ The public API is organized around explicit namespaces:
 - `nyc311.plotting` for optional plotting helpers
 - `nyc311.presets` for reusable filter and Socrata config builders
 - `nyc311.factors` for the composable factor pipeline and built-in domain
-  factors
+  factors (including SpatialLagFactor and EquityGapFactor)
 - `nyc311.temporal` for balanced panel datasets, treatment events, and
   inverse-distance spatial weights
-- `nyc311.stats` for ITS, PELT changepoints, STL, Moran's I / LISA, and panel
-  fixed/random-effects regressions
+- `nyc311.stats` for ITS, PELT changepoints, STL, Moran's I / LISA, panel
+  fixed/random-effects regressions, synthetic control, staggered DiD, event
+  study, RDD, spatial lag/error, GWR, Oaxaca-Blinder, Theil, reporting-bias
+  adjustment, BYM2, Hawkes, anomaly detection, and power analysis
 - `nyc311.cli` with the `topics` and `fetch` subcommands
 
 ## Documentation
@@ -331,11 +351,19 @@ If you are browsing in GitHub, the source docs live in `docs/`, including
 `architecture.md`, and `contributing.md`.
 
 Runnable examples live in `examples/` as self-contained consumer projects.
-The `examples/case_studies/` directory holds longer-form analyses; the
-[resolution-equity case study](examples/case_studies/resolution_equity/)
-exercises bulk fetch, panel construction, STL decomposition, changepoint
-detection, the factor pipeline, and spatial autocorrelation against ~1M real
-records.
+The `examples/case_studies/` directory holds two complete research
+analyses on real NYC 311 data:
+
+- **[Rat Containerization](examples/case_studies/rat_containerization/)**
+  -- Evaluates the 2024 NYC containerization mandate using 81K real
+  rodent complaints, the factor pipeline, STL decomposition, Moran's I,
+  Theil inequality, synthetic control, staggered DiD, event study, RDD,
+  and power analysis across 70 community districts.
+- **[Resolution Equity](examples/case_studies/resolution_equity/)**
+  -- Investigates whether resolution times vary by neighborhood
+  demographics using 1M real 311 requests, two-way FE regression,
+  Oaxaca-Blinder decomposition with ACS census data, spatial
+  autocorrelation, ITS, and latent reporting-bias estimation.
 
 For local preview:
 

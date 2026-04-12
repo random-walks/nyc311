@@ -341,9 +341,7 @@ class TestGlobalMoransI:
         weights = _grid_weights(rows, cols)
         rng = np.random.default_rng(123)
         values = {
-            f"{r}_{c}": float(rng.normal())
-            for r in range(rows)
-            for c in range(cols)
+            f"{r}_{c}": float(rng.normal()) for r in range(rows) for c in range(cols)
         }
         result = global_morans_i(values, weights)
         assert abs(result.statistic) < 0.4

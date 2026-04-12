@@ -78,7 +78,11 @@ stats = [
     "pandas>=2.3.3",
     "ruptures>=1.1",
     "scipy>=1.15.3",
+    "spreg>=1.4",
     "statsmodels>=0.14",
+]
+bayes = [
+    "pymc>=5.16",
 ]
 all = [
     "contextily>=1.6.2",
@@ -91,6 +95,7 @@ all = [
     "ruptures>=1.1",
     "scipy>=1.15.3",
     "shapely>=2.1",
+    "spreg>=1.4",
     "statsmodels>=0.14",
 ]
 
@@ -177,18 +182,34 @@ disallow_incomplete_defs = true
 
 [[tool.mypy.overrides]]
 module = [
+    "differences",
+    "differences.*",
     "esda",
     "esda.*",
     "libpysal",
     "libpysal.*",
     "linearmodels",
     "linearmodels.*",
+    "mgwr",
+    "mgwr.*",
+    "pymc",
+    "pymc.*",
+    "pyfixest",
+    "pyfixest.*",
+    "pysyncon",
+    "pysyncon.*",
+    "rdrobust",
+    "rdrobust.*",
     "ruptures",
     "ruptures.*",
+    "scipy",
+    "scipy.*",
     "spreg",
     "spreg.*",
     "statsmodels",
     "statsmodels.*",
+    "tick",
+    "tick.*",
 ]
 ignore_missing_imports = true
 
@@ -252,6 +273,7 @@ ignore = [
 "tests/**" = ["T20", "PLC0415"]
 "src/nyc311/_version.py" = ["Q000", "RUF022"]
 "src/nyc311/factors/_base.py" = ["PLC0415"]
+"src/nyc311/factors/_advanced.py" = ["PLC0415"]
 "src/nyc311/temporal/*.py" = ["PLC0415"]
 "src/nyc311/stats/*.py" = ["PLC0415"]
 "noxfile.py" = ["EXE001", "T20"]
