@@ -4,6 +4,35 @@
 
 - no unreleased changes are currently documented
 
+## 0.3.0
+
+- add composable factor pipeline (`nyc311.factors`) with seven built-in
+  domain factors (`ComplaintVolumeFactor`, `ResolutionTimeFactor`,
+  `TopicConcentrationFactor`, `SeasonalityFactor`, `AnomalyScoreFactor`,
+  `ResponseRateFactor`, `RecurrenceFactor`) and an immutable `Pipeline`
+  builder
+- add temporal panel module (`nyc311.temporal`) with balanced panel
+  construction, treatment-event modeling, and inverse-distance spatial
+  weights
+- add statistical modeling module (`nyc311.stats`) with interrupted time
+  series, PELT changepoint detection, STL seasonal decomposition, global
+  and local Moran's I (LISA) spatial autocorrelation, and panel
+  fixed/random-effects regression wrappers
+- add `nyc311.pipeline.bulk_fetch()` for full-city per-borough downloads
+  with `.meta.json` integrity sidecars
+- add the resolution-equity case study under
+  `examples/case_studies/resolution_equity/`, exercising the full
+  v0.3.0 surface against ~1M real records
+- upgrade all model dataclasses to `frozen=True, slots=True`
+- add the `stats` optional dependency group (`ruptures`, `linearmodels`,
+  `esda`, `libpysal`, `statsmodels`)
+- add mypy overrides for the new optional dependencies
+- align ruff per-file ignores with the example slugs convention so the
+  resolution-equity case study scripts lint cleanly
+- standardize public docstrings on Google-style `Args:` / `Returns:` /
+  `Raises:` so the mkdocstrings-rendered API reference is uniform across
+  the package
+
 ## 0.2.6
 
 - align the published changelog with the docs refresh that already shipped in

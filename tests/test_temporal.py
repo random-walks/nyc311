@@ -13,6 +13,8 @@ from nyc311.temporal import (
     TreatmentEvent,
     build_complaint_panel,
     build_distance_weights,
+    centroids_from_boundaries,
+    weights_to_pysal,
 )
 
 # ---------------------------------------------------------------------------
@@ -382,3 +384,97 @@ class TestSpatialWeights:
         )
         # Raw inverse distance should not sum to 1
         assert weights["A"]["B"] > 0
+
+
+# ---------------------------------------------------------------------------
+# centroids_from_boundaries / weights_to_pysal helpers
+# ---------------------------------------------------------------------------
+
+
+class _StubFeature:
+    def __init__(self, geography_value: str, geometry: dict) -> None:
+        self.geography_value = geography_value
+        self.geometry = geometry
+
+
+class _StubBoundaries:
+    def __init__(self, features: list[_StubFeature]) -> None:
+        self.features = features
+
+
+class TestCentroidsFromBoundaries:
+    def test_polygon_centroid_is_mean_of_ring(self) -> None:
+        # Square ring centered on (40.7, -74.0). The implementation averages
+        # exterior-ring vertices including the closing vertex, so the
+        # expected centroid weights it twice — verify against that.
+        ring = [
+            [-74.0, 40.7],
+            [-73.9, 40.7],
+            [-73.9, 40.8],
+            [-74.0, 40.8],
+            [-74.0, 40.7],  # closing vertex
+        ]
+        boundaries = _StubBoundaries(
+            [_StubFeature("CD01", {"type": "Polygon", "coordinates": [ring]})]
+        )
+
+        centroids = centroids_from_boundaries(boundaries)
+
+        assert "CD01" in centroids
+        lat, lon = centroids["CD01"]
+        expected_lat = sum(pt[1] for pt in ring) / len(ring)
+        expected_lon = sum(pt[0] for pt in ring) / len(ring)
+        assert lat == pytest.approx(expected_lat)
+        assert lon == pytest.approx(expected_lon)
+
+    def test_multipolygon_uses_first_outer_ring(self) -> None:
+        ring = [
+            [-74.0, 40.7],
+            [-73.9, 40.7],
+            [-73.9, 40.8],
+            [-74.0, 40.7],
+        ]
+        boundaries = _StubBoundaries(
+            [
+                _StubFeature(
+                    "CD02",
+                    {"type": "MultiPolygon", "coordinates": [[ring]]},
+                )
+            ]
+        )
+
+        centroids = centroids_from_boundaries(boundaries)
+
+        assert "CD02" in centroids
+
+    def test_skips_features_with_empty_geometry(self) -> None:
+        boundaries = _StubBoundaries(
+            [
+                _StubFeature("EMPTY", {"type": "Polygon", "coordinates": []}),
+                _StubFeature(
+                    "CD03",
+                    {"type": "Polygon", "coordinates": [[[-74.0, 40.7], [-73.9, 40.7]]]},
+                ),
+            ]
+        )
+
+        centroids = centroids_from_boundaries(boundaries)
+        assert "EMPTY" not in centroids
+        assert "CD03" in centroids
+
+
+@pytest.mark.optional
+class TestWeightsToPysal:
+    def test_round_trip_to_libpysal_w(self) -> None:
+        pytest.importorskip("libpysal")
+
+        weights = {
+            "A": {"B": 0.5, "C": 0.5},
+            "B": {"A": 1.0},
+            "C": {"A": 1.0},
+        }
+        w = weights_to_pysal(weights)
+
+        assert sorted(w.neighbors["A"]) == ["B", "C"]
+        # libpysal stores weights as a list aligned with neighbors
+        assert sum(w.weights["A"]) == pytest.approx(1.0)

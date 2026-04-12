@@ -19,12 +19,27 @@ class ComplaintVolumeFactor(Factor):
     dtype = "int"
 
     def __init__(self, *, per_capita: bool = False) -> None:
+        """Initialize the factor.
+
+        Args:
+            per_capita: If ``True``, normalize by
+                :attr:`FactorContext.total_population` and emit a
+                ``complaint_rate_per_10k`` float. Otherwise emit the raw
+                ``complaint_volume`` integer count.
+        """
         self._per_capita = per_capita
         self.name = "complaint_rate_per_10k" if per_capita else "complaint_volume"
         if per_capita:
             self.dtype = "float"  # type: ignore[assignment]
 
     def compute(self, context: FactorContext) -> int | float:
+        """Return the complaint volume (or per-capita rate) for ``context``.
+
+        Returns:
+            The integer count of complaints in the context, or, when
+            ``per_capita`` is enabled and population is available, the
+            float ``count / population * 10_000``.
+        """
         count = len(context.complaints)
         if (
             self._per_capita
@@ -46,12 +61,29 @@ class ResolutionTimeFactor(Factor):
     dtype = "float"
 
     def __init__(self, *, method: str = "median") -> None:
+        """Initialize the factor.
+
+        Args:
+            method: Aggregation strategy across resolved complaints; one
+                of ``"median"`` (default) or ``"mean"``.
+
+        Raises:
+            ValueError: If ``method`` is not ``"median"`` or ``"mean"``.
+        """
         if method not in ("median", "mean"):
             msg = f"method must be 'median' or 'mean', got {method!r}"
             raise ValueError(msg)
         self._method = method
 
     def compute(self, context: FactorContext) -> float:
+        """Return the median (or mean) resolution time for ``context``.
+
+        Returns:
+            The number of days between complaint creation and the
+            window's end across resolved complaints, aggregated by the
+            configured ``method``. Returns ``-1.0`` when no complaints in
+            the context have a resolution description.
+        """
         resolved = [
             c for c in context.complaints if c.resolution_description is not None
         ]
@@ -82,6 +114,14 @@ class TopicConcentrationFactor(Factor):
     dtype = "float"
 
     def compute(self, context: FactorContext) -> float:
+        """Return the HHI of complaint-type shares for ``context``.
+
+        Returns:
+            ``sum(share_i ** 2)`` where each ``share_i`` is the proportion
+            of complaints of type ``i``. The value lies in ``[1/N, 1.0]``
+            and increases as complaints concentrate in fewer types.
+            Returns ``0.0`` when the context has no complaints.
+        """
         if not context.complaints:
             return 0.0
         counts = Counter(c.complaint_type for c in context.complaints)
@@ -102,9 +142,25 @@ class SeasonalityFactor(Factor):
     dtype = "float"
 
     def __init__(self, baseline_monthly_counts: dict[int, float]) -> None:
+        """Initialize the factor.
+
+        Args:
+            baseline_monthly_counts: Mapping from month number (``1``
+                through ``12``) to the expected complaint count for that
+                month. Months not present in the mapping are treated as
+                having no baseline.
+        """
         self._baseline = baseline_monthly_counts
 
     def compute(self, context: FactorContext) -> float:
+        """Return the fractional deviation from the seasonal baseline.
+
+        Returns:
+            ``(actual - expected) / expected`` where ``actual`` is the
+            number of complaints in the context and ``expected`` is the
+            baseline for the context's start-month. Returns ``0.0`` when
+            the baseline is missing or non-positive for that month.
+        """
         month = context.time_window_start.month
         expected = self._baseline.get(month, 0.0)
         if expected <= 0:
@@ -134,10 +190,26 @@ class AnomalyScoreFactor(Factor):
         population_mean: float,
         population_std: float,
     ) -> None:
+        """Initialize the factor.
+
+        Args:
+            population_mean: Mean complaint count to compare each context
+                against. Should be precomputed across the full set of
+                contexts the pipeline will see.
+            population_std: Population standard deviation of complaint
+                counts. A value of ``0`` causes :meth:`compute` to return
+                ``0.0`` for every context (z-score is undefined).
+        """
         self._mean = population_mean
         self._std = population_std
 
     def compute(self, context: FactorContext) -> float:
+        """Return the z-score of this context's complaint volume.
+
+        Returns:
+            ``(count - population_mean) / population_std``, or ``0.0``
+            when ``population_std`` is zero.
+        """
         if self._std == 0:
             return 0.0
         return (len(context.complaints) - self._mean) / self._std
@@ -153,6 +225,13 @@ class ResponseRateFactor(Factor):
     dtype = "float"
 
     def compute(self, context: FactorContext) -> float:
+        """Return the resolved fraction of complaints in ``context``.
+
+        Returns:
+            The fraction of complaints with a non-null
+            ``resolution_description``, in ``[0.0, 1.0]``. Returns
+            ``0.0`` for empty contexts.
+        """
         if not context.complaints:
             return 0.0
         resolved = sum(
@@ -173,6 +252,14 @@ class RecurrenceFactor(Factor):
     dtype = "float"
 
     def compute(self, context: FactorContext) -> float:
+        """Return the recurrent-location share for ``context``.
+
+        Returns:
+            The fraction of geocoded complaint locations (latitude and
+            longitude rounded to 4 decimal places) that appear more than
+            once in the context. Returns ``0.0`` when no complaints have
+            coordinates.
+        """
         geo_complaints = [
             c
             for c in context.complaints

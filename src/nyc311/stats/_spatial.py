@@ -44,18 +44,24 @@ def global_morans_i(
     values: dict[str, float],
     weights: dict[str, dict[str, float]],
 ) -> MoranResult:
-    """Compute Global Moran's I for *values* with spatial *weights*.
+    """Compute Global Moran's I for ``values`` under spatial ``weights``.
 
-    Parameters
-    ----------
-    values:
-        ``{unit_id: numeric_value}`` to test for spatial autocorrelation.
-    weights:
-        Nested dict ``{unit_a: {unit_b: weight}}`` (row-standardized).
+    Args:
+        values: Mapping ``{unit_id: numeric_value}`` to test for spatial
+            autocorrelation. Unit IDs must align with those in
+            ``weights``.
+        weights: Nested dict ``{unit_a: {unit_b: weight}}`` describing
+            the spatial weights matrix; typically row-standardized.
 
-    Returns
-    -------
-    MoranResult
+    Returns:
+        A :class:`MoranResult` with the Moran's I statistic, the
+        permutation-based p-value, the standardized z-score, and the
+        expected value under the null hypothesis.
+
+    Raises:
+        ImportError: If ``esda`` or ``libpysal`` is not installed.
+            Install the optional stats extra with
+            ``pip install nyc311[stats]``.
     """
     try:
         import numpy as np
@@ -92,18 +98,23 @@ def local_morans_i(
 ) -> LISAResult:
     """Compute Local Moran's I (LISA) for hotspot/coldspot identification.
 
-    Parameters
-    ----------
-    values:
-        ``{unit_id: numeric_value}``.
-    weights:
-        Nested dict spatial weights.
-    permutations:
-        Number of permutations for pseudo p-values.
+    Args:
+        values: Mapping ``{unit_id: numeric_value}`` for the variable
+            being tested.
+        weights: Nested dict ``{unit_a: {unit_b: weight}}`` describing
+            the spatial weights matrix.
+        permutations: Number of conditional permutations used to derive
+            pseudo p-values.
 
-    Returns
-    -------
-    LISAResult
+    Returns:
+        A :class:`LISAResult` containing the local statistic, pseudo
+        p-values, and quadrant cluster labels (``"HH"``, ``"LH"``,
+        ``"LL"``, ``"HL"``, or ``"ns"`` for non-significant) per unit.
+
+    Raises:
+        ImportError: If ``esda`` or ``libpysal`` is not installed.
+            Install the optional stats extra with
+            ``pip install nyc311[stats]``.
     """
     try:
         import numpy as np

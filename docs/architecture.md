@@ -3,17 +3,21 @@
 `nyc311` implements a narrow but end-to-end pipeline for deterministic topic
 summarization over NYC 311-style complaint data.
 
-This architecture snapshot reflects the current stable `0.2.x` release surface.
+This architecture snapshot reflects the current stable `0.3.x` release surface.
 
 ## Pipeline
 
 ```mermaid
 flowchart LR
     sourceData[SourceData] --> loaders[load_service_requests]
+    sourceData --> bulkFetch[bulk_fetch]
     loaders --> records[ServiceRequestRecordList]
+    bulkFetch --> records
     records --> extract[extract_topics]
     records --> coverage[analyze_topic_coverage]
     records --> gaps[analyze_resolution_gaps]
+    records --> panel[build_complaint_panel]
+    records --> factors[Factor Pipeline]
     extract --> assignments[TopicAssignmentList]
     assignments --> aggregate[aggregate_by_geography]
     aggregate --> summaries[GeographyTopicSummaryList]
@@ -24,6 +28,10 @@ flowchart LR
     summaries --> report[export_report_card]
     gaps --> report
     anomalies --> report
+    panel --> panelDS[PanelDataset]
+    panelDS --> stats[Stats Module]
+    factors --> pipeResult[PipelineResult]
+    stats --> statsResults[ITSResult / ChangepointResult / MoranResult / ...]
 ```
 
 ## Module Responsibilities
@@ -41,6 +49,9 @@ flowchart LR
 | `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers                |
 | `nyc311.presets`     | Reusable filter and Socrata config builders for common workflows                |
 | `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path                           |
+| `nyc311.factors`     | Composable factor pipeline for domain-specific metrics over geographic units    |
+| `nyc311.temporal`    | Balanced panel datasets, treatment events, and inverse-distance spatial weights |
+| `nyc311.stats`       | Statistical modeling: ITS, PELT changepoints, STL, Moran's I / LISA, panel FE/RE |
 | `nyc311.cli`         | Argparse-powered fetch and analysis entry points                                |
 
 ## Design Principles
@@ -53,6 +64,8 @@ flowchart LR
 - Keep the CLI thin by delegating real work to importable functions.
 - Keep optional dependency boundaries explicit for dataframe, spatial, and
   notebook helpers.
+- Provide publication-quality statistical methods with clear academic
+  references for every modeling primitive.
 
 ## Toolkit Relationship
 
@@ -96,6 +109,16 @@ That split keeps the package responsibilities clear:
 - a one-call SDK pipeline helper
 - thin CLI fetch and export paths
 - a namespace-based public API audit script for maintainers
+- a composable factor pipeline with seven built-in domain factors
+- a balanced temporal panel builder with treatment-event modeling and
+  inverse-distance spatial weights
+- a statistics module with interrupted time series, PELT changepoint
+  detection, STL seasonal decomposition, Moran's I / LISA spatial
+  autocorrelation, and panel fixed/random-effects regression wrappers
+- a `bulk_fetch()` per-borough downloader that emits ``.meta.json``
+  integrity sidecars
+- the resolution-equity case study, which exercises the full v0.3.0
+  surface against ~1M real records
 
 ## Boundaries
 

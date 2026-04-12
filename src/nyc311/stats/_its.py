@@ -34,20 +34,30 @@ def interrupted_time_series(
     *,
     covariates: Any | None = None,
 ) -> ITSResult:
-    """Fit a segmented regression for *intervention_date*.
+    """Fit a segmented interrupted-time-series regression.
 
-    Parameters
-    ----------
-    series:
-        A ``pandas.Series`` with a ``DatetimeIndex``.
-    intervention_date:
-        The date the intervention began.
-    covariates:
-        Optional ``pandas.DataFrame`` of exogenous regressors aligned to *series*.
+    Estimates pre-intervention level and trend, the immediate level
+    change at ``intervention_date``, and the post-intervention trend
+    change, following the standard ITS regression specification.
 
-    Returns
-    -------
-    ITSResult
+    Args:
+        series: A ``pandas.Series`` indexed by a ``DatetimeIndex``
+            containing the outcome to model.
+        intervention_date: The date the intervention began. Observations
+            on or after this date are treated as post-intervention.
+        covariates: Optional ``pandas.DataFrame`` of exogenous regressors
+            aligned to ``series``. Each column is added to the design
+            matrix.
+
+    Returns:
+        An :class:`ITSResult` with pre/post trends, the level and trend
+        changes at ``intervention_date``, p-values for the level and
+        trend coefficients, and the full model summary string.
+
+    Raises:
+        ImportError: If statsmodels or pandas is not installed. Install
+            the optional stats extra with ``pip install nyc311[stats]``.
+        TypeError: If ``series`` does not use a ``DatetimeIndex``.
     """
     try:
         import numpy as np

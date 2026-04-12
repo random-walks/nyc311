@@ -40,25 +40,36 @@ def build_complaint_panel(
 ) -> PanelDataset:
     """Construct a balanced panel from service-request records.
 
-    Parameters
-    ----------
-    records:
-        Raw complaint records to aggregate.
-    geography:
-        Geographic unit (``"borough"`` or ``"community_district"``).
-    freq:
-        Pandas offset alias for the period length (default monthly).
-    treatment_events:
-        Policy interventions to code as treatment indicators.
-    population_data:
-        ``{unit_id: total_population}`` for per-capita calculations.
-    covariates:
-        ``{unit_id: {name: value}}`` for time-invariant demographic covariates.
+    Aggregates ``records`` into one observation per
+    (geographic-unit, period) cell, filling missing cells so the
+    resulting :class:`PanelDataset` is fully balanced across both
+    dimensions.
 
-    Returns
-    -------
-    PanelDataset
-        Balanced panel with one observation per (unit, period).
+    Args:
+        records: Raw complaint records to aggregate.
+        geography: Geographic unit to group by; one of ``"borough"`` or
+            ``"community_district"``.
+        freq: Pandas offset alias controlling the period length
+            (``"ME"`` for monthly, ``"QE"`` for quarterly, ``"YE"`` for
+            yearly). Both legacy (``"M"``) and modern (``"ME"``) aliases
+            are accepted.
+        treatment_events: Policy interventions to code as treatment
+            indicators on each observation.
+        population_data: Mapping ``{unit_id: total_population}`` used to
+            populate :attr:`PanelObservation.population` for per-capita
+            downstream analyses.
+        covariates: Mapping ``{unit_id: {name: value}}`` of
+            time-invariant demographic covariates to attach to each
+            observation in a unit.
+
+    Returns:
+        A :class:`PanelDataset` with one observation per ``(unit,
+        period)``. When ``records`` is empty the returned dataset has no
+        observations and no periods.
+
+    Raises:
+        ImportError: If pandas is not installed. Install the optional
+            dataframes extra with ``pip install nyc311[dataframes]``.
     """
     try:
         import pandas as pd

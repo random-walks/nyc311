@@ -1,0 +1,11 @@
+[project]
+name = "nyc311-case-study-resolution-equity"
+version = "0.0.0"
+description = "Longitudinal NYC 311 resolution-equity case study using nyc311[stats,spatial,dataframes]."
+requires-python = ">=3.10"
+dependencies = [
+    "nyc311[stats,spatial,dataframes]",
+]
+
+[tool.uv.sources]
+nyc311 = { path = "../../..", editable = true }

@@ -65,7 +65,15 @@ class Pipeline:
         self._factors = factors
 
     def add(self, factor: Factor) -> Pipeline:
-        """Return a new Pipeline with *factor* appended."""
+        """Return a new pipeline with ``factor`` appended.
+
+        Args:
+            factor: The factor to append. Must define a unique ``name``.
+
+        Returns:
+            A new :class:`Pipeline` whose ``factors`` tuple ends with
+            ``factor``. The receiver is left unmodified.
+        """
         return Pipeline((*self._factors, factor))
 
     @property
@@ -74,7 +82,22 @@ class Pipeline:
         return self._factors
 
     def run(self, contexts: Iterable[FactorContext]) -> PipelineResult:
-        """Execute all factors across *contexts* and return results."""
+        """Execute all factors across ``contexts`` and return results.
+
+        Iterates over each context once and evaluates every factor against
+        it, producing a columnar :class:`PipelineResult` keyed by factor
+        name.
+
+        Args:
+            contexts: An iterable of :class:`FactorContext` instances. Each
+                context corresponds to one geographic-unit / time-window
+                row in the final result.
+
+        Returns:
+            A :class:`PipelineResult` whose ``columns`` map factor names to
+            value tuples and whose ``geography_ids`` tuple aligns with
+            those columns positionally.
+        """
         context_list = list(contexts)
         geography_ids: list[str] = []
         columns: dict[str, list[Any]] = {f.name: [] for f in self._factors}
@@ -98,7 +121,13 @@ class PipelineResult:
     geography_ids: tuple[str, ...]
 
     def to_records(self) -> tuple[dict[str, Any], ...]:
-        """Convert to a tuple of row dictionaries."""
+        """Convert to a tuple of row dictionaries.
+
+        Returns:
+            A tuple where each element is a dict containing
+            ``geography_id`` plus one key per factor in the pipeline. The
+            row order matches :attr:`geography_ids`.
+        """
         records: list[dict[str, Any]] = []
         for i, geography_id in enumerate(self.geography_ids):
             row: dict[str, Any] = {"geography_id": geography_id}
@@ -108,7 +137,16 @@ class PipelineResult:
         return tuple(records)
 
     def to_dataframe(self) -> Any:
-        """Convert to a pandas DataFrame indexed by geography_id."""
+        """Convert to a pandas DataFrame indexed by ``geography_id``.
+
+        Returns:
+            A ``pandas.DataFrame`` with one row per geographic unit and
+            one column per factor, indexed by ``geography_id``.
+
+        Raises:
+            ImportError: If pandas is not installed. Install the optional
+                dataframes extra with ``pip install nyc311[dataframes]``.
+        """
         try:
             import pandas as pd
         except ImportError as exc:

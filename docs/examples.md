@@ -102,3 +102,41 @@ nyc311 topics \
 ```
 
 That same pattern is mirrored inside the cache-backed example projects.
+
+## Case Studies
+
+Longer-form analyses live under `examples/case_studies/`. Unlike the
+short-form examples above, these projects exercise the full v0.3.0 modeling
+surface against real data and ship with research-grade findings.
+
+### `examples/case_studies/resolution_equity/`
+
+A longitudinal study of NYC 311 resolution times across 59 community
+districts over 60 monthly periods (January 2020 - December 2024). It walks
+the entire `nyc311` v0.3.0 surface end-to-end:
+
+- `nyc311.pipeline.bulk_fetch()` downloads 5 years of data split per borough
+  with `.meta.json` integrity sidecars
+- `nyc311.temporal.build_complaint_panel()` builds the balanced
+  ``(community_district x month)`` panel
+- `nyc311.stats.seasonal_decompose()` extracts trend, seasonal, and residual
+  components per complaint type
+- `nyc311.stats.detect_changepoints()` finds structural breaks aligned with
+  COVID-19 lockdown and reopening phases
+- `nyc311.stats.panel_fixed_effects()` runs the two-way FE resolution-equity
+  regression
+- `nyc311.stats.global_morans_i()` and `local_morans_i()` test for spatial
+  clustering of slow/fast resolution districts
+- `nyc311.factors` composes the supporting domain metrics
+
+Run it from the case-study directory:
+
+```bash
+pip install "nyc311[stats,spatial,dataframes]"
+cd examples/case_studies/resolution_equity
+python run_analysis.py
+```
+
+The numbered scripts (`01_fetch_data.py` through `06_changepoint_detection.py`)
+can also be run individually. See `FINDINGS.md` in that directory for the
+written-up results.

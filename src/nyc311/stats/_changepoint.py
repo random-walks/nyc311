@@ -33,20 +33,26 @@ def detect_changepoints(
 ) -> ChangepointResult:
     """Detect structural breaks in a complaint time series.
 
-    Parameters
-    ----------
-    series:
-        A ``pandas.Series`` with a ``DatetimeIndex``.
-    method:
-        Detection algorithm (``"pelt"`` or ``"binseg"``).
-    penalty:
-        PELT penalty; if ``None`` uses ``log(n) * variance`` (BIC-like).
-    min_segment_size:
-        Minimum observations between changepoints.
+    Args:
+        series: A ``pandas.Series`` indexed by a ``DatetimeIndex``.
+        method: Detection algorithm; one of ``"pelt"`` (default,
+            optimal) or ``"binseg"`` (binary segmentation, faster but
+            approximate).
+        penalty: Penalty value passed to the underlying ``ruptures``
+            algorithm. When ``None``, defaults to ``log(n) * variance``,
+            a BIC-like heuristic.
+        min_segment_size: Minimum number of observations between
+            consecutive changepoints.
 
-    Returns
-    -------
-    ChangepointResult
+    Returns:
+        A :class:`ChangepointResult` containing the integer breakpoint
+        indices, their corresponding dates, the resulting segment count,
+        and the penalty actually used.
+
+    Raises:
+        ImportError: If ``ruptures`` or pandas is not installed. Install
+            the optional stats extra with ``pip install nyc311[stats]``.
+        TypeError: If ``series`` does not use a ``DatetimeIndex``.
     """
     try:
         import numpy as np

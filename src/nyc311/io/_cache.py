@@ -154,7 +154,23 @@ def _write_meta(
     socrata_config: SocrataConfig,
     filters: ServiceRequestFilter,
 ) -> None:
-    """Write a ``.meta.json`` sidecar with download integrity metadata."""
+    """Write a ``.meta.json`` sidecar with download integrity metadata.
+
+    Computes a SHA-256 checksum of the CSV file and emits a JSON
+    document next to it (``foo.csv`` → ``foo.meta.json``) capturing the
+    record count, checksum, fetch timestamp, and the filter parameters
+    that produced the file. This sidecar is what
+    :func:`nyc311.pipeline.bulk_fetch` callers use to verify cached
+    downloads.
+
+    Args:
+        csv_path: Path to the CSV file the sidecar describes.
+        record_count: Number of rows written to ``csv_path``.
+        socrata_config: Socrata configuration used for the fetch; only
+            ``page_size`` is recorded in the sidecar.
+        filters: The filter object used for the fetch. Date range,
+            borough, and complaint-type filters are recorded.
+    """
     sha256 = hashlib.sha256()
     with csv_path.open("rb") as fh:
         for chunk in iter(lambda: fh.read(1 << 16), b""):
