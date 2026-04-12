@@ -1,0 +1,5 @@
+data/
+figures/
+*.parquet
+*.csv
+analysis_results.json

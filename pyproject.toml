@@ -269,6 +269,19 @@ ignore = [
   "PLC0415",
   "RUF001",
 ]
+"examples/case_studies/**/*.py" = [
+  "ARG001",
+  "BLE001",
+  "DTZ",
+  "EXE001",
+  "I001",
+  "PD010",
+  "PD011",
+  "PERF203",
+  "PERF401",
+  "PLC0415",
+  "T20",
+]
 "docs/examples/**" = ["T20"]
 
 

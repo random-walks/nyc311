@@ -3,7 +3,7 @@
 `nyc311` is usable as a functional SDK for scripts, scheduled jobs, interactive
 analysis, and data-processing workflows.
 
-This guide describes the current stable SDK surface in the `0.2.x` line.
+This guide describes the current stable SDK surface in the `0.3.x` line.
 
 The current SDK is built around small, typed steps:
 
@@ -205,6 +205,195 @@ Boundary files must currently include:
 - `properties.geography`
 - `properties.geography_value`
 
+## Bulk Per-Borough Downloads
+
+For multi-year, full-city extracts, `nyc311.pipeline.bulk_fetch()` splits a
+single logical query into one CSV per borough. Each completed CSV is paired
+with a `.meta.json` sidecar capturing the row count, SHA-256 checksum, fetch
+timestamp, and the filter parameters used. Subsequent calls skip any borough
+whose file already exists, so you can resume an interrupted download.
+
+```python
+from datetime import date
+from pathlib import Path
+
+from nyc311.pipeline import bulk_fetch
+
+paths = bulk_fetch(
+    complaint_types=("Noise - Residential", "Rodent"),
+    start_date=date(2023, 1, 1),
+    end_date=date(2024, 12, 31),
+    cache_dir=Path("data/cache"),
+    on_progress=lambda boro, page, rows: print(f"{boro}: page {page} ({rows} rows)"),
+)
+
+for csv_path in paths:
+    print(csv_path, csv_path.with_suffix(".meta.json"))
+```
+
+## Factor Pipelines
+
+`nyc311.factors` provides a composable, immutable pipeline for computing
+domain-specific metrics over geographic units. Each `Factor` consumes a
+`FactorContext` (one geographic unit, one time window, the complaints inside
+it, and optional population/extras) and returns a single value. A `Pipeline`
+runs many factors over many contexts in a single pass and produces a columnar
+`PipelineResult`.
+
+```python
+from datetime import date
+
+from nyc311 import io, models
+from nyc311.factors import (
+    ComplaintVolumeFactor,
+    FactorContext,
+    Pipeline,
+    ResponseRateFactor,
+    TopicConcentrationFactor,
+)
+
+records = io.load_service_requests(
+    "data/cache/brooklyn-2024.csv",
+    filters=models.ServiceRequestFilter(
+        start_date=date(2024, 1, 1),
+        end_date=date(2024, 12, 31),
+    ),
+)
+
+# Group records by community district into FactorContexts.
+by_cd: dict[str, list[models.ServiceRequestRecord]] = {}
+for rec in records:
+    by_cd.setdefault(rec.community_district, []).append(rec)
+
+contexts = [
+    FactorContext(
+        geography="community_district",
+        geography_value=cd,
+        complaints=tuple(complaints),
+        time_window_start=date(2024, 1, 1),
+        time_window_end=date(2024, 12, 31),
+    )
+    for cd, complaints in by_cd.items()
+]
+
+pipeline = (
+    Pipeline()
+    .add(ComplaintVolumeFactor())
+    .add(ResponseRateFactor())
+    .add(TopicConcentrationFactor())
+)
+result = pipeline.run(contexts)
+df = result.to_dataframe()  # requires nyc311[dataframes]
+print(df.sort_values("complaint_volume", ascending=False).head())
+```
+
+`Pipeline.add()` returns a **new** pipeline rather than mutating in place,
+so pipelines are safe to compose and share between callers.
+
+## Temporal Panels
+
+`nyc311.temporal` builds balanced `(unit, period)` panels from raw
+`ServiceRequestRecord` lists. Treatment events code policy interventions as
+per-unit treatment indicators, and inverse-distance spatial weights feed
+spatial-econometric workflows downstream.
+
+```python
+from datetime import date
+
+from nyc311 import io
+from nyc311.temporal import TreatmentEvent, build_complaint_panel
+
+records = io.load_service_requests("data/cache/brooklyn-2023.csv")
+
+panel = build_complaint_panel(
+    records,
+    geography="community_district",
+    freq="ME",  # monthly
+    treatment_events=(
+        TreatmentEvent(
+            name="rat_mitigation_zone_2023",
+            description="DOHMH rat mitigation zone designation",
+            treated_units=("BK01", "BK02", "BK03"),
+            treatment_date=date(2023, 7, 1),
+            geography="community_district",
+        ),
+    ),
+)
+
+treated = panel.treatment_group()
+controls = panel.control_group()
+df = panel.to_dataframe()  # MultiIndex (unit_id, period)
+```
+
+For spatial weights:
+
+```python
+from nyc311.geographies import load_nyc_boundaries
+from nyc311.temporal import build_distance_weights, centroids_from_boundaries
+
+boundaries = load_nyc_boundaries("community_district")
+centroids = centroids_from_boundaries(boundaries)
+weights = build_distance_weights(centroids, threshold_meters=2000.0)
+```
+
+## Statistical Modeling
+
+`nyc311.stats` is a thin, typed layer over `statsmodels`, `ruptures`,
+`linearmodels`, and `esda` / `libpysal`. Every routine is opt-in via the
+`stats` extra and degrades cleanly with an `ImportError` when its dependency
+is missing.
+
+```python
+from datetime import date
+
+from nyc311.stats import (
+    detect_changepoints,
+    interrupted_time_series,
+    seasonal_decompose,
+)
+
+# A pandas Series of monthly complaint counts indexed by month.
+series = panel.to_dataframe()["complaint_count"].groupby(level="period").sum()
+series.index = series.index.to_timestamp()
+
+decomposition = seasonal_decompose(series, period=12)
+breaks = detect_changepoints(series, method="pelt")
+its = interrupted_time_series(series, intervention_date=date(2023, 7, 1))
+
+print(its.level_change, its.p_value_level)
+```
+
+For panel regressions:
+
+```python
+from nyc311.stats import panel_fixed_effects
+
+result = panel_fixed_effects(
+    panel,
+    outcome="complaint_count",
+    regressors=("resolution_rate",),
+    time_effects=True,
+    cluster="entity",
+)
+print(result.coefficients, result.r_squared)
+```
+
+For spatial autocorrelation:
+
+```python
+from nyc311.stats import global_morans_i, local_morans_i
+
+values = {row.Index[0]: row.complaint_count for row in df.itertuples()}
+moran = global_morans_i(values, weights)
+lisa = local_morans_i(values, weights, permutations=999)
+```
+
+Install the optional stats extra first:
+
+```bash
+pip install "nyc311[stats]"
+```
+
 ## Public Surface
 
 ### Canonical namespaces
@@ -220,6 +409,9 @@ Boundary files must currently include:
 - `nyc311.spatial`
 - `nyc311.plotting`
 - `nyc311.presets`
+- `nyc311.factors`
+- `nyc311.temporal`
+- `nyc311.stats`
 
 ## When To Use The CLI Instead
 

@@ -61,6 +61,18 @@ reference structure by hand.
 
 ::: nyc311.presets
 
+## Factors
+
+::: nyc311.factors
+
+## Temporal
+
+::: nyc311.temporal
+
+## Stats
+
+::: nyc311.stats
+
 ## CLI
 
 ::: nyc311.cli

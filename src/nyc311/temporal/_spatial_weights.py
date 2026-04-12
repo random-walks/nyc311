@@ -15,22 +15,21 @@ def build_distance_weights(
 ) -> dict[str, dict[str, float]]:
     """Build an inverse-distance spatial weights matrix.
 
-    Units within *threshold_meters* are neighbors, weighted by ``1 / distance``.
-    The matrix is symmetric.
+    Units within ``threshold_meters`` are neighbors, weighted by
+    ``1 / distance``. The resulting matrix is symmetric before
+    row-standardization.
 
-    Parameters
-    ----------
-    unit_centroids:
-        ``{unit_id: (latitude, longitude)}`` centroids.
-    threshold_meters:
-        Maximum distance for two units to be neighbors.
-    row_standardize:
-        If ``True``, normalize each row to sum to ``1.0``.
+    Args:
+        unit_centroids: Mapping ``{unit_id: (latitude, longitude)}`` of
+            unit centroids in WGS84 degrees.
+        threshold_meters: Maximum great-circle distance, in meters, for
+            two units to be considered neighbors.
+        row_standardize: If ``True``, normalize each row of the resulting
+            weights matrix to sum to ``1.0``.
 
-    Returns
-    -------
-    dict[str, dict[str, float]]
-        Nested dictionary ``{unit_a: {unit_b: weight}}``.
+    Returns:
+        Nested dictionary ``{unit_a: {unit_b: weight}}``. Units with no
+        neighbors map to an empty inner dict.
     """
     unit_ids = sorted(unit_centroids)
     raw: dict[str, dict[str, float]] = {uid: {} for uid in unit_ids}
@@ -60,7 +59,20 @@ def build_distance_weights(
 
 
 def weights_to_pysal(weights: dict[str, dict[str, float]]) -> Any:
-    """Convert a weights dict to a :class:`libpysal.weights.W` object."""
+    """Convert a weights dict to a :class:`libpysal.weights.W` object.
+
+    Args:
+        weights: Nested dictionary ``{unit_a: {unit_b: weight}}`` as
+            produced by :func:`build_distance_weights`.
+
+    Returns:
+        A ``libpysal.weights.W`` instance suitable for use with PySAL's
+        spatial autocorrelation routines.
+
+    Raises:
+        ImportError: If libpysal is not installed. Install the optional
+            stats extra with ``pip install nyc311[stats]``.
+    """
     try:
         from libpysal.weights import W
     except ImportError as exc:
@@ -78,8 +90,19 @@ def weights_to_pysal(weights: dict[str, dict[str, float]]) -> Any:
 def centroids_from_boundaries(boundaries: Any) -> dict[str, tuple[float, float]]:
     """Extract centroids from a :class:`BoundaryCollection`.
 
-    Computes the centroid as the mean of the exterior ring coordinates for
-    each boundary feature.
+    Computes a per-feature centroid as the mean of the exterior-ring
+    coordinates. This is approximate but cheap and avoids a hard
+    dependency on shapely.
+
+    Args:
+        boundaries: A boundary collection exposing a ``features``
+            iterable. Each feature must provide a ``geometry`` mapping
+            with ``"type"`` (``"Polygon"`` or ``"MultiPolygon"``) and
+            ``"coordinates"``, plus a ``geography_value`` attribute.
+
+    Returns:
+        Mapping ``{geography_value: (latitude, longitude)}`` for every
+        feature whose exterior ring is non-empty.
     """
     centroids: dict[str, tuple[float, float]] = {}
     for feature in boundaries.features:

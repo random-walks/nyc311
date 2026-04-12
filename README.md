@@ -14,8 +14,9 @@ Authored by [Blaise Albis-Burdige](https://blaiseab.com/).
 
 ## What this package does
 
-`nyc311` is the stable `0.2.x` toolkit for turning NYC 311 service-request data
-into reproducible complaint-intelligence outputs.
+`nyc311` is the stable `0.3.x` toolkit for turning NYC 311 service-request data
+into reproducible complaint-intelligence outputs and publication-quality
+statistical analyses.
 
 It pairs a thin CLI with a typed SDK so the same workflow can run in batch jobs,
 scripts, notebooks, and consumer packages.
@@ -30,6 +31,13 @@ The current release line provides:
 - score anomalies over aggregated topic summaries
 - export CSV tables, boundary-backed GeoJSON, and markdown report cards
 - expose the workflow through both a thin CLI and a composable functional SDK
+- compose domain-specific factor pipelines over geographic units
+- build balanced temporal panels with treatment-event modeling and
+  inverse-distance spatial weights
+- run interrupted-time-series, PELT changepoint, STL decomposition, Moran's I /
+  LISA, and panel fixed/random-effects regressions
+- bulk-fetch full-city extracts split per borough with `.meta.json` integrity
+  sidecars
 
 ## Geography layer
 
@@ -76,6 +84,13 @@ For plotting and exploratory analysis without the geospatial stack:
 
 ```bash
 pip install "nyc311[science]"
+```
+
+For statistical modeling (interrupted time series, changepoints, STL, Moran's I,
+panel regressions):
+
+```bash
+pip install "nyc311[stats]"
 ```
 
 ## Why this exists
@@ -223,6 +238,45 @@ nyc311 fetch \
   --max-pages 1
 ```
 
+### Factor pipeline
+
+`nyc311.factors` composes domain-specific metrics over geographic units:
+
+```python
+from datetime import date
+
+from nyc311.factors import (
+    ComplaintVolumeFactor,
+    FactorContext,
+    Pipeline,
+    ResponseRateFactor,
+    TopicConcentrationFactor,
+)
+
+contexts = [
+    FactorContext(
+        geography="community_district",
+        geography_value=cd,
+        complaints=tuple(complaints),
+        time_window_start=date(2024, 1, 1),
+        time_window_end=date(2024, 12, 31),
+    )
+    for cd, complaints in records_by_cd.items()
+]
+
+result = (
+    Pipeline()
+    .add(ComplaintVolumeFactor())
+    .add(ResponseRateFactor())
+    .add(TopicConcentrationFactor())
+    .run(contexts)
+)
+df = result.to_dataframe()  # one row per CD, one column per factor
+```
+
+See the [SDK guide](https://nyc311.readthedocs.io/en/latest/sdk/) for the
+matching temporal-panel, statistical-modeling, and bulk-download examples.
+
 ## Data assumptions
 
 `load_service_requests()` currently supports:
@@ -259,6 +313,12 @@ The public API is organized around explicit namespaces:
 - `nyc311.spatial` for optional geopandas helpers
 - `nyc311.plotting` for optional plotting helpers
 - `nyc311.presets` for reusable filter and Socrata config builders
+- `nyc311.factors` for the composable factor pipeline and built-in domain
+  factors
+- `nyc311.temporal` for balanced panel datasets, treatment events, and
+  inverse-distance spatial weights
+- `nyc311.stats` for ITS, PELT changepoints, STL, Moran's I / LISA, and panel
+  fixed/random-effects regressions
 - `nyc311.cli` with the `topics` and `fetch` subcommands
 
 ## Documentation
@@ -271,6 +331,11 @@ If you are browsing in GitHub, the source docs live in `docs/`, including
 `architecture.md`, and `contributing.md`.
 
 Runnable examples live in `examples/` as self-contained consumer projects.
+The `examples/case_studies/` directory holds longer-form analyses; the
+[resolution-equity case study](examples/case_studies/resolution_equity/)
+exercises bulk fetch, panel construction, STL decomposition, changepoint
+detection, the factor pipeline, and spatial autocorrelation against ~1M real
+records.
 
 For local preview:
 

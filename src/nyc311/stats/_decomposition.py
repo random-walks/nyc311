@@ -29,19 +29,25 @@ def seasonal_decompose(
     *,
     period: int | None = None,
 ) -> DecompositionResult:
-    """Decompose *series* into trend, seasonal, and residual components.
+    """Decompose ``series`` into trend, seasonal, and residual components.
 
-    Parameters
-    ----------
-    series:
-        A ``pandas.Series`` with a ``DatetimeIndex``.
-    period:
-        Seasonal period in observations.  If ``None``, auto-detected from
-        the index frequency (e.g. monthly -> 12, weekly -> 52).
+    Wraps :class:`statsmodels.tsa.seasonal.STL`. The series must be
+    indexed by a ``DatetimeIndex``.
 
-    Returns
-    -------
-    DecompositionResult
+    Args:
+        series: A ``pandas.Series`` indexed by a ``DatetimeIndex``.
+        period: Seasonal period in observations. When ``None``, the
+            period is inferred from the index frequency (monthly → 12,
+            weekly → 52, daily → 7, quarterly → 4, yearly → 1).
+
+    Returns:
+        A :class:`DecompositionResult` exposing the trend, seasonal, and
+        residual ``pandas.Series`` plus the period actually used.
+
+    Raises:
+        ImportError: If statsmodels or pandas is not installed. Install
+            the optional stats extra with ``pip install nyc311[stats]``.
+        TypeError: If ``series`` does not use a ``DatetimeIndex``.
     """
     try:
         import pandas as pd

@@ -130,31 +130,30 @@ def bulk_fetch(
     """Fetch full-city 311 data split by borough for manageable file sizes.
 
     Downloads are split per-borough so that each CSV stays under a few
-    hundred megabytes.  Files are written to ``cache_dir`` with
+    hundred megabytes. Files are written to ``cache_dir`` with
     deterministic names; subsequent calls skip any borough whose file
-    already exists.
+    already exists. Each completed CSV is paired with a ``.meta.json``
+    sidecar containing the row count, SHA-256 checksum, fetch
+    timestamp, and the filter parameters used.
 
-    Parameters
-    ----------
-    complaint_types:
-        Optional whitelist of complaint types.
-    start_date / end_date:
-        Date range (accepts ``date`` or ISO-8601 string).
-    cache_dir:
-        Directory to write CSV files into.
-    boroughs:
-        Boroughs to include.  Defaults to all five.
-    app_token:
-        Socrata app token for higher rate limits.
-    page_size:
-        Rows per Socrata HTTP request.
-    on_progress:
-        Callback ``(borough, page_index, page_row_count)`` after each page.
+    Args:
+        complaint_types: Optional whitelist of complaint types. When
+            empty, every complaint type is included.
+        start_date: Inclusive lower bound on ``created_date``. Accepts a
+            ``datetime.date`` or an ISO-8601 string.
+        end_date: Inclusive upper bound on ``created_date``. Accepts a
+            ``datetime.date`` or an ISO-8601 string.
+        cache_dir: Directory to write per-borough CSV files into. The
+            directory is created on demand.
+        boroughs: Boroughs to include. Defaults to all five.
+        app_token: Socrata app token for higher rate limits.
+        page_size: Rows per Socrata HTTP request.
+        on_progress: Optional callback invoked after each HTTP page as
+            ``on_progress(borough, page_index, page_row_count)``.
 
-    Returns
-    -------
-    list[Path]
-        Paths to the completed per-borough CSV files.
+    Returns:
+        Paths to the completed per-borough CSV files in the order the
+        boroughs were processed.
     """
     target_boroughs = boroughs or SUPPORTED_BOROUGHS
     cache_path = Path(cache_dir)

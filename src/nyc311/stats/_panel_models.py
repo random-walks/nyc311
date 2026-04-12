@@ -35,7 +35,24 @@ def _prepare_panel_data(
     outcome: str,
     regressors: tuple[str, ...],
 ) -> Any:
-    """Convert PanelDataset to linearmodels-compatible MultiIndex DataFrame."""
+    """Convert a panel dataset to a ``linearmodels``-ready DataFrame.
+
+    Args:
+        panel: The :class:`~nyc311.temporal.PanelDataset` to convert.
+        outcome: Name of the dependent variable column. Must exist in
+            the dataframe produced by :meth:`PanelDataset.to_dataframe`.
+        regressors: Names of independent variable columns.
+
+    Returns:
+        A ``pandas.DataFrame`` indexed by ``(unit_id, period)`` with
+        only the requested outcome and regressor columns and rows
+        containing missing values dropped.
+
+    Raises:
+        ImportError: If pandas is not installed.
+        ValueError: If any requested column is missing or the panel
+            does not produce a ``MultiIndex`` DataFrame.
+    """
     try:
         import pandas as pd
     except ImportError as exc:
@@ -70,22 +87,30 @@ def panel_fixed_effects(
 ) -> PanelRegressionResult:
     """Estimate a fixed-effects panel regression.
 
-    Parameters
-    ----------
-    panel:
-        A :class:`~nyc311.temporal.PanelDataset`.
-    outcome:
-        Name of the dependent variable column.
-    regressors:
-        Names of independent variable columns.
-    time_effects:
-        Include time fixed effects (two-way FE).
-    cluster:
-        Cluster standard errors by entity, time, or both.
+    Wraps :class:`linearmodels.panel.PanelOLS` with entity fixed effects
+    by default and optional two-way fixed effects.
 
-    Returns
-    -------
-    PanelRegressionResult
+    Args:
+        panel: A :class:`~nyc311.temporal.PanelDataset` providing the
+            data, entities, and periods.
+        outcome: Name of the dependent variable column.
+        regressors: Names of independent variable columns.
+        time_effects: When ``True``, include time fixed effects in
+            addition to entity fixed effects (two-way FE).
+        cluster: Cluster standard errors by ``"entity"`` (default),
+            ``"time"``, or ``"both"``.
+
+    Returns:
+        A :class:`PanelRegressionResult` with coefficients, standard
+        errors, p-values, R-squared, observation counts, and the full
+        ``linearmodels`` summary string.
+
+    Raises:
+        ImportError: If ``linearmodels`` or pandas is not installed.
+            Install the optional stats extra with
+            ``pip install nyc311[stats]``.
+        ValueError: If ``outcome`` or any of ``regressors`` is missing
+            from the panel.
     """
     try:
         from linearmodels.panel import PanelOLS
@@ -140,18 +165,25 @@ def panel_random_effects(
 ) -> PanelRegressionResult:
     """Estimate a random-effects panel regression.
 
-    Parameters
-    ----------
-    panel:
-        A :class:`~nyc311.temporal.PanelDataset`.
-    outcome:
-        Name of the dependent variable column.
-    regressors:
-        Names of independent variable columns.
+    Wraps :class:`linearmodels.panel.RandomEffects`.
 
-    Returns
-    -------
-    PanelRegressionResult
+    Args:
+        panel: A :class:`~nyc311.temporal.PanelDataset` providing the
+            data, entities, and periods.
+        outcome: Name of the dependent variable column.
+        regressors: Names of independent variable columns.
+
+    Returns:
+        A :class:`PanelRegressionResult` with coefficients, standard
+        errors, p-values, R-squared, observation counts, and the full
+        ``linearmodels`` summary string.
+
+    Raises:
+        ImportError: If ``linearmodels`` or pandas is not installed.
+            Install the optional stats extra with
+            ``pip install nyc311[stats]``.
+        ValueError: If ``outcome`` or any of ``regressors`` is missing
+            from the panel.
     """
     try:
         from linearmodels.panel import RandomEffects

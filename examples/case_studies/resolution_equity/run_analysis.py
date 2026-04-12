@@ -8,7 +8,6 @@ analyses, and prints structured results that feed into the findings README.
 from __future__ import annotations
 
 import json
-import sys
 from datetime import date
 from pathlib import Path
 
@@ -107,8 +106,7 @@ def build_city_timeseries(df: pd.DataFrame) -> pd.Series:
     """Aggregate panel to city-wide monthly complaint totals."""
     city = df.groupby("period")["complaint_count"].sum()
     city.index = pd.to_datetime(city.index)
-    city = city.sort_index()
-    return city
+    return city.sort_index()
 
 
 # ---------------------------------------------------------------------------
@@ -344,7 +342,7 @@ def analyze_complaint_types(records: list) -> dict:
 
     return {
         "total_complaint_types": len(type_counts),
-        "top_20_types": {ct: cnt for ct, cnt in top_20},
+        "top_20_types": dict(top_20),
         "top_20_shares": {ct: round(cnt / total * 100, 2) for ct, cnt in top_20},
         "top_20_resolution_rates": type_resolution,
         "concentration_top5": round(
