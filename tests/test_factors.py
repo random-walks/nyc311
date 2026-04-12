@@ -60,7 +60,7 @@ def _make_context(
     time_window_start: date = date(2024, 6, 1),
     time_window_end: date = date(2024, 6, 30),
     total_population: int | None = 100_000,
-    extras: dict | None = None,
+    extras: dict[str, object] | None = None,
 ) -> FactorContext:
     if complaints is None:
         complaints = (_make_record(),)

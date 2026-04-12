@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from nyc311.temporal import PanelDataset
 
 from nyc311.stats import (
     EventStudyResult,
@@ -88,7 +92,7 @@ class TestCausalDataclasses:
 # ---------------------------------------------------------------------------
 
 
-def _build_panel_with_treatment():
+def _build_panel_with_treatment() -> PanelDataset:
     """Build a simple panel with staggered treatment for testing."""
     from nyc311.temporal._models import PanelDataset, PanelObservation, TreatmentEvent
 

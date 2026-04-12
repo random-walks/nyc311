@@ -392,7 +392,7 @@ class TestSpatialWeights:
 
 
 class _StubFeature:
-    def __init__(self, geography_value: str, geometry: dict) -> None:
+    def __init__(self, geography_value: str, geometry: dict[str, object]) -> None:
         self.geography_value = geography_value
         self.geometry = geometry
 

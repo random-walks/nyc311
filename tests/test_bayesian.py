@@ -29,7 +29,10 @@ class TestBYM2:
         """BYM2 requires pymc; this test checks the error message."""
         try:
             import pymc  # noqa: F401
-        except ImportError:
+
+            pytest.skip("pymc is installed; ImportError path not testable")
+        except Exception:  # noqa: BLE001  — pymc may crash during init, not just ImportError
+            # pymc not importable (ImportError or crash during init)
             from nyc311.stats import bym2_smooth
 
             with pytest.raises(ImportError, match="pymc"):

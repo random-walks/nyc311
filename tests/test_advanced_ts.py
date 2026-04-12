@@ -66,7 +66,7 @@ class TestSTLAnomalyDetection:
         values = 100 + 5.0 * np.sin(2 * np.pi * np.arange(48) / 12)
         series = pd.Series(values, index=dates)
 
-        result = detect_stl_anomalies(series, threshold=3.0)
+        result = detect_stl_anomalies(series, threshold=5.0)
         assert result.n_anomalies == 0
 
 

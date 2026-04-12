@@ -7,8 +7,12 @@ linearmodels) are marked ``@pytest.mark.optional``.
 from __future__ import annotations
 
 from datetime import date
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from nyc311.temporal import PanelDataset
 
 from nyc311.stats import (
     ChangepointResult,
@@ -163,7 +167,7 @@ class TestSeasonalDecomposition:
 # ---------------------------------------------------------------------------
 
 
-def _synthetic_panel_dataset():
+def _synthetic_panel_dataset() -> PanelDataset:
     """Build a small balanced panel where the outcome depends on a regressor."""
     import numpy as np
 
