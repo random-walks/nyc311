@@ -104,8 +104,7 @@ jobs:
         run: uv run --frozen mkdocs build --strict
 
   tests:
-    name:
-      Test full install (Python ${{ matrix.python-version }}, toolkit ${{
+    name: Test full install (Python ${{ matrix.python-version }}, toolkit ${{
       matrix.toolkit-channel }})
     runs-on: ubuntu-latest
     permissions:
@@ -157,12 +156,10 @@ jobs:
             Test Results (full non-live, Python ${{ matrix.python-version }},
             toolkit ${{ matrix.toolkit-channel }})
           comment_mode: off
-          files:
-            junit/${{ matrix.toolkit-channel }}-${{ matrix.python-version }}.xml
+          files: junit/${{ matrix.toolkit-channel }}-${{ matrix.python-version }}.xml
 
       - name: Upload coverage report
-        if:
-          matrix.python-version == '3.12' && matrix.toolkit-channel ==
+        if: matrix.python-version == '3.12' && matrix.toolkit-channel ==
           'released'
         uses: codecov/codecov-action@v6
         with:

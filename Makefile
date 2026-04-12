@@ -8,7 +8,7 @@ help:
 	@echo "  test-optional Run the optional-feature subset with all extras"
 	@echo "  test-fetch   Run fetch-focused tests"
 	@echo "  test-integration Run the live/integration test session with all extras"
-	@echo "  lint         Run Ruff, mypy, and the public API audit"
+	@echo "  lint         Run Ruff, mypy, pylint, and the public API audit (matches CI)"
 	@echo "  lint-fix     Apply safe automatic fixes, then run the full lint job"
 	@echo "  build        Build the source and wheel distributions"
 	@echo "  smoke-dist   Build release artifacts and smoke-test an installed wheel"
@@ -38,7 +38,7 @@ test-integration:
 	NYC311_RUN_LIVE_FETCH_TESTS=1 uv run --all-extras pytest -m integration
 
 lint:
-	uv run ruff check . && uv run mypy && uv run python scripts/audit_public_api.py
+	uv run --frozen ruff check . && uv run --frozen mypy && uv run --frozen pylint nyc311 && uv run --frozen python scripts/audit_public_api.py
 
 lint-fix:
 	uv sync --frozen --group docs --all-extras

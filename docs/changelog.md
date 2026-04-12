@@ -3,6 +3,7 @@
 ## Next
 
 ### Causal Inference
+
 - **`synthetic_control()`** — Abadie (2010) synthetic control method with
   in-space placebos for inference
 - **`staggered_did()`** — Callaway & Sant'Anna (2021) group-time ATT
@@ -12,12 +13,14 @@
   local polynomial RD with robust CIs
 
 ### Spatial Econometrics
+
 - **`spatial_lag_model()`** and **`spatial_error_model()`** — Anselin (1988)
   ML estimation via PySAL spreg
 - **`geographically_weighted_regression()`** — Brunsdon et al. (1996) with
   automatic CV bandwidth selection
 
 ### Equity & Bias
+
 - **`oaxaca_blinder_decomposition()`** — twofold decomposition for
   explaining outcome gaps between groups
 - **`theil_index()`** — population-weighted Theil T with between/within
@@ -28,27 +31,32 @@
   complaint rates (Agostini et al. 2025)
 
 ### Time Series & Diagnostics
+
 - **`detect_stl_anomalies()`** — seasonality-adjusted anomaly detection via
   STL residual z-scores
 - **`minimum_detectable_effect()`** — power analysis / MDE calculator for
   cluster-randomized panel designs
 
 ### Bayesian & Point Processes
+
 - **`bym2_smooth()`** — BYM2 Bayesian small-area smoothing (Riebler 2016)
   via PyMC — behind `nyc311[bayes]` extra
 - **`fit_hawkes_process()`** — self-exciting Hawkes process for complaint
   contagion modeling (Mohler 2011)
 
 ### Pipeline Factors
+
 - **`SpatialLagFactor`** — weighted average of neighboring unit values
 - **`EquityGapFactor`** — resolution-time ratio to citywide median
 
 ### Dependencies
+
 - add `spreg` to the `stats` optional extra
 - add `bayes` optional extra (`pymc>=5.16`)
 - add `scipy` to mypy ignore overrides
 
 ### Case Studies
+
 - **rat containerization** — exercises synthetic control, staggered DiD,
   event study, and RDD on the 2024 NYC containerization rollout
 

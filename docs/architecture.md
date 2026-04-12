@@ -36,23 +36,23 @@ flowchart LR
 
 ## Module Responsibilities
 
-| Module               | Responsibility                                                                  |
-| -------------------- | ------------------------------------------------------------------------------- |
-| `nyc311.models`      | Typed dataclasses, constants, configs, and normalization helpers                |
-| `nyc311.io`          | CSV and Socrata ingestion for service-request records                           |
-| `nyc311.analysis`    | Deterministic topic extraction, coverage, gaps, and anomalies                   |
-| `nyc311.geographies` | Compatibility layer over `nyc-geo-toolkit` plus 311-specific geography adapters |
-| `nyc311.samples`     | Packaged sample records and sample-aligned boundary subsets                     |
-| `nyc311.export`      | CSV, GeoJSON, and markdown artifact generation                                  |
-| `nyc311.dataframes`  | Optional pandas conversions for typed nyc311 models                             |
-| `nyc311.spatial`     | Optional geopandas spatial helpers and joins                                    |
-| `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers                |
-| `nyc311.presets`     | Reusable filter and Socrata config builders for common workflows                |
-| `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path                           |
-| `nyc311.factors`     | Composable factor pipeline with 9 built-in factors including SpatialLagFactor and EquityGapFactor |
-| `nyc311.temporal`    | Balanced panel datasets, treatment events, and inverse-distance spatial weights |
+| Module               | Responsibility                                                                                                                                                                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nyc311.models`      | Typed dataclasses, constants, configs, and normalization helpers                                                                                                                                                                             |
+| `nyc311.io`          | CSV and Socrata ingestion for service-request records                                                                                                                                                                                        |
+| `nyc311.analysis`    | Deterministic topic extraction, coverage, gaps, and anomalies                                                                                                                                                                                |
+| `nyc311.geographies` | Compatibility layer over `nyc-geo-toolkit` plus 311-specific geography adapters                                                                                                                                                              |
+| `nyc311.samples`     | Packaged sample records and sample-aligned boundary subsets                                                                                                                                                                                  |
+| `nyc311.export`      | CSV, GeoJSON, and markdown artifact generation                                                                                                                                                                                               |
+| `nyc311.dataframes`  | Optional pandas conversions for typed nyc311 models                                                                                                                                                                                          |
+| `nyc311.spatial`     | Optional geopandas spatial helpers and joins                                                                                                                                                                                                 |
+| `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers                                                                                                                                                                             |
+| `nyc311.presets`     | Reusable filter and Socrata config builders for common workflows                                                                                                                                                                             |
+| `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path                                                                                                                                                                                        |
+| `nyc311.factors`     | Composable factor pipeline with 9 built-in factors including SpatialLagFactor and EquityGapFactor                                                                                                                                            |
+| `nyc311.temporal`    | Balanced panel datasets, treatment events, and inverse-distance spatial weights                                                                                                                                                              |
 | `nyc311.stats`       | Statistical modeling: ITS, PELT, STL, panel FE/RE, Moran/LISA, synthetic control, staggered DiD, event study, RDD, spatial lag/error, GWR, Oaxaca-Blinder, Theil, reporting-bias adjustment, BYM2, Hawkes, anomaly detection, power analysis |
-| `nyc311.cli`         | Argparse-powered fetch and analysis entry points                                |
+| `nyc311.cli`         | Argparse-powered fetch and analysis entry points                                                                                                                                                                                             |
 
 ## Design Principles
 
@@ -121,7 +121,7 @@ That split keeps the package responsibilities clear:
   Oaxaca-Blinder decomposition, Theil index, reporting-bias adjustment,
   BYM2 small-area smoothing, Hawkes process, seasonality-adjusted
   anomaly detection, and power analysis / MDE calculator
-- a `bulk_fetch()` per-borough downloader that emits ``.meta.json``
+- a `bulk_fetch()` per-borough downloader that emits `.meta.json`
   integrity sidecars
 - the resolution-equity case study, which exercises the full v0.3.0
   surface against ~1M real records

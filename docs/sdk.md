@@ -413,7 +413,11 @@ print(rd.treatment_effect, rd.p_value)
 ### Spatial Econometrics
 
 ```python
-from nyc311.stats import spatial_lag_model, spatial_error_model, geographically_weighted_regression
+from nyc311.stats import (
+    spatial_lag_model,
+    spatial_error_model,
+    geographically_weighted_regression,
+)
 
 # Spatial lag model (Anselin 1988)
 slm = spatial_lag_model(panel, weights, "complaint_count", ("income", "density"))
@@ -432,12 +436,16 @@ print(gwr.local_coefficients, gwr.bandwidth)
 
 ```python
 from nyc311.stats import (
-    oaxaca_blinder_decomposition, theil_index,
-    reporting_rate_adjustment, latent_reporting_bias_em,
+    oaxaca_blinder_decomposition,
+    theil_index,
+    reporting_rate_adjustment,
+    latent_reporting_bias_em,
 )
 
 # Oaxaca-Blinder decomposition — explain resolution-time gaps
-ob = oaxaca_blinder_decomposition(group_a_df, group_b_df, "resolution_days", ("income", "density"))
+ob = oaxaca_blinder_decomposition(
+    group_a_df, group_b_df, "resolution_days", ("income", "density")
+)
 print(ob.explained, ob.unexplained, ob.total_gap)
 
 # Theil index — population-weighted inequality
@@ -445,7 +453,9 @@ ti = theil_index(rates, populations, groups=borough_map)
 print(ti.total, ti.between_group, ti.within_group)
 
 # Ecometric reporting-rate adjustment (O'Brien 2015)
-adj = reporting_rate_adjustment(panel, "complaint_rate", ("median_income", "pop_density"))
+adj = reporting_rate_adjustment(
+    panel, "complaint_rate", ("median_income", "pop_density")
+)
 print(adj.adjusted_rates, adj.icc)
 
 # Latent reporting-bias EM (Agostini et al. 2025)

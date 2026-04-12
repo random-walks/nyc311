@@ -118,7 +118,7 @@ the entire `nyc311` v0.3.0 surface end-to-end:
 - `nyc311.pipeline.bulk_fetch()` downloads 5 years of data split per borough
   with `.meta.json` integrity sidecars
 - `nyc311.temporal.build_complaint_panel()` builds the balanced
-  ``(community_district x month)`` panel
+  `(community_district x month)` panel
 - `nyc311.stats.seasonal_decompose()` extracts trend, seasonal, and residual
   components per complaint type
 - `nyc311.stats.detect_changepoints()` finds structural breaks aligned with

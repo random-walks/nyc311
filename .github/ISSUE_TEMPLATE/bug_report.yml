@@ -1,6 +1,5 @@
 name: Bug report
-description:
-  Report a reproducible problem with the nyc311 package, CLI, docs, or examples.
+description: Report a reproducible problem with the nyc311 package, CLI, docs, or examples.
 title: "[Bug]: "
 labels:
   - bug
@@ -22,8 +21,7 @@ body:
     id: repro
     attributes:
       label: Reproduction
-      description:
-        Share the exact steps, command, or code path that reproduces the issue.
+      description: Share the exact steps, command, or code path that reproduces the issue.
       placeholder: |
         1. Install `nyc311[...]`
         2. Run `nyc311 ...`
