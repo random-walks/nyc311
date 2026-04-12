@@ -156,3 +156,223 @@ class TestSeasonalDecomposition:
         assert isinstance(result, DecompositionResult)
         assert result.period == 12
         assert len(result.trend.dropna()) > 0
+
+
+# ---------------------------------------------------------------------------
+# Panel regressions
+# ---------------------------------------------------------------------------
+
+
+def _synthetic_panel_dataset():
+    """Build a small balanced panel where the outcome depends on a regressor."""
+    import numpy as np
+
+    from nyc311.temporal import PanelDataset, PanelObservation
+
+    rng = np.random.default_rng(0)
+    units = [f"U{i:02d}" for i in range(8)]
+    periods = [f"2024-{m:02d}" for m in range(1, 13)]
+
+    observations: list[PanelObservation] = []
+    for unit in units:
+        unit_effect = float(rng.normal(0, 1))
+        for p_idx, period in enumerate(periods):
+            resolution_rate = float(rng.uniform(0.4, 0.9))
+            # outcome = constant + 50*resolution_rate + unit FE + noise
+            count = round(
+                100.0
+                + 50.0 * resolution_rate
+                + 5.0 * unit_effect
+                + 0.5 * p_idx
+                + rng.normal(0, 2)
+            )
+            observations.append(
+                PanelObservation(
+                    unit_id=unit,
+                    period=period,
+                    complaint_count=count,
+                    complaint_counts_by_type={},
+                    resolution_rate=resolution_rate,
+                    median_resolution_days=10.0,
+                    treatment=False,
+                    treatment_date=None,
+                    population=10_000,
+                )
+            )
+
+    return PanelDataset(
+        observations=tuple(observations),
+        unit_type="community_district",
+        periods=tuple(periods),
+    )
+
+
+@pytest.mark.optional
+class TestPanelFixedEffects:
+    def test_recovers_known_coefficient(self) -> None:
+        pytest.importorskip("linearmodels")
+
+        from nyc311.stats import panel_fixed_effects
+
+        panel = _synthetic_panel_dataset()
+        result = panel_fixed_effects(
+            panel,
+            outcome="complaint_count",
+            regressors=("resolution_rate",),
+        )
+
+        assert isinstance(result, PanelRegressionResult)
+        assert result.method == "entity_fe"
+        assert "resolution_rate" in result.coefficients
+        # True effect is +50; allow generous tolerance
+        assert 30.0 < result.coefficients["resolution_rate"] < 70.0
+        assert result.n_observations == 8 * 12
+        assert result.n_entities == 8
+        assert result.n_periods == 12
+
+    def test_two_way_fe(self) -> None:
+        pytest.importorskip("linearmodels")
+
+        from nyc311.stats import panel_fixed_effects
+
+        panel = _synthetic_panel_dataset()
+        result = panel_fixed_effects(
+            panel,
+            outcome="complaint_count",
+            regressors=("resolution_rate",),
+            time_effects=True,
+        )
+        assert result.method == "two_way_fe"
+
+    def test_missing_outcome_raises(self) -> None:
+        pytest.importorskip("linearmodels")
+
+        from nyc311.stats import panel_fixed_effects
+
+        panel = _synthetic_panel_dataset()
+        with pytest.raises(ValueError, match="Missing columns"):
+            panel_fixed_effects(
+                panel,
+                outcome="not_a_real_column",
+                regressors=("resolution_rate",),
+            )
+
+
+@pytest.mark.optional
+class TestPanelRandomEffects:
+    def test_random_effects_returns_result(self) -> None:
+        pytest.importorskip("linearmodels")
+
+        from nyc311.stats import panel_random_effects
+
+        panel = _synthetic_panel_dataset()
+        result = panel_random_effects(
+            panel,
+            outcome="complaint_count",
+            regressors=("resolution_rate",),
+        )
+
+        assert isinstance(result, PanelRegressionResult)
+        assert result.method == "random_effects"
+        assert "resolution_rate" in result.coefficients
+        assert result.r_squared >= 0.0
+
+
+# ---------------------------------------------------------------------------
+# Spatial autocorrelation
+# ---------------------------------------------------------------------------
+
+
+def _grid_weights(rows: int, cols: int) -> dict[str, dict[str, float]]:
+    """Build row-standardized rook-contiguity weights for a rows x cols grid."""
+    units = [f"{r}_{c}" for r in range(rows) for c in range(cols)]
+    raw: dict[str, dict[str, float]] = {u: {} for u in units}
+
+    def _add(a: str, b: str) -> None:
+        raw[a][b] = 1.0
+        raw[b][a] = 1.0
+
+    for r in range(rows):
+        for c in range(cols):
+            uid = f"{r}_{c}"
+            if c + 1 < cols:
+                _add(uid, f"{r}_{c + 1}")
+            if r + 1 < rows:
+                _add(uid, f"{r + 1}_{c}")
+
+    for u in units:
+        total = sum(raw[u].values())
+        if total > 0:
+            raw[u] = {nb: w / total for nb, w in raw[u].items()}
+    return raw
+
+
+@pytest.mark.optional
+class TestGlobalMoransI:
+    def test_clustered_values_have_positive_moran(self) -> None:
+        pytest.importorskip("esda")
+        pytest.importorskip("libpysal")
+
+        from nyc311.stats import global_morans_i
+
+        rows = cols = 6
+        weights = _grid_weights(rows, cols)
+        # Top half = high, bottom half = low → strong positive autocorrelation
+        values = {
+            f"{r}_{c}": (10.0 if r < rows // 2 else 1.0)
+            for r in range(rows)
+            for c in range(cols)
+        }
+
+        result = global_morans_i(values, weights)
+        assert isinstance(result, MoranResult)
+        assert result.statistic > 0.5
+        assert -1.0 <= result.statistic <= 1.0
+
+    def test_random_values_have_near_zero_moran(self) -> None:
+        pytest.importorskip("esda")
+        pytest.importorskip("libpysal")
+
+        import numpy as np
+
+        from nyc311.stats import global_morans_i
+
+        rows = cols = 6
+        weights = _grid_weights(rows, cols)
+        rng = np.random.default_rng(123)
+        values = {
+            f"{r}_{c}": float(rng.normal())
+            for r in range(rows)
+            for c in range(cols)
+        }
+        result = global_morans_i(values, weights)
+        assert abs(result.statistic) < 0.4
+
+
+@pytest.mark.optional
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+class TestLocalMoransI:
+    def test_lisa_returns_one_label_per_unit(self) -> None:
+        pytest.importorskip("esda")
+        pytest.importorskip("libpysal")
+
+        from nyc311.stats import local_morans_i
+
+        rows = cols = 5
+        weights = _grid_weights(rows, cols)
+        values = {
+            f"{r}_{c}": (10.0 if r < rows // 2 else 1.0)
+            for r in range(rows)
+            for c in range(cols)
+        }
+        result = local_morans_i(values, weights, permutations=199)
+
+        assert isinstance(result, LISAResult)
+        n = rows * cols
+        assert len(result.local_statistic) == n
+        assert len(result.p_values) == n
+        assert len(result.cluster_labels) == n
+        assert len(result.unit_ids) == n
+        # Every label is one of the documented categories
+        allowed = {"HH", "HL", "LH", "LL", "ns"}
+        assert set(result.cluster_labels) <= allowed

@@ -74,6 +74,20 @@ def _prepare_panel_data(
         msg = "Panel DataFrame must have a (unit_id, period) MultiIndex."
         raise ValueError(msg)
 
+    # linearmodels requires the time level of the MultiIndex to be numeric
+    # or date-like. PanelDataset stores periods as ISO-style strings (e.g.
+    # "2024-01" for monthly), so coerce them to a DatetimeIndex on the
+    # second level of the MultiIndex before handing the frame off.
+    unit_level = df.index.get_level_values(0)
+    period_level = df.index.get_level_values(1)
+    if not isinstance(period_level, pd.DatetimeIndex):
+        period_level = pd.DatetimeIndex(pd.to_datetime(list(period_level)))
+        df = df.copy()
+        df.index = pd.MultiIndex.from_arrays(
+            [unit_level, period_level],
+            names=df.index.names,
+        )
+
     return df[required].dropna()
 
 
@@ -147,9 +161,9 @@ def panel_fixed_effects(
 
     return PanelRegressionResult(
         method="two_way_fe" if time_effects else "entity_fe",
-        coefficients={k: float(v) for k, v in result.params.items()},
-        std_errors={k: float(v) for k, v in result.std_errors.items()},
-        p_values={k: float(v) for k, v in result.pvalues.items()},
+        coefficients={str(k): float(v) for k, v in result.params.items()},
+        std_errors={str(k): float(v) for k, v in result.std_errors.items()},
+        p_values={str(k): float(v) for k, v in result.pvalues.items()},
         r_squared=float(result.rsquared),
         n_observations=int(result.nobs),
         n_entities=int(result.entity_info.total),
@@ -203,9 +217,9 @@ def panel_random_effects(
 
     return PanelRegressionResult(
         method="random_effects",
-        coefficients={k: float(v) for k, v in result.params.items()},
-        std_errors={k: float(v) for k, v in result.std_errors.items()},
-        p_values={k: float(v) for k, v in result.pvalues.items()},
+        coefficients={str(k): float(v) for k, v in result.params.items()},
+        std_errors={str(k): float(v) for k, v in result.std_errors.items()},
+        p_values={str(k): float(v) for k, v in result.pvalues.items()},
         r_squared=float(result.rsquared),
         n_observations=int(result.nobs),
         n_entities=int(result.entity_info.total),
