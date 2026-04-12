@@ -120,11 +120,11 @@ def spatial_lag_model(
     var_names = ["CONSTANT", *regressors]
     n_betas = len(var_names)
     coefficients = {var_names[i]: float(model.betas[i][0]) for i in range(n_betas)}
-    std_errors = {var_names[i]: float(model.std_err[i]) for i in range(n_betas)}
-    p_values = {var_names[i]: float(model.z_stat[i][1]) for i in range(n_betas)}
+    std_errors = {var_names[i]: float(model.std_err[i]) for i in range(n_betas)}  # pylint: disable=no-member
+    p_values = {var_names[i]: float(model.z_stat[i][1]) for i in range(n_betas)}  # pylint: disable=no-member
 
     rho = float(model.betas[n_betas][0])
-    rho_p = float(model.z_stat[n_betas][1])
+    rho_p = float(model.z_stat[n_betas][1])  # pylint: disable=no-member
 
     return SpatialLagResult(
         coefficients=coefficients,
@@ -135,7 +135,7 @@ def spatial_lag_model(
         log_likelihood=float(model.logll),
         aic=float(model.aic),
         n_observations=int(model.n),
-        model_summary=str(model.summary),
+        model_summary=str(model.summary),  # pylint: disable=no-member
     )
 
 
@@ -194,11 +194,11 @@ def spatial_error_model(
     var_names = ["CONSTANT", *regressors]
     n_betas = len(var_names)
     coefficients = {var_names[i]: float(model.betas[i][0]) for i in range(n_betas)}
-    std_errors = {var_names[i]: float(model.std_err[i]) for i in range(n_betas)}
-    p_values = {var_names[i]: float(model.z_stat[i][1]) for i in range(n_betas)}
+    std_errors = {var_names[i]: float(model.std_err[i]) for i in range(n_betas)}  # pylint: disable=no-member
+    p_values = {var_names[i]: float(model.z_stat[i][1]) for i in range(n_betas)}  # pylint: disable=no-member
 
     lam = float(model.betas[n_betas][0])
-    lam_p = float(model.z_stat[n_betas][1])
+    lam_p = float(model.z_stat[n_betas][1])  # pylint: disable=no-member
 
     return SpatialErrorResult(
         coefficients=coefficients,
@@ -209,5 +209,5 @@ def spatial_error_model(
         log_likelihood=float(model.logll),
         aic=float(model.aic),
         n_observations=int(model.n),
-        model_summary=str(model.summary),
+        model_summary=str(model.summary),  # pylint: disable=no-member
     )

@@ -97,7 +97,7 @@ def reporting_rate_adjustment(
         groups="unit_id",
         data=df,
     )
-    result = model.fit(reml=True)
+    result = model.fit(reml=True)  # pylint: disable=unexpected-keyword-arg
 
     unit_ids = sorted(df["unit_id"].unique())
     raw_rates: dict[str, float] = {}

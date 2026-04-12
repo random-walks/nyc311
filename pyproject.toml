@@ -313,9 +313,11 @@ ignore-paths = [".*/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
 messages_control.disable = [
+  "broad-exception-caught",
   "duplicate-code",
   "design",
   "fixme",
+  "import-outside-toplevel",
   "line-too-long",
   "missing-module-docstring",
   "missing-function-docstring",
