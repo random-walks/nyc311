@@ -14,7 +14,7 @@ from ._normalize import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ServiceRequestRecord:
     """A single loaded NYC 311-style service-request record."""
 
@@ -86,7 +86,7 @@ class ServiceRequestRecord:
         raise ValueError(msg)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TopicAssignment:
     """A deterministic topic label derived from one service-request record."""
 

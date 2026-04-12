@@ -1,0 +1,6 @@
+data/cache/
+data/panel.parquet
+data/panel.pkl
+data/analysis_results.json
+figures/
+# Keep data/demographics.csv — real ACS data that ships with the example

@@ -71,13 +71,32 @@ science = [
     "pandas>=2.3.3",
     "scipy>=1.15.3",
 ]
+stats = [
+    "esda>=2.6",
+    "libpysal>=4.10",
+    "linearmodels>=6.0",
+    "pandas>=2.3.3",
+    "ruptures>=1.1",
+    "scipy>=1.15.3",
+    "spreg>=1.4",
+    "statsmodels>=0.14",
+]
+bayes = [
+    "pymc>=5.16",
+]
 all = [
     "contextily>=1.6.2",
+    "esda>=2.6",
     "geopandas>=1.1",
+    "libpysal>=4.10",
+    "linearmodels>=6.0",
     "matplotlib>=3.10.8",
     "pandas>=2.3.3",
+    "ruptures>=1.1",
     "scipy>=1.15.3",
     "shapely>=2.1",
+    "spreg>=1.4",
+    "statsmodels>=0.14",
 ]
 
 
@@ -161,6 +180,39 @@ module = "nyc311.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
+[[tool.mypy.overrides]]
+module = [
+    "differences",
+    "differences.*",
+    "esda",
+    "esda.*",
+    "libpysal",
+    "libpysal.*",
+    "linearmodels",
+    "linearmodels.*",
+    "mgwr",
+    "mgwr.*",
+    "pymc",
+    "pymc.*",
+    "pyfixest",
+    "pyfixest.*",
+    "pysyncon",
+    "pysyncon.*",
+    "rdrobust",
+    "rdrobust.*",
+    "ruptures",
+    "ruptures.*",
+    "scipy",
+    "scipy.*",
+    "spreg",
+    "spreg.*",
+    "statsmodels",
+    "statsmodels.*",
+    "tick",
+    "tick.*",
+]
+ignore_missing_imports = true
+
 
 [tool.ruff]
 show-fixes = true
@@ -218,7 +270,12 @@ ignore = [
 # typing-modules = ["nyc311._compat.typing"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["T20"]
+"tests/**" = ["T20", "PLC0415"]
+"src/nyc311/_version.py" = ["Q000", "RUF022"]
+"src/nyc311/factors/_base.py" = ["PLC0415"]
+"src/nyc311/factors/_advanced.py" = ["PLC0415"]
+"src/nyc311/temporal/*.py" = ["PLC0415"]
+"src/nyc311/stats/*.py" = ["PLC0415"]
 "noxfile.py" = ["EXE001", "T20"]
 "examples/**/*.py" = ["T20"]
 "examples/about-the-data/**/*.py" = [
@@ -234,6 +291,19 @@ ignore = [
   "PLC0415",
   "RUF001",
 ]
+"examples/case_studies/**/*.py" = [
+  "ARG001",
+  "BLE001",
+  "DTZ",
+  "EXE001",
+  "I001",
+  "PD010",
+  "PD011",
+  "PERF203",
+  "PERF401",
+  "PLC0415",
+  "T20",
+]
 "docs/examples/**" = ["T20"]
 
 
@@ -243,9 +313,11 @@ ignore-paths = [".*/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
 messages_control.disable = [
+  "broad-exception-caught",
   "duplicate-code",
   "design",
   "fixme",
+  "import-outside-toplevel",
   "line-too-long",
   "missing-module-docstring",
   "missing-function-docstring",

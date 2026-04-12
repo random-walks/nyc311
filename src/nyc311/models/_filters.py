@@ -10,7 +10,7 @@ from ._constants import SOCRATA_DATASET_IDENTIFIER, SUPPORTED_GEOGRAPHIES
 from ._normalize import _normalize_value, normalize_borough_name
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class GeographyFilter:
     """A supported geography selector for implemented loading filters."""
 
@@ -38,7 +38,7 @@ class GeographyFilter:
         object.__setattr__(self, "value", normalized_value)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ServiceRequestFilter:
     """Filters for CSV and Socrata service-request loading."""
 
@@ -59,7 +59,7 @@ class ServiceRequestFilter:
         object.__setattr__(self, "complaint_types", normalized_complaint_types)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class SocrataConfig:
     """Configuration for the implemented live Socrata loader path.
 
