@@ -9,6 +9,13 @@ Implements local polynomial RD estimation following:
     Cattaneo, M. D., Idrobo, N., & Titiunik, R. (2020). *A
     Practical Introduction to Regression Discontinuity Designs*.
     Cambridge University Press.
+
+.. note::
+
+    As of v1.0.0 factor-factory's ``engines.rdd`` wraps ``rdrobust``
+    (the canonical CCT implementation) and is the preferred backend.
+    See :func:`factor_factory.engines.rdd.estimate`. This module's
+    homegrown function is retained for backwards compatibility.
 """
 
 from __future__ import annotations

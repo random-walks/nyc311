@@ -59,6 +59,8 @@ nav:
   - CLI Reference: cli.md
   - SDK Guide: sdk.md
   - Examples: examples.md
+  - factor-factory integration: integration.md
+  - Migration (v0 to v1): migration-v0-to-v1.md
   - Python API: api.md
   - Architecture: architecture.md
   - Contributing: contributing.md

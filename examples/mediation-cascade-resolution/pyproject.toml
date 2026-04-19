@@ -1,0 +1,11 @@
+[project]
+name = "nyc311-mediation-cascade-resolution"
+version = "0.0.0"
+description = "Four-way mediation decomposition of the pilot → triage-time → resolution-rate cascade."
+requires-python = ">=3.12"
+dependencies = [
+    "nyc311[stats,dataframes,tearsheets]",
+]
+
+[tool.uv.sources]
+nyc311 = { path = "../..", editable = true }

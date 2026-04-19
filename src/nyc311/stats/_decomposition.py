@@ -6,6 +6,13 @@ Wraps ``statsmodels.tsa.seasonal.STL``:
     Terpenning, I. J. (1990). STL: A seasonal-trend decomposition
     procedure based on loess. *Journal of Official Statistics*, 6(1),
     3--33.
+
+.. note::
+
+    As of v1.0.0 factor-factory's ``engines.stl`` is the preferred
+    backend for seasonal-trend decomposition. See
+    :func:`factor_factory.engines.stl.estimate`. This module remains
+    available for backwards compatibility.
 """
 
 from __future__ import annotations

@@ -81,6 +81,55 @@ class Pipeline:
         """The ordered factors in this pipeline."""
         return self._factors
 
+    def as_factor_factory_estimate(
+        self,
+        panel: Any,
+        *,
+        family: str = "did",
+        method: str = "twfe",
+        outcome: str | None = None,
+        **engine_kwargs: Any,
+    ) -> Any:
+        """Run a factor-factory engine on ``panel`` as a Pipeline continuation.
+
+        Additive bridge: the pipeline itself is not executed here.
+        Instead, the call dispatches into
+        ``factor_factory.engines.<family>.estimate``, returning a
+        factor-factory ``<Family>Results`` object that downstream code
+        can chain off.
+
+        Args:
+            panel: A :class:`factor_factory.tidy.Panel`. Typically
+                produced by
+                :meth:`nyc311.temporal.PanelDataset.to_factor_factory_panel`.
+            family: Engine-family module name under
+                ``factor_factory.engines``. Defaults to ``"did"``.
+            method: Registry key for a specific adapter inside the
+                family (e.g. ``"twfe"``, ``"cs"``). Defaults to
+                ``"twfe"``.
+            outcome: Outcome column on the Panel. When ``None``, the
+                engine falls back to ``panel.outcome_col``.
+            **engine_kwargs: Additional kwargs forwarded to the engine's
+                ``estimate`` dispatcher.
+
+        Returns:
+            A factor-factory ``<Family>Results`` object.
+
+        Raises:
+            ImportError: If factor-factory is not installed or the
+                requested engine family's optional dependencies are
+                missing.
+        """
+        from nyc311.factors._factor_factory import dispatch_factor_factory_engine
+
+        return dispatch_factor_factory_engine(
+            panel,
+            family=family,
+            method=method,
+            outcome=outcome,
+            **engine_kwargs,
+        )
+
     def run(self, contexts: Iterable[FactorContext]) -> PipelineResult:
         """Execute all factors across ``contexts`` and return results.
 

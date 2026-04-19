@@ -5,6 +5,16 @@ Wraps PySAL's ``esda`` module:
     Rey, S. J., & Anselin, L. (2007). PySAL: A Python library of
     spatial analytical methods. *Review of Regional Studies*, 37(1),
     5--27.
+
+.. note::
+
+    As of v1.0.0 factor-factory's ``engines.spatial`` wraps the same
+    ``esda`` library for Global Moran's I in the unified
+    engine-family interface and is the preferred backend when working
+    from a PanelDataset. See
+    :func:`factor_factory.engines.spatial.estimate`. This module
+    remains available for its LISA helper and direct-weights
+    ergonomics.
 """
 
 from __future__ import annotations

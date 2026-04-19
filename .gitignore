@@ -185,6 +185,14 @@ dist-release-check/
 ehthumbs.db
 Thumbs.db
 
+# Claude Code runtime
+.claude/scheduled_tasks.lock
+
+# jellycell cache (case studies may generate this)
+**/.jellycell/cache/blobs/
+**/.jellycell/cache/state.db
+**/.jellycell/cache/assets/
+
 # Common editor files
 *~
 *.swp

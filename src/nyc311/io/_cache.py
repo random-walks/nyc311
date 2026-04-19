@@ -7,7 +7,7 @@ import hashlib
 import json
 import re
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.request import urlopen
@@ -179,7 +179,7 @@ def _write_meta(
     meta = {
         "record_count": record_count,
         "sha256": sha256.hexdigest(),
-        "fetched_at": datetime.now(tz=timezone.utc).isoformat(),
+        "fetched_at": datetime.now(tz=UTC).isoformat(),
         "start_date": filters.start_date.isoformat() if filters.start_date else None,
         "end_date": filters.end_date.isoformat() if filters.end_date else None,
         "borough": (

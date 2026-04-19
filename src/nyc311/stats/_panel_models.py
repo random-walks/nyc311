@@ -4,6 +4,14 @@ Wraps ``linearmodels``:
 
     Wooldridge, J. M. (2010). *Econometric analysis of cross section
     and panel data* (2nd ed.). MIT Press.
+
+.. note::
+
+    As of v1.0.0 factor-factory's ``engines.panel_reg`` wraps the
+    same ``linearmodels`` fixed-effects and random-effects estimators
+    in the unified engine-family interface and is the preferred
+    backend. See :func:`factor_factory.engines.panel_reg.estimate`.
+    This module remains available for backwards compatibility.
 """
 
 from __future__ import annotations

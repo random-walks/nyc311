@@ -14,6 +14,14 @@ Implements two approaches:
     D. B. (2025). A latent variable model for estimating true
     heating complaint rates from NYC 311 data. *Annals of Applied
     Statistics* (forthcoming).
+
+.. note::
+
+    As of v1.0.0 factor-factory's ``engines.reporting_bias`` ships a
+    unified latent-EM adapter and is the preferred backend when
+    moving work into the engine-family interface. See
+    :func:`factor_factory.engines.reporting_bias.estimate`. This
+    module remains available for backwards compatibility.
 """
 
 from __future__ import annotations

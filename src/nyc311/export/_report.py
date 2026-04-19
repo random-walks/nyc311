@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import TypeVar
 
 from ..models import (
     AnomalyResult,
@@ -152,10 +151,7 @@ def _coerce_report_card_data(
     return topic_summaries, resolution_gaps, anomalies
 
 
-T = TypeVar("T")
-
-
-def _coerce_sequence(
+def _coerce_sequence[T](
     value: object,
     expected_type: type[T],
     *,

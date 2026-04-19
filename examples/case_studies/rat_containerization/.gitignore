@@ -2,5 +2,7 @@ data/cache/
 data/panel.parquet
 data/panel.pkl
 artifacts/
+manuscripts/
+jellycell.toml
 
 # Keep data/demographics.csv — real ACS data that ships with the example

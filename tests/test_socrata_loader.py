@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from collections import deque
 from datetime import date
+from typing import Self
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from typing_extensions import Self
 
 from nyc311.io import load_service_requests
 from nyc311.models import GeographyFilter, ServiceRequestFilter, SocrataConfig

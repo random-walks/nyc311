@@ -1,0 +1,58 @@
+cff-version: 1.2.0
+title: nyc311
+message: >
+  If you use nyc311 in academic work, please cite the two case
+  studies shipped with this package and the upstream canonical
+  papers for the specific statistical methods you used (listed in
+  each stats module's docstring). The case studies are research
+  artifacts included in the repository, not external publications.
+type: software
+authors:
+  - name: Blaise Albis-Burdige
+repository-code: https://github.com/random-walks/nyc311
+url: https://nyc311.readthedocs.io
+license: MIT
+keywords:
+  - nyc
+  - nyc311
+  - 311
+  - civic-tech
+  - open-data
+  - geospatial
+  - panel-data
+  - causal-inference
+  - factor-factory
+  - jellycell
+preferred-citation:
+  type: software
+  title: "nyc311: A reproducible toolkit for NYC 311 complaint analysis"
+  authors:
+    - name: Blaise Albis-Burdige
+  url: https://github.com/random-walks/nyc311
+  notes: >
+    nyc311 bundles two production case studies authored against this
+    SDK:
+
+    - Rat Containerization Policy Evaluation — a community-district
+      panel DiD + synthetic-control + RDD study at
+      `examples/case_studies/rat_containerization/`.
+    - Resolution Equity — a decomposition of 311 resolution-time
+      disparities across boroughs and demographic groups at
+      `examples/case_studies/resolution_equity/`.
+
+    If you cite results from either study, cite this repository at the
+    release tag you used (e.g. v1.0.0) plus the study's
+    `FINDINGS.md`.
+references:
+  - type: software
+    title: factor-factory
+    url: https://github.com/random-walks/factor-factory
+    notes: "Upstream causal-inference engine framework wrapped by nyc311.factors.Pipeline.as_factor_factory_estimate and nyc311.temporal.PanelDataset.to_factor_factory_panel."
+  - type: software
+    title: jellycell
+    url: https://github.com/random-walks/jellycell
+    notes: "Reporting/tearsheet library used by the case studies (nyc311 optional `tearsheets` extra)."
+  - type: software
+    title: nyc-geo-toolkit
+    url: https://github.com/random-walks/nyc-geo-toolkit
+    notes: "Upstream geographic primitives."

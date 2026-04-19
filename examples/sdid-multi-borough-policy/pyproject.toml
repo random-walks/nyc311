@@ -1,0 +1,11 @@
+[project]
+name = "nyc311-sdid-multi-borough-policy"
+version = "0.0.0"
+description = "Synthetic Difference-in-Differences over a mock 5-borough 311 staggered rollout."
+requires-python = ">=3.12"
+dependencies = [
+    "nyc311[stats,dataframes,tearsheets]",
+]
+
+[tool.uv.sources]
+nyc311 = { path = "../..", editable = true }

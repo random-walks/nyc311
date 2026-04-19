@@ -1,0 +1,7 @@
+[project]
+name = "mediation-cascade-resolution"
+
+[paths]
+artifacts = "artifacts"
+manuscripts = "manuscripts"
+data = "data"

@@ -3,9 +3,9 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
+from typing import Self
 
 import pytest
-from typing_extensions import Self
 
 from nyc311.cli import main
 

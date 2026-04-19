@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
 
@@ -71,7 +71,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
 
@@ -93,7 +93,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
 
@@ -105,20 +105,34 @@ jobs:
 
   tests:
     name:
-      Test full install (Python ${{ matrix.python-version }}, toolkit ${{
-      matrix.toolkit-channel }})
-    runs-on: ubuntu-latest
+      Test full install (${{ matrix.os }}, Python ${{ matrix.python-version }},
+      toolkit ${{ matrix.toolkit-channel }})
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
       checks: write
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest]
+        python-version: ["3.12", "3.13"]
         toolkit-channel: ["released"]
         include:
-          - python-version: "3.12"
+          - os: ubuntu-latest
+            python-version: "3.12"
             toolkit-channel: "main"
+          - os: macos-latest
+            python-version: "3.12"
+            toolkit-channel: "released"
+          - os: macos-latest
+            python-version: "3.13"
+            toolkit-channel: "released"
+          - os: windows-latest
+            python-version: "3.12"
+            toolkit-channel: "released"
+          - os: windows-latest
+            python-version: "3.13"
+            toolkit-channel: "released"
 
     steps:
       - uses: actions/checkout@v6
@@ -129,7 +143,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+      - uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
 
@@ -138,19 +152,22 @@ jobs:
 
       - name: Override nyc-geo-toolkit with main branch
         if: matrix.toolkit-channel == 'main'
+        shell: bash
         run: >-
           uv pip install --python .venv/bin/python --upgrade --force-reinstall
           "nyc-geo-toolkit @
           git+https://github.com/random-walks/nyc-geo-toolkit.git@main"
 
       - name: Run full non-live test suite
+        shell: bash
         run: >-
           uv run --frozen pytest -m "not integration" -ra --cov --cov-report=xml
-          --cov-report=term --junitxml="junit/${{ matrix.toolkit-channel }}-${{
-          matrix.python-version }}.xml" --durations=20
+          --cov-report=term --junitxml="junit/${{ matrix.os }}-${{
+          matrix.toolkit-channel }}-${{ matrix.python-version }}.xml"
+          --durations=20
 
       - name: Publish test results
-        if: always()
+        if: always() && matrix.os == 'ubuntu-latest'
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name:
@@ -158,12 +175,13 @@ jobs:
             toolkit ${{ matrix.toolkit-channel }})
           comment_mode: off
           files:
-            junit/${{ matrix.toolkit-channel }}-${{ matrix.python-version }}.xml
+            junit/${{ matrix.os }}-${{ matrix.toolkit-channel }}-${{
+            matrix.python-version }}.xml
 
       - name: Upload coverage report
         if:
-          matrix.python-version == '3.12' && matrix.toolkit-channel ==
-          'released'
+          matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12' &&
+          matrix.toolkit-channel == 'released'
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -171,7 +189,7 @@ jobs:
   pass:
     if: always()
     needs: [lint, build, docs, tests]
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
       - name: Decide whether the needed jobs succeeded or failed

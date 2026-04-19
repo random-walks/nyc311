@@ -2,9 +2,9 @@
 name = "nyc311-case-study-resolution-equity"
 version = "0.0.0"
 description = "Longitudinal NYC 311 resolution-equity case study using nyc311[stats,spatial,dataframes]."
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
-    "nyc311[stats,spatial,dataframes]",
+    "nyc311[stats,spatial,dataframes,tearsheets]",
 ]
 
 [tool.uv.sources]

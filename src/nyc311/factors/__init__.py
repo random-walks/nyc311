@@ -11,6 +11,7 @@ from nyc311.factors._builtin import (
     SeasonalityFactor,
     TopicConcentrationFactor,
 )
+from nyc311.factors._factor_factory import dispatch_factor_factory_engine
 
 __all__ = [
     "AnomalyScoreFactor",
@@ -26,4 +27,5 @@ __all__ = [
     "SeasonalityFactor",
     "SpatialLagFactor",
     "TopicConcentrationFactor",
+    "dispatch_factor_factory_engine",
 ]
