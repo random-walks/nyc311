@@ -27,8 +27,12 @@ causal-inference engine families without leaving the nyc311 API.
   match upstream factor-factory. Existing `nyc311` 0.3.x consumers
   on Python 3.10/3.11 should either stay on 0.3 or upgrade Python
   first. See [migration-v0-to-v1.md](migration-v0-to-v1.md).
-- Bump `nyc-geo-toolkit` pin accepted range: (follow-up commit
-  once `nyc-geo-toolkit v0.3.0` publishes).
+- Bump `nyc-geo-toolkit` minimum to `>=0.3.0,<0.4` (from
+  `>=0.1.7,<0.2.0`), to pick up the v0.3.0 modernization pass
+  (Claude Code infra parity, factor-factory/jellycell showcase
+  example, pin bumps). Existing nyc311 consumers of
+  `nyc311.geographies` and the haversine helpers see no API
+  changes — the upstream bump is additive.
 - CI: bump `actions/checkout` to `v6`, `setup-uv` to `v8.1.0`
   (exact — no moving tag), `upload-artifact` to `v7`, keep
   `download-artifact@v8`. Add macOS and Windows runners to the
