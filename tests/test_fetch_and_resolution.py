@@ -4,9 +4,9 @@ import csv
 import json
 from datetime import date
 from pathlib import Path
+from typing import Self
 
 import pytest
-from typing_extensions import Self
 
 from nyc311.analysis import analyze_resolution_gaps
 from nyc311.io import load_resolution_data

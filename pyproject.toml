@@ -12,7 +12,7 @@ description = "Python toolkit for reproducible NYC 311 complaint analysis via a 
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 keywords = [
   "nyc",
   "nyc311",
@@ -31,8 +31,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering",
@@ -40,7 +38,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "nyc-geo-toolkit>=0.1.7,<0.2.0",
+  "nyc-geo-toolkit>=0.3.0,<0.4",
+  "factor-factory>=1.0.2,<2",
 ]
 
 [project.scripts]
@@ -73,6 +72,7 @@ science = [
 ]
 stats = [
     "esda>=2.6",
+    "factor-factory[changepoint,did,inequality,panel-reg,scm,spatial,stl]>=1.0.2,<2",
     "libpysal>=4.10",
     "linearmodels>=6.0",
     "pandas>=2.3.3",
@@ -84,10 +84,15 @@ stats = [
 bayes = [
     "pymc>=5.16",
 ]
+tearsheets = [
+    "jellycell>=1.3.5,<2",
+]
 all = [
     "contextily>=1.6.2",
     "esda>=2.6",
+    "factor-factory[changepoint,did,inequality,panel-reg,scm,spatial,stl]>=1.0.2,<2",
     "geopandas>=1.1",
+    "jellycell>=1.3.5,<2",
     "libpysal>=4.10",
     "linearmodels>=6.0",
     "matplotlib>=3.10.8",
@@ -167,7 +172,7 @@ report.exclude_also = [
 
 [tool.mypy]
 files = ["src", "tests"]
-python_version = "3.10"
+python_version = "3.12"
 warn_unused_configs = true
 strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
@@ -186,6 +191,10 @@ module = [
     "differences.*",
     "esda",
     "esda.*",
+    "factor_factory",
+    "factor_factory.*",
+    "jellycell",
+    "jellycell.*",
     "libpysal",
     "libpysal.*",
     "linearmodels",
@@ -212,6 +221,7 @@ module = [
     "tick.*",
 ]
 ignore_missing_imports = true
+disable_error_code = ["import-untyped"]
 
 
 [tool.ruff]
@@ -277,38 +287,35 @@ ignore = [
 "src/nyc311/temporal/*.py" = ["PLC0415"]
 "src/nyc311/stats/*.py" = ["PLC0415"]
 "noxfile.py" = ["EXE001", "T20"]
-"examples/**/*.py" = ["T20"]
-"examples/about-the-data/**/*.py" = [
-  "ARG001",
-  "BLE001",
-  "B007",
-  "DTZ",
-  "I001",
-  "PD010",
-  "PD011",
-  "PERF203",
-  "PERF401",
-  "PLC0415",
-  "RUF001",
-]
-"examples/case_studies/**/*.py" = [
-  "ARG001",
-  "BLE001",
-  "DTZ",
-  "EXE001",
-  "I001",
-  "PD010",
-  "PD011",
-  "PERF203",
-  "PERF401",
-  "PLC0415",
-  "T20",
+# examples/ are self-contained showcase projects with their own
+# prose voice and orchestration style. Root-level prose tooling
+# (prettier) is already scoped out of examples/ via
+# .pre-commit-config.yaml. These ruff ignores keep showcase-style
+# conventions (unicode × / – / — in narrative docstrings, pass-through
+# wrapper args, cross-platform shebang friendliness, print-based
+# progress) from tripping up example authors.
+"examples/**/*.py" = [
+  "ARG001",  # unused function args — common in orchestrator pass-throughs
+  "B007",    # unused loop var
+  "BLE001",  # bare except — examples catch broadly on I/O paths
+  "DTZ",     # naive datetime — examples use bare dates
+  "EXE001",  # shebang without +x bit — friendlier on Windows
+  "I001",    # unsorted imports — favour readability over sort
+  "PD010",   # prefer .unstack()
+  "PD011",   # prefer .to_numpy()
+  "PERF203", # try/except in a loop
+  "PERF401", # list.extend over list.append in loop
+  "PLC0415", # import outside top-level — examples defer heavy imports
+  "RUF001",  # ambiguous chars (strings)
+  "RUF002",  # ambiguous chars (docstrings) — × – — show up in prose
+  "RUF003",  # ambiguous chars (comments)
+  "T20",     # print() — examples print progress
 ]
 "docs/examples/**" = ["T20"]
 
 
 [tool.pylint]
-py-version = "3.10"
+py-version = "3.12"
 ignore-paths = [".*/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"

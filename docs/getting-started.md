@@ -3,7 +3,8 @@
 This guide shows the fastest path to a useful `nyc311` run as either a CLI user
 or a Python user.
 
-It reflects the current stable `0.2.x` release surface.
+It reflects the current stable `1.x` release surface. Python ≥ 3.12 is required
+(factor-factory upstream floor).
 
 ## Install
 

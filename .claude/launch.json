@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schemas.anthropic.com/claude-code/launch.json",
+  "configurations": [
+    {
+      "name": "docs-preview",
+      "description": "Live MkDocs preview with autoreload at http://127.0.0.1:8000",
+      "command": "uv run mkdocs serve",
+      "cwd": "${workspaceFolder}",
+      "env": {},
+      "readyPattern": "Serving on"
+    },
+    {
+      "name": "pytest-watch",
+      "description": "Run the non-integration pytest suite in watch mode.",
+      "command": "uv run pytest -m 'not integration' -ra --durations=10",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "case-study-rat",
+      "description": "Run the rat-containerization case study end-to-end (produces artifacts + tearsheets).",
+      "command": "uv run python examples/case_studies/rat_containerization/run_analysis.py",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "case-study-resolution-equity",
+      "description": "Run the resolution-equity case study end-to-end.",
+      "command": "uv run python examples/case_studies/resolution_equity/run_analysis.py",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "case-study-sdid",
+      "description": "Run the sdid-multi-borough-policy case study.",
+      "command": "uv run python examples/sdid-multi-borough-policy/run_analysis.py",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "case-study-mediation",
+      "description": "Run the mediation-cascade-resolution case study.",
+      "command": "uv run python examples/mediation-cascade-resolution/run_analysis.py",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "ci-local",
+      "description": "Run the local GitHub-CI-equivalent job sequence with summary output.",
+      "command": "make ci",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

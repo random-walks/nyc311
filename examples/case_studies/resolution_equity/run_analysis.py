@@ -107,6 +107,15 @@ def main() -> None:
     except Exception as exc:
         print(f"  Step 08 failed: {exc}")
 
+    # Step 9: Render jellycell tearsheets (additive) ──────────────────
+    print("\n-- Step 9: Rendering Jellycell Tearsheets --\n")
+    try:
+        step_09 = import_module("09_generate_tearsheets")
+        step_09.run()
+    except Exception as exc:
+        print(f"  Step 09 (tearsheets) failed: {exc}")
+        print("  This step is additive; FINDINGS.md was still generated.")
+
     print("\n" + "=" * 64)
     print("  Analysis complete.")
     print("=" * 64)

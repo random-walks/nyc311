@@ -1,0 +1,7 @@
+[project]
+name = "rat-containerization-study"
+
+[paths]
+artifacts = "artifacts"
+manuscripts = "manuscripts"
+data = "data"

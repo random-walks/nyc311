@@ -1,0 +1,7 @@
+[project]
+name = "sdid-multi-borough-policy"
+
+[paths]
+artifacts = "artifacts"
+manuscripts = "manuscripts"
+data = "data"

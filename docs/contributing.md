@@ -123,14 +123,17 @@ content.
 
 ## Release Target
 
-The project is on the stable `0.2.x` line.
+The project is on the stable `1.x` line (first major, shipped 2026-04-19).
 
-- Use the `0.2.x` line as the default release framing for this branch.
-- Use the next semantic version tag that matches the change scope, such as
-  `0.2.5` or a future `0.3.0`.
+- Use the `1.x` line as the default release framing.
+- Use the next semantic version tag that matches the change scope, following the
+  rubric in [`.claude/skills/release-bump.md`][release-bump].
 - Prefer patch releases for docs, packaging, workflow, and metadata polish.
 - The project version remains VCS-derived through Hatch, so the actual package
-  version will come from the eventual git tag rather than a hardcoded file edit.
+  version comes from the git tag rather than a hardcoded file edit.
+
+[release-bump]:
+  https://github.com/random-walks/nyc311/blob/main/.claude/skills/release-bump.md
 
 ## Package Publishing
 

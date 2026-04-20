@@ -3,7 +3,7 @@
 The current command-line surface is intentionally small but now covers two
 practical workflows:
 
-This reference tracks the current stable CLI surface in the `0.2.x` line.
+This reference tracks the current stable CLI surface in the `1.x` line.
 
 - `topics` for summary exports from a local CSV snapshot
 - `fetch` for pulling a filtered Socrata slice into a local CSV snapshot

@@ -185,6 +185,25 @@ dist-release-check/
 ehthumbs.db
 Thumbs.db
 
+# Claude Code runtime
+.claude/scheduled_tasks.lock
+
+# jellycell cache (case studies may generate this)
+**/.jellycell/cache/blobs/
+**/.jellycell/cache/state.db
+**/.jellycell/cache/assets/
+
+# examples/ are self-contained jellycell projects — keep the source of
+# truth + jellycell's canonical layout (pyproject.toml + main.py +
+# README.md + jellycell.toml + manuscripts/ + artifacts/) committed so
+# the rendered site is reproducible from git. Only drop lockfiles and
+# per-example venvs. See jellycell's project-layout docs for the
+# committed-manuscripts rule.
+examples/*/uv.lock
+examples/*/.venv/
+examples/case_studies/*/uv.lock
+examples/case_studies/*/.venv/
+
 # Common editor files
 *~
 *.swp

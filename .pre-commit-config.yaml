@@ -3,7 +3,21 @@ ci:
   autofix_commit_msg: "style: pre-commit fixes"
   autoupdate_schedule: "monthly"
 
-exclude: ^.cruft.json|.copier-answers.yml$
+# Hygiene-hook exclusion regex (applies globally across every hook).
+#
+# Keep content-rewriters (blacken-docs, end-of-file-fixer,
+# trailing-whitespace, mixed-line-ending) off these paths:
+#
+# - manuscripts/ and artifacts/ under examples/* — deterministic
+#   output of jellycell tearsheet renders / factor_factory result
+#   dumps. Committed so the jellycell site is reproducible from git.
+# - cache/ at any level — runtime CSV caches, may be symlinked to
+#   shared storage. NEVER reformatted.
+# - examples/*/data/cache/ — same reason for the per-example layer.
+# - seeds/enhanced/research/ — reserved for future research-seed
+#   folders (mirrors subway-access's research-note layout).
+# - .cruft.json / .copier-answers.yml — template re-sync state.
+exclude: ^(\.cruft\.json|\.copier-answers\.yml|cache/.*|examples/.*/cache/.*|examples/.*/(manuscripts|artifacts)/.*|seeds/enhanced/research/.*)$
 
 repos:
   - repo: https://github.com/adamchainz/blacken-docs
@@ -11,6 +25,9 @@ repos:
     hooks:
       - id: blacken-docs
         additional_dependencies: [black==26.*]
+        # Example READMEs have showcase-authored code blocks; don't
+        # let black rewrite them to root-project conventions.
+        exclude: ^examples/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: "v6.0.0"
@@ -41,6 +58,10 @@ repos:
       - id: prettier
         types_or: [yaml, markdown, html, css, scss, javascript, json]
         args: [--prose-wrap=always]
+        # Only exclude example markdown narratives (so showcase prose
+        # keeps its voice). Example yaml / json / pyproject still get
+        # prettier — matches subway-access v1.0 convention.
+        exclude: ^examples/.*\.md$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.15.7"
@@ -64,7 +85,9 @@ repos:
     hooks:
       - id: codespell
         args:
-          ["--ignore-words-list=explination,astroid,Hart,pres,te,trough,Tye"]
+          [
+            "--ignore-words-list=explination,astroid,Hart,pres,te,trough,Tye,aer",
+          ]
         additional_dependencies:
           - tomli; python_version<'3.11'
 

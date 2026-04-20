@@ -10,6 +10,15 @@ future events:
 
     Hawkes, A. G. (1971). Spectra of some self-exciting and
     mutually exciting point processes. *Biometrika*, 58(1), 83--90.
+
+.. note::
+
+    As of v1.0.0 factor-factory's ``engines.hawkes`` wraps the
+    ``tick`` library and is the preferred backend when moving work
+    into the unified engine-family interface. See
+    :func:`factor_factory.engines.hawkes.estimate`. This module's
+    scipy-only implementation is retained for environments where
+    ``tick`` is unavailable.
 """
 
 from __future__ import annotations

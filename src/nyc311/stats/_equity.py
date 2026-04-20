@@ -12,6 +12,15 @@ inequality measurement:
 
     Theil, H. (1967). *Economics and Information Theory*.
     North-Holland.
+
+.. note::
+
+    As of v1.0.0 factor-factory's ``engines.inequality`` wraps the
+    Theil decomposition in the unified engine-family interface and is
+    the preferred backend for :func:`theil_index`. See
+    :func:`factor_factory.engines.inequality.estimate`.
+    :func:`oaxaca_blinder_decomposition` has no factor-factory
+    equivalent and this implementation remains authoritative.
 """
 
 from __future__ import annotations

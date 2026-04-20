@@ -1,64 +1,201 @@
 # Changelog
 
-## Next
+## Unreleased
 
-### Causal Inference
+### Added
 
-- **`synthetic_control()`** — Abadie (2010) synthetic control method with
-  in-space placebos for inference
-- **`staggered_did()`** — Callaway & Sant'Anna (2021) group-time ATT estimator,
-  avoiding TWFE bias under staggered adoption
-- **`event_study()`** — event-time coefficients with pre-trend F-test
-- **`regression_discontinuity()`** — Calonico, Cattaneo, Titiunik (2014) local
-  polynomial RD with robust CIs
+### Changed
 
-### Spatial Econometrics
+### Fixed
 
-- **`spatial_lag_model()`** and **`spatial_error_model()`** — Anselin (1988) ML
-  estimation via PySAL spreg
-- **`geographically_weighted_regression()`** — Brunsdon et al. (1996) with
-  automatic CV bandwidth selection
+### Deprecated
 
-### Equity & Bias
+### Contracts
 
-- **`oaxaca_blinder_decomposition()`** — twofold decomposition for explaining
-  outcome gaps between groups
-- **`theil_index()`** — population-weighted Theil T with between/within group
-  decomposition
-- **`reporting_rate_adjustment()`** — ecometric mixed-model adjustment for 311
-  reporting propensity (O'Brien 2015)
-- **`latent_reporting_bias_em()`** — latent variable EM for estimating true
-  complaint rates (Agostini et al. 2025)
+### Security
 
-### Time Series & Diagnostics
+## 1.0.0 - 2026-04-19
 
-- **`detect_stl_anomalies()`** — seasonality-adjusted anomaly detection via STL
-  residual z-scores
-- **`minimum_detectable_effect()`** — power analysis / MDE calculator for
-  cluster-randomized panel designs
+First major release. The headline is integration with
+[factor-factory](https://github.com/random-walks/factor-factory) — every
+`PanelDataset` can now feed factor-factory's 17 causal-inference engine families
+without leaving the nyc311 API.
 
-### Bayesian & Point Processes
+### Changed
 
-- **`bym2_smooth()`** — BYM2 Bayesian small-area smoothing (Riebler 2016) via
-  PyMC — behind `nyc311[bayes]` extra
-- **`fit_hawkes_process()`** — self-exciting Hawkes process for complaint
-  contagion modeling (Mohler 2011)
+- **Drop Python 3.10 and 3.11 support.** Minimum is now 3.12, to match upstream
+  factor-factory. Existing `nyc311` 0.3.x consumers on Python 3.10/3.11 should
+  either stay on 0.3 or upgrade Python first. See
+  [migration-v0-to-v1.md](migration-v0-to-v1.md).
+- Bump `nyc-geo-toolkit` minimum to `>=0.3.0,<0.4` (from `>=0.1.7,<0.2.0`), to
+  pick up the v0.3.0 modernization pass (Claude Code infra parity,
+  factor-factory/jellycell showcase example, pin bumps). Existing nyc311
+  consumers of `nyc311.geographies` and the haversine helpers see no API changes
+  — the upstream bump is additive.
+- CI: bump `actions/checkout` to `v6`, `setup-uv` to `v8.1.0` (exact — no moving
+  tag), `upload-artifact` to `v7`, keep `download-artifact@v8`. Add macOS and
+  Windows runners to the `tests` job matrix.
 
-### Pipeline Factors
+### Added — factor-factory integration
 
-- **`SpatialLagFactor`** — weighted average of neighboring unit values
-- **`EquityGapFactor`** — resolution-time ratio to citywide median
+- **`PanelDataset.to_factor_factory_panel()`** — additive adapter returning a
+  `factor_factory.tidy.Panel` with full treatment-event and spatial-weights
+  round-trip.
+- **`Pipeline.as_factor_factory_estimate()`** — thin bridge that dispatches into
+  `factor_factory.engines.<family>.estimate` on a converted Panel. Supports
+  every factor-factory engine family (did, sdid, rdd, scm, mediation,
+  changepoint, stl, panel_reg, inequality, spatial, reporting_bias, hawkes,
+  survival, event_study, het_te, dml, climate, diffusion).
+- **`nyc311.temporal.panel_dataset_to_factor_factory`** and
+  **`spatial_weights_from_panel`** as the function-style equivalents.
+- **`nyc311.factors.dispatch_factor_factory_engine`** for direct engine dispatch
+  independently of the `Pipeline` API.
 
-### Dependencies
+### Added — jellycell tearsheets
 
-- add `spreg` to the `stats` optional extra
-- add `bayes` optional extra (`pymc>=5.16`)
-- add `scipy` to mypy ignore overrides
+- New `tearsheets` optional extra: `pip install nyc311[tearsheets]` pulls
+  `jellycell>=1.3.5,<2`.
+- Both production case studies (`examples/case_studies/rat_containerization/`,
+  `examples/case_studies/resolution_equity/`) gained a new tearsheet-generation
+  step that emits
+  `manuscripts/{METHODOLOGY,DIAGNOSTICS_CHECKLIST,FINDINGS,MANUSCRIPT,AUDIT}.md`
+  alongside the authoritative `FINDINGS.md`. Numbers are unchanged — the
+  tearsheet is a parallel deliverable.
 
-### Case Studies
+### Added — new case studies
 
-- **rat containerization** — exercises synthetic control, staggered DiD, event
-  study, and RDD on the 2024 NYC containerization rollout
+- **`examples/sdid-multi-borough-policy/`** — self-contained showcase for
+  `factor_factory.engines.sdid` over a synthetic 5-borough 311 rollout. Runs
+  offline in seconds.
+- **`examples/mediation-cascade-resolution/`** — self-contained showcase for
+  `factor_factory.engines.mediation.four_way` over a synthetic pilot →
+  triage-time → resolution-rate cascade.
+
+### Added — Claude Code infrastructure
+
+- `.claude/agents/release-auditor.md` and
+  `.claude/agents/factor-compat-auditor.md` — read-only auditors for release
+  preflight and factor-factory-bridge drift.
+- `.claude/commands/{bump,release-check,run-case-study}.md`.
+- `.claude/skills/{factor-compat,stats-module-discipline,release-bump}.md`.
+- `.claude/settings.local.json` permissions allowlist, `.claude/launch.json`
+  dev-server configs.
+- Top-level `AGENTS.md` (canonical cross-agent-vendor guide — Cursor / Codex /
+  Copilot / Aider / Zed / Windsurf read this), `CLAUDE.md` (Claude-specific
+  overlay), `CONTRIBUTING.md`, `.github/PULL_REQUEST_TEMPLATE.md`,
+  `CITATION.cff`.
+
+### Added — examples showcases
+
+- **`examples/factor-factory-quickstart/`** — minimal no-jellycell showcase that
+  exercises `PanelDataset.to_factor_factory_panel()` →
+  `factor_factory.engines.did.estimate` → pandas in ~50 lines. Starting point
+  for consumers who want the adapter without the reporting machinery.
+
+### Added — docs
+
+- `docs/integration.md` — crosswalk between `nyc311` and `factor_factory` (Panel
+  schema, stats-module map, engine families).
+- `docs/migration-v0-to-v1.md` — before/after snippets for consumer upgrades.
+- README — new "factor-factory integration" section + links to all four new
+  engine-showcase examples.
+- `docs/sdk.md`, `docs/architecture.md`, `docs/index.md`, `docs/releasing.md`,
+  `docs/getting-started.md`, `docs/cli.md`, `docs/contributing.md`,
+  `docs/examples.md` — refreshed to v1.x framing; `docs/architecture.md` mermaid
+  now shows the two new bridges and the jellycell branch.
+
+### Added — previously-unreleased content
+
+The causal-inference, spatial-econometrics, equity, reporting-bias, Bayesian,
+and point-process statistical methods listed under `## 0.3.0` below shipped in
+source on `main` under that tag, but additional polish, docstring
+cross-references to factor-factory, and case-study wiring land together under
+v1.0.0.
+
+### Changed — examples isolation
+
+- `examples/*/uv.lock` and `examples/*/.venv/` are gitignored repo-wide. Example
+  reproducibility comes from pinned version ranges in each `pyproject.toml`, not
+  from committed lockfiles. Four previously-committed `uv.lock` files (~5,000
+  lines) were dropped.
+- Hygiene-hook scope aligned with subway-access v0.5 conventions:
+  - **prettier** narrowed to `exclude: ^examples/.*\.md$` (markdown-only;
+    example yaml / json / pyproject still get prettier).
+  - **blacken-docs** gained `exclude: ^examples/` so showcase-authored Python
+    code blocks in READMEs aren't rewritten to root-project style.
+  - Top-level pre-commit `exclude:` widened to
+    `^(\.cruft\.json|\.copier-answers\.yml|cache/.*|examples/.*/cache/.*|examples/.*/(manuscripts|artifacts)/.*|seeds/enhanced/research/.*)$`
+    — covers runtime caches (including symlinked ones), committed
+    tearsheets/artifacts, and a reserved `seeds/` slot for future research
+    notes.
+- Ruff `per-file-ignores` for `examples/**/*.py` broadened to the
+  showcase-friendly set (unicode ambiguity, cross-platform shebang, print
+  progress) — protects future examples from surprise lint failures.
+- Per-example `.gitignore`s strip trailing slashes from dir patterns (`cache/` →
+  `cache`, `artifacts/` → `artifacts`, etc.). Trailing slash matches real dirs
+  but **not** symlinks-to-dirs — the subway-access v0.5 engine-audit work
+  surfaced this when a 631 MB cache was symlinked to shared storage and git
+  started tracking it. No-trailing-slash matches both.
+
+### Changed — jellycell tearsheet reproducibility
+
+- The four case studies commit their `manuscripts/*.md` tearsheets and
+  `artifacts/*.json` result files so the jellycell site is reproducible from a
+  fresh clone without running the pipeline.
+  `factor_factory.jellycell.tearsheets.*` is called with `template_overrides`
+  pinning `project` to a stable display name and `generated_at` to a fixed
+  string — committed output is byte-identical across machines.
+- `examples/case_studies/resolution_equity/figures/` (3 PNG plots + 4
+  derived-research CSVs) is now committed rather than gitignored. The
+  resolution-equity study can't be re-run without live Socrata access, so
+  keeping the figures in git means a reviewer can inspect the study's visual
+  output from a fresh clone.
+
+### Added — data provenance sidecars
+
+Both production case studies now ship a `data/demographics.csv.meta.json`
+sidecar describing the upstream Census ACS tables used (`B01003_001E`, `B02001`,
+`B19013_001E`, `B25003`), the vintage year, the exact derivation formulas for
+the two ratio columns (`pct_nonwhite`, `pct_renter`), the log transform on
+`log_median_income`, and a `how_to_regenerate` note for future updates. Matches
+subway-access v0.5's per-station `data.json + research.md` provenance
+convention.
+
+### Removed — legacy cruft
+
+- `examples/case_studies/rat_containerization/FINDINGS copy.md` (duplicate of
+  `FINDINGS.md`, byte-identical, leaked into main in an earlier commit).
+
+### Known issues
+
+Two upstream factor-factory bugs that the adapter test suite catches and
+`xfail`s with clear remediation notes. Neither affects the nyc311 adapter path
+itself — the PanelDataset → Panel conversion is correct in both cases.
+
+- `factor_factory.engines.panel_reg.pyfixest` references a `'Coefficient'`
+  column that `pyfixest>=0.50` no longer emits. Workaround upstream is a
+  column-name update.
+- `factor_factory.engines.stl.sktime_stl` reads freq from the DataFrame
+  MultiIndex, but pandas doesn't preserve `DatetimeIndex.freq` on MultiIndex
+  levels after `set_index`/`sort_index`. Workaround upstream is to fall back on
+  `panel.metadata.freq`.
+
+### Contracts
+
+v1.0.0 introduces three new public contracts. All are additive and any change to
+them after this release requires the
+[`factor-compat-auditor`](https://github.com/random-walks/nyc311/blob/main/.claude/agents/factor-compat-auditor.md)
+ceremony:
+
+- `PanelDataset.to_factor_factory_panel(*, outcome_col, provenance, spatial_weights) -> factor_factory.tidy.Panel`
+- `Pipeline.as_factor_factory_estimate(panel, *, family, method, outcome, **engine_kwargs)`
+- `Pipeline ↔ factor_factory.engines.*` supported-family list
+  (`_SUPPORTED_FAMILIES` in
+  [`src/nyc311/factors/_factor_factory.py`](https://github.com/random-walks/nyc311/blob/main/src/nyc311/factors/_factor_factory.py)).
+
+Each of the 11 `nyc311.stats` modules with a factor-factory equivalent gained a
+`.. note::` block cross-referencing the upstream engine as the preferred
+backend. The homegrown functions continue to work for backwards compatibility.
 
 ## 0.3.0
 

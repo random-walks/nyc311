@@ -3,7 +3,10 @@
 `nyc311` is usable as a functional SDK for scripts, scheduled jobs, interactive
 analysis, and data-processing workflows.
 
-This guide describes the current stable SDK surface in the `0.3.x` line.
+This guide describes the current stable SDK surface in the `1.x` line. For
+causal-inference engines on panel data, see
+[factor-factory integration](integration.md). For a before/after diff of
+consumer code from v0.3, see [migration-v0-to-v1.md](migration-v0-to-v1.md).
 
 The current SDK is built around small, typed steps:
 
@@ -324,6 +327,26 @@ treated = panel.treatment_group()
 controls = panel.control_group()
 df = panel.to_dataframe()  # MultiIndex (unit_id, period)
 ```
+
+### Interop with factor-factory
+
+Starting in v1.0.0, `PanelDataset` can hand its data off to
+[factor-factory](https://github.com/random-walks/factor-factory)
+causal-inference engines directly:
+
+```python
+ff_panel = panel.to_factor_factory_panel()
+
+from factor_factory.engines.did import estimate as did_estimate
+
+results = did_estimate(ff_panel, methods=("twfe",), outcome="complaint_count")
+print(results[0].att, results[0].ci_95)
+```
+
+See [integration.md](integration.md) for the full crosswalk between
+`PanelDataset` and `factor_factory.tidy.Panel`, and for the list of
+factor-factory engine families accessible via
+`Pipeline.as_factor_factory_estimate`.
 
 For spatial weights:
 

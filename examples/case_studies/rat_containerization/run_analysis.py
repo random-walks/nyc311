@@ -106,6 +106,15 @@ def main() -> None:
     step_10 = import_module("10_generate_findings")
     step_10.run(results)
 
+    # Step 11: Render jellycell tearsheets (additive) ──────────────────
+    print("\n-- Step 11: Rendering Jellycell Tearsheets --\n")
+    try:
+        step_11 = import_module("11_generate_tearsheets")
+        step_11.run()
+    except Exception as exc:
+        print(f"  Step 11 (tearsheets) failed: {exc}")
+        print("  This step is additive; FINDINGS.md was still generated.")
+
     print("\n" + "=" * 64)
     print("  Analysis complete.")
     print("=" * 64)

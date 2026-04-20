@@ -5,6 +5,14 @@ Wraps the ``ruptures`` library implementing:
     Killick, R., Fearnhead, P., & Eckley, I. A. (2012). Optimal
     detection of changepoints with a linear computational cost. *JASA*,
     107(500), 1590--1598.
+
+.. note::
+
+    As of v1.0.0 factor-factory's ``engines.changepoint`` wraps the
+    same ``ruptures`` library in the unified engine-family interface
+    and is the preferred backend. See
+    :func:`factor_factory.engines.changepoint.estimate`. This module
+    remains available for backwards compatibility.
 """
 
 from __future__ import annotations

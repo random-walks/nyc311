@@ -1,7 +1,7 @@
 [project]
 name = "rat-containerization-study"
 version = "0.1.0"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
-    "nyc311[stats,spatial,dataframes]",
+    "nyc311[stats,spatial,dataframes,tearsheets]",
 ]

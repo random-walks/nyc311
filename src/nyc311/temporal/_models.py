@@ -149,6 +149,54 @@ class PanelDataset:
     # Export
     # ------------------------------------------------------------------
 
+    def to_factor_factory_panel(
+        self,
+        *,
+        outcome_col: str = "complaint_count",
+        provenance: Any | None = None,
+        spatial_weights: dict[str, dict[str, float]] | None = None,
+    ) -> Any:
+        """Convert to a :class:`factor_factory.tidy.Panel`.
+
+        The adapter is additive — ``self`` is unchanged. Treatment events
+        are translated to factor-factory's frozen
+        :class:`TreatmentEvent` model, and an optional
+        ``spatial_weights`` dict (as produced by
+        :func:`nyc311.temporal.build_distance_weights`) is stashed on
+        ``panel.df.attrs["nyc311_spatial_weights"]`` for in-memory
+        round-trip.
+
+        See :mod:`nyc311.temporal._factor_factory` for details on the
+        column crosswalk.
+
+        Args:
+            outcome_col: Column name to tag as the primary outcome in
+                the Panel metadata. Defaults to ``"complaint_count"``.
+            provenance: Optional ``factor_factory.tidy.Provenance``
+                record. When ``None``, a default pointing at the NYC
+                Open Data Socrata endpoint is constructed.
+            spatial_weights: Optional nested weights dict from
+                :func:`build_distance_weights`.
+
+        Returns:
+            A fully-validated ``factor_factory.tidy.Panel``.
+
+        Raises:
+            ImportError: If factor-factory or pandas is not installed.
+            ValueError: If the dataset is empty or ``outcome_col`` is
+                absent from the resulting DataFrame.
+        """
+        from nyc311.temporal._factor_factory import (
+            panel_dataset_to_factor_factory,
+        )
+
+        return panel_dataset_to_factor_factory(
+            self,
+            outcome_col=outcome_col,
+            provenance=provenance,
+            spatial_weights=spatial_weights,
+        )
+
     def to_dataframe(self) -> Any:
         """Convert to a pandas DataFrame with a ``(unit_id, period)`` MultiIndex.
 
