@@ -10,7 +10,7 @@ It is designed for two complementary use cases:
 - a thin CLI for repeatable batch runs
 - a functional SDK for scripts, interactive analysis, and data workflows
 
-These docs track the current stable `0.2.x` surface.
+These docs track the current stable `1.x` surface.
 
 The current release line provides:
 
@@ -20,6 +20,22 @@ The current release line provides:
 - aggregation by borough or community district
 - topic-coverage, resolution-gap, and anomaly analysis helpers
 - CSV, boundary-backed GeoJSON, and markdown report exports
+- composable factor pipelines (`nyc311.factors`) with built-in domain factors
+- balanced temporal panels (`nyc311.temporal`) with treatment-event modeling and
+  inverse-distance spatial weights
+- seventeen statistical modules (`nyc311.stats`) for ITS, changepoints, STL,
+  Moran's I / LISA, panel FE/RE, synthetic control, staggered DiD, event
+  studies, RDD, spatial econometrics, Theil + Oaxaca-Blinder, reporting-bias
+  adjustment, Hawkes, BYM2, power analysis
+- **factor-factory integration** — two additive bridges
+  (`PanelDataset.to_factor_factory_panel()`,
+  `Pipeline.as_factor_factory_estimate()`) route nyc311 panels into
+  [factor-factory](https://github.com/random-walks/factor-factory)'s 17
+  causal-inference engine families. See
+  [factor-factory integration](integration.md).
+- optional `tearsheets` extra — emits
+  [jellycell](https://github.com/random-walks/jellycell) tearsheet manuscripts
+  from the bundled case studies
 
 ## Geography layer
 
@@ -106,30 +122,43 @@ pip install "nyc311[science]"
     )
     ```
 
-## What Ships In The `0.2` Line
+## What Ships In The `1.x` Line
 
-### Implemented
+### Core SDK
 
 - `load_service_requests()` for local CSV and `SocrataConfig` sources
 - `fetch_service_requests()` for explicit live in-memory fetching
-- `extract_topics()` for:
-  - `Blocked Driveway`
-  - `Illegal Parking`
-  - `Noise - Residential`
-  - `Rodent`
-- `aggregate_by_geography()`
-- `analyze_topic_coverage()` for descriptor coverage summaries
-- `analyze_resolution_gaps()` for first-pass borough-level unresolved-share
-  summaries
-- `detect_anomalies()` for z-score-based anomaly flags over aggregated summaries
-- `export_topic_table()`
-- `export_anomalies()`
-- `export_geojson()`
-- `export_report_card()`
-- `export_service_requests_csv()` for local snapshot staging
+- `extract_topics()` for `Blocked Driveway`, `Illegal Parking`,
+  `Noise - Residential`, `Rodent`
+- `aggregate_by_geography()`, `analyze_topic_coverage()`,
+  `analyze_resolution_gaps()`, `detect_anomalies()`
+- `export_topic_table()`, `export_anomalies()`, `export_geojson()`,
+  `export_report_card()`, `export_service_requests_csv()`
 - optional pandas-backed dataframe helpers such as `records_to_dataframe()`
 - `run_topic_pipeline()` for a one-call workflow
-- `nyc311 fetch` and `nyc311 topics` for the current CLI workflows
+- `nyc311 fetch` and `nyc311 topics` CLI subcommands
+- packaged sample fixtures via `nyc311.samples.load_sample_service_requests()`
+  and `load_sample_boundaries()` for offline scripting
+
+### Analysis surface (v1.0)
+
+- `nyc311.factors.Pipeline` — composable, immutable factor pipeline with twelve
+  built-in factors
+- `nyc311.temporal.PanelDataset` — balanced `(unit, period)` panels with
+  `TreatmentEvent` modeling and inverse-distance spatial weights
+- `nyc311.stats` — seventeen statistical modules (ITS, changepoints, STL,
+  Moran's I / LISA, panel FE/RE, SCM, staggered DiD, event studies, RDD, spatial
+  lag / error, GWR, Theil, Oaxaca-Blinder, reporting-bias EM, Hawkes, BYM2
+  small-area smoothing, power analysis)
+
+### factor-factory integration (v1.0)
+
+- `PanelDataset.to_factor_factory_panel()` — additive adapter to
+  `factor_factory.tidy.Panel`
+- `Pipeline.as_factor_factory_estimate()` — dispatches any of factor-factory's
+  17 causal-inference engine families on a converted Panel
+- Eleven of the seventeen `nyc311.stats` modules now cross-reference a
+  factor-factory equivalent as the preferred backend
 
 ## Choose Your Path
 
@@ -137,8 +166,11 @@ pip install "nyc311[science]"
   runs.
 - Use [CLI Reference](cli.md) for repeatable command-line usage.
 - Use [SDK Guide](sdk.md) for script and workflow-oriented usage.
-- Use [Examples](examples.md) for self-contained consumer projects and staged
-  fetch workflows.
+- Use [factor-factory integration](integration.md) for the causal-inference
+  engine adapters.
+- Migrating from v0.3? See [Migration (v0 to v1)](migration-v0-to-v1.md).
+- Use [Examples](examples.md) for self-contained consumer projects, the two
+  production case studies, and the two factor-factory engine showcases.
 - Use [API Reference](api.md) for the complete public package surface.
 - Use [Architecture](architecture.md) if you are maintaining or extending the
   project.

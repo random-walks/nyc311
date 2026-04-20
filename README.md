@@ -384,9 +384,10 @@ If you are browsing in GitHub, the source docs live in `docs/`, including
 `index.md`, `getting-started.md`, `cli.md`, `sdk.md`, `examples.md`, `api.md`,
 `architecture.md`, and `contributing.md`.
 
-Runnable examples live in `examples/` as self-contained consumer projects. The
-`examples/case_studies/` directory holds two complete research analyses on real
-NYC 311 data:
+Runnable examples live in `examples/` as self-contained consumer projects.
+
+**Precious research case studies** (real data, cited in `CITATION.cff`) under
+`examples/case_studies/`:
 
 - **[Rat Containerization](examples/case_studies/rat_containerization/)** --
   Evaluates the 2024 NYC containerization mandate using 81K real rodent
@@ -398,6 +399,19 @@ NYC 311 data:
   1M real 311 requests, two-way FE regression, Oaxaca-Blinder decomposition with
   ACS census data, spatial autocorrelation, ITS, and latent reporting-bias
   estimation.
+
+**factor-factory engine showcases** (synthetic data, offline in seconds):
+
+- **[SDID multi-borough policy](examples/sdid-multi-borough-policy/)** --
+  Synthetic Difference-in-Differences (Arkhangelsky et al. 2021, _AER_) over a
+  5-borough × 36-month simulated 311 intake rollout.
+- **[Mediation cascade (resolution)](examples/mediation-cascade-resolution/)**
+  -- Four-way mediation decomposition (VanderWeele 2014, _Epidemiology_) of
+  pilot → triage-time → resolution-rate.
+- **[factor-factory quickstart](examples/factor-factory-quickstart/)** --
+  Minimal `PanelDataset → factor_factory.tidy.Panel → engine → pandas` in ~50
+  lines, **without jellycell**. Starting point for consumers who want the
+  adapter without the tearsheet machinery.
 
 For local preview:
 

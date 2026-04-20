@@ -3,7 +3,7 @@
 `nyc311` implements a narrow but end-to-end pipeline for deterministic topic
 summarization over NYC 311-style complaint data.
 
-This architecture snapshot reflects the current stable `0.3.x` release surface.
+This architecture snapshot reflects the current stable `1.x` release surface.
 
 ## Pipeline
 
@@ -30,9 +30,22 @@ flowchart LR
     anomalies --> report
     panel --> panelDS[PanelDataset]
     panelDS --> stats[Stats Module]
+    panelDS --> ffAdapter[to_factor_factory_panel]
     factors --> pipeResult[PipelineResult]
+    factors --> ffBridge[Pipeline.as_factor_factory_estimate]
+    ffAdapter --> ffPanel[factor_factory.tidy.Panel]
+    ffPanel --> ffEngines[factor_factory.engines.*]
+    ffBridge --> ffEngines
+    ffEngines --> ffResults[DidResults / SdidResults / ScmResults / ...]
+    ffResults --> jellycell[jellycell tearsheets]
     stats --> statsResults[ITSResult / ChangepointResult / MoranResult / ...]
 ```
+
+The two additive bridges at the right of the diagram — `to_factor_factory_panel`
+and `Pipeline.as_factor_factory_estimate` — route nyc311 panels into
+[factor-factory](https://github.com/random-walks/factor-factory)'s 17
+causal-inference engine families without changing `PanelDataset` or `Pipeline`
+themselves. See [factor-factory integration](integration.md) for the crosswalk.
 
 ## Module Responsibilities
 
@@ -49,8 +62,8 @@ flowchart LR
 | `nyc311.plotting`    | Optional in-memory plotting helpers for packaged boundary layers                                                                                                                                                                             |
 | `nyc311.presets`     | Reusable filter and Socrata config builders for common workflows                                                                                                                                                                             |
 | `nyc311.pipeline`    | High-level SDK helpers that mirror the CLI happy path                                                                                                                                                                                        |
-| `nyc311.factors`     | Composable factor pipeline with 9 built-in factors including SpatialLagFactor and EquityGapFactor                                                                                                                                            |
-| `nyc311.temporal`    | Balanced panel datasets, treatment events, and inverse-distance spatial weights                                                                                                                                                              |
+| `nyc311.factors`     | Composable factor pipeline with 9 built-in factors including SpatialLagFactor and EquityGapFactor; `Pipeline.as_factor_factory_estimate()` bridges into `factor_factory.engines.*`                                                           |
+| `nyc311.temporal`    | Balanced panel datasets, treatment events, inverse-distance spatial weights; `PanelDataset.to_factor_factory_panel()` adapter to `factor_factory.tidy.Panel`                                                                                 |
 | `nyc311.stats`       | Statistical modeling: ITS, PELT, STL, panel FE/RE, Moran/LISA, synthetic control, staggered DiD, event study, RDD, spatial lag/error, GWR, Oaxaca-Blinder, Theil, reporting-bias adjustment, BYM2, Hawkes, anomaly detection, power analysis |
 | `nyc311.cli`         | Argparse-powered fetch and analysis entry points                                                                                                                                                                                             |
 
@@ -122,8 +135,17 @@ That split keeps the package responsibilities clear:
   seasonality-adjusted anomaly detection, and power analysis / MDE calculator
 - a `bulk_fetch()` per-borough downloader that emits `.meta.json` integrity
   sidecars
-- the resolution-equity case study, which exercises the full v0.3.0 surface
-  against ~1M real records
+- the resolution-equity case study, which exercises the full `nyc311.stats`
+  surface against ~1M real records
+- two additive **factor-factory bridges** (v1.0.0):
+  `PanelDataset.to_factor_factory_panel()` and
+  `Pipeline.as_factor_factory_estimate()` route nyc311 panels into any of
+  factor-factory's 17 causal-inference engine families
+- two new factor-factory showcase case studies:
+  `examples/sdid-multi-borough-policy/` (synthetic DiD via SDID) and
+  `examples/mediation-cascade-resolution/` (four-way mediation decomposition)
+- optional jellycell integration via the `tearsheets` extra — the four case
+  studies emit `manuscripts/*.md` tearsheets for publication-ready reporting
 
 ## Boundaries
 

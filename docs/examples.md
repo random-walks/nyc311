@@ -105,15 +105,19 @@ That same pattern is mirrored inside the cache-backed example projects.
 
 ## Case Studies
 
-Longer-form analyses live under `examples/case_studies/`. Unlike the short-form
-examples above, these projects exercise the full v0.3.0 modeling surface against
-real data and ship with research-grade findings.
+Longer-form analyses live under `examples/case_studies/` (the two **precious
+research artifacts** — real data, cited in `CITATION.cff`) and
+`examples/sdid-multi-borough-policy/` + `examples/mediation-cascade-resolution/`
+(synthetic-data **factor-factory engine showcases**).
+
+All four ship with jellycell tearsheets when the `tearsheets` extra is
+installed; see [factor-factory integration](integration.md).
 
 ### `examples/case_studies/resolution_equity/`
 
 A longitudinal study of NYC 311 resolution times across 59 community districts
-over 60 monthly periods (January 2020 - December 2024). It walks the entire
-`nyc311` v0.3.0 surface end-to-end:
+over 60 monthly periods (January 2020 - December 2024). It walks the full
+`nyc311.stats` + `nyc311.temporal` surface end-to-end:
 
 - `nyc311.pipeline.bulk_fetch()` downloads 5 years of data split per borough
   with `.meta.json` integrity sidecars
@@ -158,7 +162,60 @@ inference toolkit:
   `EquityGapFactor`
 
 ```bash
-pip install "nyc311[stats,spatial,dataframes]"
+pip install "nyc311[stats,spatial,dataframes,tearsheets]"
 cd examples/case_studies/rat_containerization
 python run_analysis.py
+```
+
+### `examples/sdid-multi-borough-policy/`
+
+Self-contained **synthetic-data showcase** for `factor_factory.engines.sdid`
+(Arkhangelsky et al. 2021, _AER_) routed through
+`PanelDataset.to_factor_factory_panel()`. Simulates a synchronized
+expanded-311-intake rollout across three treated boroughs (Manhattan, Brooklyn,
+Bronx) with two never-treated donor boroughs (Queens, Staten Island) over 36
+months.
+
+- no network, no Socrata — runs offline in seconds
+- builds a 5-borough × 36-month `PanelDataset` with one `TreatmentEvent`
+- adapts to `factor_factory.tidy.Panel` and fits both TWFE (baseline) and SDID
+  (headline)
+- emits the five jellycell tearsheets under `manuscripts/`
+
+```bash
+pip install "nyc311[stats,dataframes,tearsheets]"
+cd examples/sdid-multi-borough-policy
+python run_analysis.py
+```
+
+### `examples/mediation-cascade-resolution/`
+
+Self-contained **synthetic-data showcase** for
+`factor_factory.engines.mediation.four_way` (VanderWeele 2014, _Epidemiology_).
+Exercises the pilot → triage-time → resolution-rate cascade with a synthetic
+30-district × 12-month panel.
+
+- decomposes the total effect into CDE, INTref, INTmed, and PIE
+- proves the adapter's mediator-column path
+  (`covariates={"triage_time_days": ...}` round-trips through
+  `PanelDataset.to_factor_factory_panel()`)
+- emits the five jellycell tearsheets under `manuscripts/`
+
+```bash
+pip install "nyc311[stats,dataframes,tearsheets]"
+cd examples/mediation-cascade-resolution
+python run_analysis.py
+```
+
+### `examples/factor-factory-quickstart/`
+
+The **no-jellycell** showcase — minimal
+`PanelDataset → ff.Panel → engine → pandas` in ~50 lines. Exercises the adapter
+without installing the `tearsheets` extra. Good starting point for consumers who
+want the causal-inference engine adapter without the reporting machinery.
+
+```bash
+pip install "nyc311>=1.0,<2" "factor-factory>=1.0.2,<2"
+cd examples/factor-factory-quickstart
+python main.py
 ```

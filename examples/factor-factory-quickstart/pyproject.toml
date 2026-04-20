@@ -1,0 +1,12 @@
+[project]
+name = "nyc311-factor-factory-quickstart"
+version = "0.0.0"
+description = "Minimal PanelDataset → factor_factory.tidy.Panel → engine → pandas showcase. No jellycell."
+requires-python = ">=3.12"
+dependencies = [
+    "nyc311>=1.0,<2",
+    "factor-factory[did]>=1.0.2,<2",
+]
+
+[tool.uv.sources]
+nyc311 = { path = "../..", editable = true }

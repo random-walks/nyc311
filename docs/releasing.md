@@ -4,14 +4,20 @@ This guide covers the current PyPI release workflow for `nyc311`.
 
 ## Release discipline
 
-- Current stable line: `0.2.x`
+- Current stable line: `1.x` (first major tag shipped 2026-04-19)
 - Version source: git tags via Hatch VCS
 - Preferred publish trigger: GitHub Release publication
+- SemVer rubric: see [`.claude/skills/release-bump.md`][release-bump] — patch
+  for docs / CI / dev-tooling, minor for additive public API, major for renames
+  / removals / Python-minor drops / factor-factory major bumps.
 
-Patch releases in the `0.2.x` line are the default path for docs polish,
-workflow updates, packaging fixes, and backward-compatible behavior changes. Cut
-a new minor release when the public workflow or package surface expands in a
-meaningful way.
+Patch releases in the `1.x` line are the default path for docs polish, workflow
+updates, packaging fixes, and backward-compatible behavior changes. Cut a new
+minor release when the public workflow or package surface expands in a
+meaningful way. Bump major only when the rubric above triggers.
+
+[release-bump]:
+  https://github.com/random-walks/nyc311/blob/main/.claude/skills/release-bump.md
 
 ## Pre-release checks
 
@@ -32,8 +38,26 @@ That covers:
 - PyPI long-description validation
 - installed-wheel smoke testing for the CLI and packaged resources
 
+The `CI` workflow runs the full test matrix across ubuntu / macOS / Windows ×
+Python 3.12 / 3.13. Required GitHub Actions pins (match factor-factory v1.0.2
+parity):
+
+- `actions/checkout@v6`
+- `astral-sh/setup-uv@v8.1.0` (exact tag — no moving tag)
+- `actions/upload-artifact@v7`
+- `actions/download-artifact@v8`
+- `pypa/gh-action-pypi-publish@release/v1`
+
 If the release touches `nyc311.geographies` or dependency ranges, also verify
 the current `nyc-geo-toolkit` compatibility path before tagging.
+
+If the release touches the two factor-factory bridges
+(`PanelDataset.to_factor_factory_panel()` or
+`Pipeline.as_factor_factory_estimate()`) or the `factor-factory` / `jellycell`
+pins, invoke [`factor-compat-auditor`][fc-auditor] before cutting the tag.
+
+[fc-auditor]:
+  https://github.com/random-walks/nyc311/blob/main/.claude/agents/factor-compat-auditor.md
 
 After publishing a new **`nyc-geo-toolkit`** line that raises the minimum useful
 version (for example a release that adds shared basemap helpers), bump
@@ -44,7 +68,7 @@ resolve that floor, then run `uv lock` and commit the updated `uv.lock`.
 
 The standard production path is:
 
-1. create the final release tag, for example `0.2.5`
+1. create the final release tag, for example `v1.0.1`
 2. push the tag
 3. optionally run the `CD` workflow against TestPyPI first
 4. publish the matching GitHub Release
@@ -75,7 +99,7 @@ managed manually outside the repo and is intentionally not duplicated here.
 
 For routine releases, do one dry run from the final release tag:
 
-1. Create the release tag, for example `0.2.5`.
+1. Create the release tag, for example `v1.0.1`.
 2. Push the tag.
 3. Run the `CD` workflow manually from that tag with:
    - `publish=true`

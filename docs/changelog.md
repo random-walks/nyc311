@@ -80,34 +80,76 @@ without leaving the nyc311 API.
 - `.claude/skills/{factor-compat,stats-module-discipline,release-bump}.md`.
 - `.claude/settings.local.json` permissions allowlist, `.claude/launch.json`
   dev-server configs.
-- Top-level `CLAUDE.md`, `CONTRIBUTING.md`, `.github/PULL_REQUEST_TEMPLATE.md`,
+- Top-level `AGENTS.md` (canonical cross-agent-vendor guide — Cursor / Codex /
+  Copilot / Aider / Zed / Windsurf read this), `CLAUDE.md` (Claude-specific
+  overlay), `CONTRIBUTING.md`, `.github/PULL_REQUEST_TEMPLATE.md`,
   `CITATION.cff`.
+
+### Added — examples showcases
+
+- **`examples/factor-factory-quickstart/`** — minimal no-jellycell showcase that
+  exercises `PanelDataset.to_factor_factory_panel()` →
+  `factor_factory.engines.did.estimate` → pandas in ~50 lines. Starting point
+  for consumers who want the adapter without the reporting machinery.
 
 ### Added — docs
 
 - `docs/integration.md` — crosswalk between `nyc311` and `factor_factory` (Panel
   schema, stats-module map, engine families).
 - `docs/migration-v0-to-v1.md` — before/after snippets for consumer upgrades.
-- README — new "factor-factory integration" section.
-- `docs/sdk.md` — cross-references to integration and migration pages.
+- README — new "factor-factory integration" section + links to all four new
+  engine-showcase examples.
+- `docs/sdk.md`, `docs/architecture.md`, `docs/index.md`, `docs/releasing.md`,
+  `docs/getting-started.md`, `docs/cli.md`, `docs/contributing.md`,
+  `docs/examples.md` — refreshed to v1.x framing; `docs/architecture.md` mermaid
+  now shows the two new bridges and the jellycell branch.
 
-### Added — previously-unreleased v0.3.x content
+### Added — previously-unreleased content
 
-The following `nyc311.stats` content shipped in source on `main` but was never
-promoted out of the `## Next` changelog section in an interim 0.3.x patch
-release. It ships under v1.0.0:
+The causal-inference, spatial-econometrics, equity, reporting-bias, Bayesian,
+and point-process statistical methods listed under `## 0.3.0` below shipped in
+source on `main` under that tag, but additional polish, docstring
+cross-references to factor-factory, and case-study wiring land together under
+v1.0.0.
 
-- Causal inference: `synthetic_control()`, `staggered_did()`, `event_study()`,
-  `regression_discontinuity()`.
-- Spatial econometrics: `spatial_lag_model()`, `spatial_error_model()`,
-  `geographically_weighted_regression()`.
-- Equity & bias: `oaxaca_blinder_decomposition()`, `theil_index()`,
-  `reporting_rate_adjustment()`, `latent_reporting_bias_em()`.
-- Time-series diagnostics: `detect_stl_anomalies()`,
-  `minimum_detectable_effect()`.
-- Bayesian / point processes: `bym2_smooth()` (behind `nyc311[bayes]`),
-  `fit_hawkes_process()`.
-- Pipeline factors: `SpatialLagFactor`, `EquityGapFactor`.
+### Changed — examples isolation
+
+- `examples/*/uv.lock` and `examples/*/.venv/` are gitignored repo-wide. Example
+  reproducibility comes from pinned version ranges in each `pyproject.toml`, not
+  from committed lockfiles. Four previously-committed `uv.lock` files (~5,000
+  lines) were dropped.
+- Root prose tooling (prettier) scoped with `exclude: ^examples/` so showcase
+  narratives keep their voice.
+- Ruff `per-file-ignores` for `examples/**/*.py` broadened to the
+  showcase-friendly set (unicode ambiguity, cross-platform shebang, print
+  progress) — protects future examples from surprise lint failures.
+- Root pre-commit `exclude` regex extended to
+  `^examples/.*/(manuscripts|artifacts)/` so committed jellycell tearsheets and
+  engine-result JSONs stay off-limits to content-rewriting hygiene hooks
+  (blacken-docs, end-of-file-fixer, trailing-whitespace, prettier).
+
+### Changed — jellycell tearsheet reproducibility
+
+- The four case studies commit their `manuscripts/*.md` tearsheets and
+  `artifacts/*.json` result files so the jellycell site is reproducible from a
+  fresh clone without running the pipeline.
+  `factor_factory.jellycell.tearsheets.*` is called with `template_overrides`
+  pinning `project` to a stable display name and `generated_at` to a fixed
+  string — committed output is byte-identical across machines.
+
+### Known issues
+
+Two upstream factor-factory bugs that the adapter test suite catches and
+`xfail`s with clear remediation notes. Neither affects the nyc311 adapter path
+itself — the PanelDataset → Panel conversion is correct in both cases.
+
+- `factor_factory.engines.panel_reg.pyfixest` references a `'Coefficient'`
+  column that `pyfixest>=0.50` no longer emits. Workaround upstream is a
+  column-name update.
+- `factor_factory.engines.stl.sktime_stl` reads freq from the DataFrame
+  MultiIndex, but pandas doesn't preserve `DatetimeIndex.freq` on MultiIndex
+  levels after `set_index`/`sort_index`. Workaround upstream is to fall back on
+  `panel.metadata.freq`.
 
 ### Contracts
 

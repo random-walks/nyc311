@@ -23,7 +23,7 @@ first every time.
 1. **Version**: `git describe --tags --abbrev=0` matches the intended release.
    For a `v1.x` bump, confirm `src/nyc311/_version.py` regenerates through
    `hatch-vcs` (it should not be hand-edited).
-2. **CHANGELOG**: `CHANGELOG.md` has a `[X.Y.Z]` entry (not `[Unreleased]`)
+2. **CHANGELOG**: `docs/changelog.md` has a `[X.Y.Z]` entry (not `[Unreleased]`)
    dated in the last 14 days, with bullets under
    `### Added / Changed / Fixed / Deprecated / Security / Contracts`. For a
    major bump, confirm the `### Changed` or top-of-section mentions the

@@ -1,7 +1,11 @@
 # CLAUDE.md
 
-Dense one-pager for agents working in this repo. See
-[`CONTRIBUTING.md`](CONTRIBUTING.md) for the expanded walkthrough and
+Claude-Code-specific conventions for this repo. **The canonical wider guide is
+[`AGENTS.md`](AGENTS.md)** (cross-agent-vendor spec format read by Cursor /
+Codex / Copilot / Aider / Zed / Windsurf / Gemini CLI). This file layers on the
+bits specific to Claude Code — slash-commands, skills, and agents.
+
+See also [`CONTRIBUTING.md`](CONTRIBUTING.md) for the expanded walkthrough and
 [`docs/`](docs/) for the full SDK documentation.
 
 ## What nyc311 is
@@ -76,8 +80,8 @@ make ci              # full local CI-equivalent (lint + build + smoke + docs + t
 
 ## Claude slash-commands (`.claude/commands/`)
 
-- `/bump [patch|minor|major]` — roll `CHANGELOG.md` (never touches `_version.py`
-  — that's `hatch-vcs`).
+- `/bump [patch|minor|major]` — roll `docs/changelog.md` (never touches
+  `_version.py` — that's `hatch-vcs`).
 - `/release-check` — invoke the
   [`release-auditor`](.claude/agents/release-auditor.md) agent.
 - `/run-case-study <slug>` — regenerate one case study's artifacts and

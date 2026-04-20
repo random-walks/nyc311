@@ -78,7 +78,7 @@ Paste into your PR description:
 
 ```
 - [ ] `make ci` green locally (or equivalent CI)
-- [ ] `CHANGELOG.md` entry under `[Unreleased]` (Added / Changed / Fixed / Contracts)
+- [ ] `docs/changelog.md` entry under `[Unreleased]` (Added / Changed / Fixed / Contracts)
 - [ ] New public API? → exported from the relevant `__init__.py`, appears in `scripts/audit_public_api.py` output
 - [ ] Touched the factor-factory bridge? → `/factor-compat-auditor` clean
 - [ ] Touched a case study? → numbers match or CASESTUDY.md narrative unchanged
