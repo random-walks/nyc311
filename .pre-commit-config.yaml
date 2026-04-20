@@ -71,7 +71,9 @@ repos:
     hooks:
       - id: codespell
         args:
-          ["--ignore-words-list=explination,astroid,Hart,pres,te,trough,Tye"]
+          [
+            "--ignore-words-list=explination,astroid,Hart,pres,te,trough,Tye,aer",
+          ]
         additional_dependencies:
           - tomli; python_version<'3.11'
 
