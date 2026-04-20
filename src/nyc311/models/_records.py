@@ -16,7 +16,17 @@ from ._normalize import (
 
 @dataclass(frozen=True, slots=True)
 class ServiceRequestRecord:
-    """A single loaded NYC 311-style service-request record."""
+    """A single loaded NYC 311-style service-request record.
+
+    .. note::
+
+        As of nyc311 v1.0.1, ``closed_date`` is carried alongside
+        ``created_date`` so resolution-time analyses don't have to
+        bypass the SDK. The field is optional — Socrata returns a
+        null ``closed_date`` for any unresolved complaint — and
+        existing call sites that instantiate the record without it
+        keep working unchanged.
+    """
 
     service_request_id: str
     created_date: date
@@ -27,6 +37,10 @@ class ServiceRequestRecord:
     resolution_description: str | None = None
     latitude: float | None = None
     longitude: float | None = None
+    #: Date the complaint was closed. ``None`` for unresolved
+    #: complaints. Use ``closed_date - created_date`` for resolution
+    #: latency in days.
+    closed_date: date | None = None
 
     def __post_init__(self) -> None:
         if not _normalize_value(self.service_request_id):

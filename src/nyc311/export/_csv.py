@@ -82,6 +82,9 @@ def export_service_requests_csv(
                     "borough": row.borough,
                     "community_district": row.community_district,
                     "resolution_description": row.resolution_description or "",
+                    "closed_date": (
+                        "" if row.closed_date is None else row.closed_date.isoformat()
+                    ),
                     "latitude": "" if row.latitude is None else row.latitude,
                     "longitude": "" if row.longitude is None else row.longitude,
                 }

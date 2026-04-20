@@ -116,6 +116,9 @@ def test_cli_fetch_command_exports_filtered_socrata_snapshot(
             "borough": "BROOKLYN",
             "community_district": "BROOKLYN 01",
             "resolution_description": "Inspection scheduled",
+            # closed_date flows through the Socrata fetch stub too
+            # (the fixture doesn't seed it, so it's an empty string).
+            "closed_date": "",
             "latitude": "40.73",
             "longitude": "-73.96",
         }

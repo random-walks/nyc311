@@ -17,6 +17,7 @@ from ._filters import _apply_filters
 _SOCRATA_FIELD_ALIASES: Final[dict[str, tuple[str, ...]]] = {
     "unique_key": ("unique_key",),
     "created_date": ("created_date",),
+    "closed_date": ("closed_date",),
     "complaint_type": ("complaint_type",),
     "descriptor": ("descriptor",),
     "borough": ("borough",),
@@ -45,6 +46,7 @@ def _normalize_socrata_row(raw_row: dict[str, object]) -> dict[str, str]:
                 continue
             if canonical_field in {
                 "resolution_description",
+                "closed_date",
                 "latitude",
                 "longitude",
             }:
@@ -63,8 +65,8 @@ def _normalize_socrata_row(raw_row: dict[str, object]) -> dict[str, str]:
 
 def _socrata_select_fields() -> str:
     return (
-        "unique_key, created_date, complaint_type, descriptor, borough, "
-        "community_board, resolution_description, latitude, longitude"
+        "unique_key, created_date, closed_date, complaint_type, descriptor, "
+        "borough, community_board, resolution_description, latitude, longitude"
     )
 
 

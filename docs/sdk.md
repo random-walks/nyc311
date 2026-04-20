@@ -8,6 +8,12 @@ causal-inference engines on panel data, see
 [factor-factory integration](integration.md). For a before/after diff of
 consumer code from v0.3, see [migration-v0-to-v1.md](migration-v0-to-v1.md).
 
+`ServiceRequestRecord` carries both `created_date` and `closed_date` (added in
+v1.0.1, nullable for unresolved complaints) so resolution-time analyses can
+compute `closed_date - created_date` without bypassing the SDK. All loaders —
+CSV, Socrata, `bulk_fetch`, and the dataframe helpers — preserve `closed_date`
+end-to-end.
+
 The current SDK is built around small, typed steps:
 
 1. load records

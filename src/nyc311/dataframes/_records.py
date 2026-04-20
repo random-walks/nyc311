@@ -27,6 +27,7 @@ def records_to_dataframe(records: list[ServiceRequestRecord]) -> Any:
                 "borough": record.borough,
                 "community_district": record.community_district,
                 "resolution_description": record.resolution_description,
+                "closed_date": record.closed_date,
                 "latitude": record.latitude,
                 "longitude": record.longitude,
             }
@@ -36,6 +37,8 @@ def records_to_dataframe(records: list[ServiceRequestRecord]) -> Any:
     )
     if "created_date" in dataframe:
         dataframe["created_date"] = pd.to_datetime(dataframe["created_date"])
+    if "closed_date" in dataframe:
+        dataframe["closed_date"] = pd.to_datetime(dataframe["closed_date"])
     return dataframe
 
 
@@ -66,6 +69,17 @@ def dataframe_to_records(dataframe: Any) -> list[ServiceRequestRecord]:
             if resolution_description in (None, "") or pd.isna(resolution_description)
             else str(resolution_description)
         )
+        raw_closed_date = row.get("closed_date")
+        # pd.isna handles pd.NaT directly; it must come first because
+        # pd.NaT passes isinstance(x, datetime.date).
+        if raw_closed_date is None or pd.isna(raw_closed_date):
+            closed_date: date | None = None
+        elif hasattr(raw_closed_date, "to_pydatetime"):
+            closed_date = raw_closed_date.to_pydatetime().date()
+        elif isinstance(raw_closed_date, date):
+            closed_date = raw_closed_date
+        else:
+            closed_date = date.fromisoformat(str(raw_closed_date))
         latitude = row.get("latitude")
         longitude = row.get("longitude")
         records.append(
@@ -81,6 +95,7 @@ def dataframe_to_records(dataframe: Any) -> list[ServiceRequestRecord]:
                 longitude=None
                 if longitude is None or pd.isna(longitude)
                 else longitude,
+                closed_date=closed_date,
             )
         )
     return records
