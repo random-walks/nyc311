@@ -94,6 +94,25 @@ def centroids_from_boundaries(boundaries: Any) -> dict[str, tuple[float, float]]
     coordinates. This is approximate but cheap and avoids a hard
     dependency on shapely.
 
+    .. note::
+
+        As of nyc-geo-toolkit v0.4.0,
+        :func:`nyc_geo_toolkit.centroids_from_boundaries` is available
+        as a shapely-backed, publication-grade centroid helper — it
+        returns a :class:`BoundaryCollection` of GeoJSON ``Point``
+        features at either the geometric centroid (default) or
+        shapely's ``representative_point`` (guaranteed to lie inside
+        concave polygons such as NYC's jagged community districts).
+        Prefer it when you already have shapely installed and need
+        defensible geometry for a published analysis.
+
+        nyc311's helper is intentionally the **shapely-free** path
+        (returns a plain ``dict[str, (lat, lon)]`` suitable for
+        feeding directly into :func:`build_distance_weights`) and is
+        preserved for workflows that need to stay on the lean base
+        install. The two helpers return different shapes and slightly
+        different numbers; don't swap them mid-analysis.
+
     Args:
         boundaries: A boundary collection exposing a ``features``
             iterable. Each feature must provide a ``geometry`` mapping
