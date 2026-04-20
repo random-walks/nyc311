@@ -3,7 +3,13 @@ ci:
   autofix_commit_msg: "style: pre-commit fixes"
   autoupdate_schedule: "monthly"
 
-exclude: ^.cruft.json|.copier-answers.yml$
+# examples/*/manuscripts/ and examples/*/artifacts/ are deterministic
+# output of jellycell tearsheet renders / factor_factory result dumps.
+# They're committed so the jellycell site is reproducible from git,
+# but repo-hygiene content-rewriters (blacken-docs, end-of-file-fixer,
+# trailing-whitespace, mixed-line-ending) would reformat them on every
+# re-render and create diff churn. Keep them off-limits.
+exclude: ^\.cruft\.json$|^\.copier-answers\.yml$|^examples/.*/(manuscripts|artifacts)/
 
 repos:
   - repo: https://github.com/adamchainz/blacken-docs
