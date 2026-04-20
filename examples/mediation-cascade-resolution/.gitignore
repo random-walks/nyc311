@@ -1,9 +1,10 @@
-.venv/
-__pycache__/
+.venv
+__pycache__
 uv.lock
 
 # Synthetic inputs regenerate on every run (deterministic seed), so the
 # data/ parquet + sidecar isn't committed. Keep artifacts/*.json +
 # manuscripts/*.md COMMITTED — jellycell's site renders from those and
-# should work from git without running run_analysis.py.
-data/
+# should work from git without running run_analysis.py. Drop trailing
+# slashes so a symlinked data/ is still ignored.
+data
