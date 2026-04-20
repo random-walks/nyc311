@@ -188,7 +188,7 @@ def main() -> None:
         try:
             path = renderer(project_dir, overwrite=True)
             print(f"  {path.name}")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             print(f"  tearsheet {renderer.__name__} FAILED: {exc}")
 
     print("\n" + "=" * 64)
