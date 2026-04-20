@@ -3,11 +3,10 @@
 `nyc311` is usable as a functional SDK for scripts, scheduled jobs, interactive
 analysis, and data-processing workflows.
 
-This guide describes the current stable SDK surface in the `1.x` line.
-For causal-inference engines on panel data, see
-[factor-factory integration](integration.md). For a before/after
-diff of consumer code from v0.3, see
-[migration-v0-to-v1.md](migration-v0-to-v1.md).
+This guide describes the current stable SDK surface in the `1.x` line. For
+causal-inference engines on panel data, see
+[factor-factory integration](integration.md). For a before/after diff of
+consumer code from v0.3, see [migration-v0-to-v1.md](migration-v0-to-v1.md).
 
 The current SDK is built around small, typed steps:
 

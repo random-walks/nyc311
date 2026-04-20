@@ -17,110 +17,102 @@
 ## 1.0.0 - 2026-04-19
 
 First major release. The headline is integration with
-[factor-factory](https://github.com/random-walks/factor-factory) —
-every `PanelDataset` can now feed factor-factory's 17
-causal-inference engine families without leaving the nyc311 API.
+[factor-factory](https://github.com/random-walks/factor-factory) — every
+`PanelDataset` can now feed factor-factory's 17 causal-inference engine families
+without leaving the nyc311 API.
 
 ### Changed
 
-- **Drop Python 3.10 and 3.11 support.** Minimum is now 3.12, to
-  match upstream factor-factory. Existing `nyc311` 0.3.x consumers
-  on Python 3.10/3.11 should either stay on 0.3 or upgrade Python
-  first. See [migration-v0-to-v1.md](migration-v0-to-v1.md).
-- Bump `nyc-geo-toolkit` minimum to `>=0.3.0,<0.4` (from
-  `>=0.1.7,<0.2.0`), to pick up the v0.3.0 modernization pass
-  (Claude Code infra parity, factor-factory/jellycell showcase
-  example, pin bumps). Existing nyc311 consumers of
-  `nyc311.geographies` and the haversine helpers see no API
-  changes — the upstream bump is additive.
-- CI: bump `actions/checkout` to `v6`, `setup-uv` to `v8.1.0`
-  (exact — no moving tag), `upload-artifact` to `v7`, keep
-  `download-artifact@v8`. Add macOS and Windows runners to the
-  `tests` job matrix.
+- **Drop Python 3.10 and 3.11 support.** Minimum is now 3.12, to match upstream
+  factor-factory. Existing `nyc311` 0.3.x consumers on Python 3.10/3.11 should
+  either stay on 0.3 or upgrade Python first. See
+  [migration-v0-to-v1.md](migration-v0-to-v1.md).
+- Bump `nyc-geo-toolkit` minimum to `>=0.3.0,<0.4` (from `>=0.1.7,<0.2.0`), to
+  pick up the v0.3.0 modernization pass (Claude Code infra parity,
+  factor-factory/jellycell showcase example, pin bumps). Existing nyc311
+  consumers of `nyc311.geographies` and the haversine helpers see no API changes
+  — the upstream bump is additive.
+- CI: bump `actions/checkout` to `v6`, `setup-uv` to `v8.1.0` (exact — no moving
+  tag), `upload-artifact` to `v7`, keep `download-artifact@v8`. Add macOS and
+  Windows runners to the `tests` job matrix.
 
 ### Added — factor-factory integration
 
-- **`PanelDataset.to_factor_factory_panel()`** — additive adapter
-  returning a `factor_factory.tidy.Panel` with full treatment-event
-  and spatial-weights round-trip.
-- **`Pipeline.as_factor_factory_estimate()`** — thin bridge that
-  dispatches into `factor_factory.engines.<family>.estimate` on a
-  converted Panel. Supports every factor-factory engine family
-  (did, sdid, rdd, scm, mediation, changepoint, stl, panel_reg,
-  inequality, spatial, reporting_bias, hawkes, survival,
-  event_study, het_te, dml, climate, diffusion).
+- **`PanelDataset.to_factor_factory_panel()`** — additive adapter returning a
+  `factor_factory.tidy.Panel` with full treatment-event and spatial-weights
+  round-trip.
+- **`Pipeline.as_factor_factory_estimate()`** — thin bridge that dispatches into
+  `factor_factory.engines.<family>.estimate` on a converted Panel. Supports
+  every factor-factory engine family (did, sdid, rdd, scm, mediation,
+  changepoint, stl, panel_reg, inequality, spatial, reporting_bias, hawkes,
+  survival, event_study, het_te, dml, climate, diffusion).
 - **`nyc311.temporal.panel_dataset_to_factor_factory`** and
-  **`spatial_weights_from_panel`** as the function-style
-  equivalents.
-- **`nyc311.factors.dispatch_factor_factory_engine`** for direct
-  engine dispatch independently of the `Pipeline` API.
+  **`spatial_weights_from_panel`** as the function-style equivalents.
+- **`nyc311.factors.dispatch_factor_factory_engine`** for direct engine dispatch
+  independently of the `Pipeline` API.
 
 ### Added — jellycell tearsheets
 
-- New `tearsheets` optional extra: `pip install nyc311[tearsheets]`
-  pulls `jellycell>=1.3.5,<2`.
-- Both production case studies
-  (`examples/case_studies/rat_containerization/`,
-  `examples/case_studies/resolution_equity/`) gained a new
-  tearsheet-generation step that emits
+- New `tearsheets` optional extra: `pip install nyc311[tearsheets]` pulls
+  `jellycell>=1.3.5,<2`.
+- Both production case studies (`examples/case_studies/rat_containerization/`,
+  `examples/case_studies/resolution_equity/`) gained a new tearsheet-generation
+  step that emits
   `manuscripts/{METHODOLOGY,DIAGNOSTICS_CHECKLIST,FINDINGS,MANUSCRIPT,AUDIT}.md`
-  alongside the authoritative `FINDINGS.md`. Numbers are
-  unchanged — the tearsheet is a parallel deliverable.
+  alongside the authoritative `FINDINGS.md`. Numbers are unchanged — the
+  tearsheet is a parallel deliverable.
 
 ### Added — new case studies
 
-- **`examples/sdid-multi-borough-policy/`** — self-contained
-  showcase for `factor_factory.engines.sdid` over a synthetic
-  5-borough 311 rollout. Runs offline in seconds.
-- **`examples/mediation-cascade-resolution/`** — self-contained
-  showcase for `factor_factory.engines.mediation.four_way` over a
-  synthetic pilot → triage-time → resolution-rate cascade.
+- **`examples/sdid-multi-borough-policy/`** — self-contained showcase for
+  `factor_factory.engines.sdid` over a synthetic 5-borough 311 rollout. Runs
+  offline in seconds.
+- **`examples/mediation-cascade-resolution/`** — self-contained showcase for
+  `factor_factory.engines.mediation.four_way` over a synthetic pilot →
+  triage-time → resolution-rate cascade.
 
 ### Added — Claude Code infrastructure
 
 - `.claude/agents/release-auditor.md` and
-  `.claude/agents/factor-compat-auditor.md` — read-only auditors
-  for release preflight and factor-factory-bridge drift.
+  `.claude/agents/factor-compat-auditor.md` — read-only auditors for release
+  preflight and factor-factory-bridge drift.
 - `.claude/commands/{bump,release-check,run-case-study}.md`.
 - `.claude/skills/{factor-compat,stats-module-discipline,release-bump}.md`.
-- `.claude/settings.local.json` permissions allowlist,
-  `.claude/launch.json` dev-server configs.
-- Top-level `CLAUDE.md`, `CONTRIBUTING.md`,
-  `.github/PULL_REQUEST_TEMPLATE.md`, `CITATION.cff`.
+- `.claude/settings.local.json` permissions allowlist, `.claude/launch.json`
+  dev-server configs.
+- Top-level `CLAUDE.md`, `CONTRIBUTING.md`, `.github/PULL_REQUEST_TEMPLATE.md`,
+  `CITATION.cff`.
 
 ### Added — docs
 
-- `docs/integration.md` — crosswalk between `nyc311` and
-  `factor_factory` (Panel schema, stats-module map, engine
-  families).
-- `docs/migration-v0-to-v1.md` — before/after snippets for
-  consumer upgrades.
+- `docs/integration.md` — crosswalk between `nyc311` and `factor_factory` (Panel
+  schema, stats-module map, engine families).
+- `docs/migration-v0-to-v1.md` — before/after snippets for consumer upgrades.
 - README — new "factor-factory integration" section.
-- `docs/sdk.md` — cross-references to integration and migration
-  pages.
+- `docs/sdk.md` — cross-references to integration and migration pages.
 
 ### Added — previously-unreleased v0.3.x content
 
-The following `nyc311.stats` content shipped in source on `main`
-but was never promoted out of the `## Next` changelog section in
-an interim 0.3.x patch release. It ships under v1.0.0:
+The following `nyc311.stats` content shipped in source on `main` but was never
+promoted out of the `## Next` changelog section in an interim 0.3.x patch
+release. It ships under v1.0.0:
 
-- Causal inference: `synthetic_control()`, `staggered_did()`,
-  `event_study()`, `regression_discontinuity()`.
-- Spatial econometrics: `spatial_lag_model()`,
-  `spatial_error_model()`, `geographically_weighted_regression()`.
+- Causal inference: `synthetic_control()`, `staggered_did()`, `event_study()`,
+  `regression_discontinuity()`.
+- Spatial econometrics: `spatial_lag_model()`, `spatial_error_model()`,
+  `geographically_weighted_regression()`.
 - Equity & bias: `oaxaca_blinder_decomposition()`, `theil_index()`,
   `reporting_rate_adjustment()`, `latent_reporting_bias_em()`.
 - Time-series diagnostics: `detect_stl_anomalies()`,
   `minimum_detectable_effect()`.
-- Bayesian / point processes: `bym2_smooth()` (behind
-  `nyc311[bayes]`), `fit_hawkes_process()`.
+- Bayesian / point processes: `bym2_smooth()` (behind `nyc311[bayes]`),
+  `fit_hawkes_process()`.
 - Pipeline factors: `SpatialLagFactor`, `EquityGapFactor`.
 
 ### Contracts
 
-v1.0.0 introduces three new public contracts. All are additive and
-any change to them after this release requires the
+v1.0.0 introduces three new public contracts. All are additive and any change to
+them after this release requires the
 [`factor-compat-auditor`](https://github.com/random-walks/nyc311/blob/main/.claude/agents/factor-compat-auditor.md)
 ceremony:
 
@@ -130,10 +122,9 @@ ceremony:
   (`_SUPPORTED_FAMILIES` in
   [`src/nyc311/factors/_factor_factory.py`](https://github.com/random-walks/nyc311/blob/main/src/nyc311/factors/_factor_factory.py)).
 
-Each of the 11 `nyc311.stats` modules with a factor-factory
-equivalent gained a `.. note::` block cross-referencing the
-upstream engine as the preferred backend. The homegrown
-functions continue to work for backwards compatibility.
+Each of the 11 `nyc311.stats` modules with a factor-factory equivalent gained a
+`.. note::` block cross-referencing the upstream engine as the preferred
+backend. The homegrown functions continue to work for backwards compatibility.
 
 ## 0.3.0
 

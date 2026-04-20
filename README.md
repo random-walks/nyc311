@@ -61,8 +61,8 @@ normalization helpers, and boundary loaders.
 ## factor-factory integration (v1.0.0)
 
 As of v1.0.0, `nyc311` wires through to
-[factor-factory](https://github.com/random-walks/factor-factory)'s
-17 causal-inference engine families via two additive adapters:
+[factor-factory](https://github.com/random-walks/factor-factory)'s 17
+causal-inference engine families via two additive adapters:
 
 ```python
 from nyc311.temporal import build_complaint_panel, TreatmentEvent
@@ -73,20 +73,20 @@ panel = build_complaint_panel(records, geography="community_district")
 ff_panel = panel.to_factor_factory_panel()
 
 from factor_factory.engines.did import estimate as did_estimate
+
 results = did_estimate(ff_panel, methods=("twfe",), outcome="complaint_count")
 print(results[0].att, results[0].ci_95)
 ```
 
-The `nyc311.stats` modules continue to work as before; eleven of the
-seventeen now cross-reference their factor-factory equivalent in a
-`.. note::` block. See
-[`docs/integration.md`](docs/integration.md) for the full crosswalk
-and [`docs/migration-v0-to-v1.md`](docs/migration-v0-to-v1.md) for
-the consumer upgrade path.
+The `nyc311.stats` modules continue to work as before; eleven of the seventeen
+now cross-reference their factor-factory equivalent in a `.. note::` block. See
+[`docs/integration.md`](docs/integration.md) for the full crosswalk and
+[`docs/migration-v0-to-v1.md`](docs/migration-v0-to-v1.md) for the consumer
+upgrade path.
 
 Install the `tearsheets` extra to emit
-[jellycell](https://github.com/random-walks/jellycell) manuscripts
-from the bundled case studies:
+[jellycell](https://github.com/random-walks/jellycell) manuscripts from the
+bundled case studies:
 
 ```bash
 pip install "nyc311[tearsheets]"
