@@ -2244,11 +2244,11 @@ wheels = [
 
 [[package]]
 name = "nyc-geo-toolkit"
-version = "0.3.0"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/21/6d/9769c73c3255ce78e54367558a4c78d1f317c679f86260db4395fc1a1759/nyc_geo_toolkit-0.3.0.tar.gz", hash = "sha256:103a96975bbb9e73e8679b5a020ee15810bdf20e83276bfc5d0caf8b5e5da814", size = 11557524, upload-time = "2026-04-19T22:33:36.961Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/60/f8/633d2bc86e2472ebbf447666308231bdf7bd31f88244f7f3f1009168f625/nyc_geo_toolkit-0.4.0.tar.gz", hash = "sha256:d44d191724138bc97324fcca0ce7b6ec06ef96ffade6df3d178482c8bf46a810", size = 11559086, upload-time = "2026-04-20T23:16:57.509Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/02/b2/25e40c383dd0fd1e70aad95b12264f9cd6fbb5b2535f6abdc0e6da6f9a5b/nyc_geo_toolkit-0.3.0-py3-none-any.whl", hash = "sha256:1ba543bbfc2e97997c8a73b1853ea8827581047eb1ff81cfd9aeed1f8b824ee2", size = 10545685, upload-time = "2026-04-19T22:33:33.236Z" },
+    { url = "https://files.pythonhosted.org/packages/56/37/3f54f92faae36cb32882f47c30522b9d409838b9b11503a9d151d64aeff0/nyc_geo_toolkit-0.4.0-py3-none-any.whl", hash = "sha256:8e2f1b63e2a9a132e285e30a63f68424ff973cbd297d0a31fa13ce60ebae8f7a", size = 10546426, upload-time = "2026-04-20T23:16:54.113Z" },
 ]
 
 [[package]]
@@ -2354,7 +2354,7 @@ requires-dist = [
     { name = "matplotlib", marker = "extra == 'all'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'plotting'", specifier = ">=3.10.8" },
     { name = "matplotlib", marker = "extra == 'science'", specifier = ">=3.10.8" },
-    { name = "nyc-geo-toolkit", specifier = ">=0.3.0,<0.4" },
+    { name = "nyc-geo-toolkit", specifier = ">=0.3.0,<0.5" },
     { name = "pandas", marker = "extra == 'all'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'dataframes'", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'science'", specifier = ">=2.3.3" },

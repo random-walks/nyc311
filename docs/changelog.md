@@ -4,6 +4,36 @@
 
 ### Added
 
+### Changed
+
+- **Widen the `nyc-geo-toolkit` pin** from `>=0.3.0,<0.4` to `>=0.3.0,<0.5` so
+  consumers can pick up the just-shipped [nyc-geo-toolkit v0.4.0][ngt040]
+  alongside nyc311. The upstream v0.4.0 release adds a shapely-backed
+  :func:`nyc_geo_toolkit.centroids_from_boundaries` helper (closing
+  [random-walks/nyc-geo-toolkit#12][ngt12]). nyc311's own homegrown
+  `nyc311.temporal.centroids_from_boundaries` is the shapely-free path and stays
+  as-is with a new `.. note::` cross-reference in its docstring explaining when
+  to use which — the two return different shapes (dict vs BoundaryCollection) on
+  purpose.
+
+[ngt040]: https://github.com/random-walks/nyc-geo-toolkit/releases/tag/v0.4.0
+[ngt12]: https://github.com/random-walks/nyc-geo-toolkit/issues/12
+
+### Fixed
+
+### Deprecated
+
+### Contracts
+
+### Security
+
+## 1.0.1 - 2026-04-20
+
+Patch release. Fixes [#20][i20] — resolution-time / SLA analyses no longer have
+to bypass the SDK.
+
+### Added
+
 - **`ServiceRequestRecord.closed_date`** (`date | None`, default `None`) —
   carries the per-complaint resolution-date column through the full ingest /
   export / dataframe / Socrata pipeline. Fixes [#20][i20]: `bulk_fetch`'s
@@ -21,16 +51,6 @@
   column is optional.
 
 [i20]: https://github.com/random-walks/nyc311/issues/20
-
-### Changed
-
-### Fixed
-
-### Deprecated
-
-### Contracts
-
-### Security
 
 ## 1.0.0 - 2026-04-19
 
