@@ -4,10 +4,9 @@ description:
   the upstream factor-factory API. Invokes the factor-compat-auditor agent.
 ---
 
-Invoke the
-[`factor-compat-auditor`](../agents/factor-compat-auditor.md) agent against
-`git diff origin/main...HEAD`. Relay its report verbatim; do not summarize or
-editorialize. If the agent flags a blocking item, print the agent's
+Invoke the [`factor-compat-auditor`](../agents/factor-compat-auditor.md) agent
+against `git diff origin/main...HEAD`. Relay its report verbatim; do not
+summarize or editorialize. If the agent flags a blocking item, print the agent's
 remediation hint and stop — do not attempt fixes yourself.
 
 If the agent returns a clean report, also print:
