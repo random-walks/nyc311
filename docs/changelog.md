@@ -118,15 +118,24 @@ v1.0.0.
   reproducibility comes from pinned version ranges in each `pyproject.toml`, not
   from committed lockfiles. Four previously-committed `uv.lock` files (~5,000
   lines) were dropped.
-- Root prose tooling (prettier) scoped with `exclude: ^examples/` so showcase
-  narratives keep their voice.
+- Hygiene-hook scope aligned with subway-access v0.5 conventions:
+  - **prettier** narrowed to `exclude: ^examples/.*\.md$` (markdown-only;
+    example yaml / json / pyproject still get prettier).
+  - **blacken-docs** gained `exclude: ^examples/` so showcase-authored Python
+    code blocks in READMEs aren't rewritten to root-project style.
+  - Top-level pre-commit `exclude:` widened to
+    `^(\.cruft\.json|\.copier-answers\.yml|cache/.*|examples/.*/cache/.*|examples/.*/(manuscripts|artifacts)/.*|seeds/enhanced/research/.*)$`
+    — covers runtime caches (including symlinked ones), committed
+    tearsheets/artifacts, and a reserved `seeds/` slot for future research
+    notes.
 - Ruff `per-file-ignores` for `examples/**/*.py` broadened to the
   showcase-friendly set (unicode ambiguity, cross-platform shebang, print
   progress) — protects future examples from surprise lint failures.
-- Root pre-commit `exclude` regex extended to
-  `^examples/.*/(manuscripts|artifacts)/` so committed jellycell tearsheets and
-  engine-result JSONs stay off-limits to content-rewriting hygiene hooks
-  (blacken-docs, end-of-file-fixer, trailing-whitespace, prettier).
+- Per-example `.gitignore`s strip trailing slashes from dir patterns (`cache/` →
+  `cache`, `artifacts/` → `artifacts`, etc.). Trailing slash matches real dirs
+  but **not** symlinks-to-dirs — the subway-access v0.5 engine-audit work
+  surfaced this when a 631 MB cache was symlinked to shared storage and git
+  started tracking it. No-trailing-slash matches both.
 
 ### Changed — jellycell tearsheet reproducibility
 
@@ -136,6 +145,26 @@ v1.0.0.
   `factor_factory.jellycell.tearsheets.*` is called with `template_overrides`
   pinning `project` to a stable display name and `generated_at` to a fixed
   string — committed output is byte-identical across machines.
+- `examples/case_studies/resolution_equity/figures/` (3 PNG plots + 4
+  derived-research CSVs) is now committed rather than gitignored. The
+  resolution-equity study can't be re-run without live Socrata access, so
+  keeping the figures in git means a reviewer can inspect the study's visual
+  output from a fresh clone.
+
+### Added — data provenance sidecars
+
+Both production case studies now ship a `data/demographics.csv.meta.json`
+sidecar describing the upstream Census ACS tables used (`B01003_001E`, `B02001`,
+`B19013_001E`, `B25003`), the vintage year, the exact derivation formulas for
+the two ratio columns (`pct_nonwhite`, `pct_renter`), the log transform on
+`log_median_income`, and a `how_to_regenerate` note for future updates. Matches
+subway-access v0.5's per-station `data.json + research.md` provenance
+convention.
+
+### Removed — legacy cruft
+
+- `examples/case_studies/rat_containerization/FINDINGS copy.md` (duplicate of
+  `FINDINGS.md`, byte-identical, leaked into main in an earlier commit).
 
 ### Known issues
 
