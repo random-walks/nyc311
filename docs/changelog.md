@@ -4,6 +4,24 @@
 
 ### Added
 
+- **`ServiceRequestRecord.closed_date`** (`date | None`, default `None`) —
+  carries the per-complaint resolution-date column through the full ingest /
+  export / dataframe / Socrata pipeline. Fixes [#20][i20]: `bulk_fetch`'s
+  Socrata `$select` now requests `closed_date` alongside `created_date`, the CSV
+  reader and writer both preserve the column, and `records_to_dataframe`
+  surfaces it as a `datetime64`-typed column (with pandas `NaT` ↔ Python `None`
+  round-trip). Consumers doing resolution-time / SLA analysis can compute
+  `record.closed_date - record.created_date` directly instead of bypassing the
+  SDK.
+
+  Schema change is additive: existing call sites that instantiate
+  `ServiceRequestRecord` without `closed_date` keep working; the default `None`
+  models the unresolved-complaint case exactly as Socrata returns it. CSV
+  snapshots written by pre-v1.0.1 SDKs load without `closed_date` too — the CSV
+  column is optional.
+
+[i20]: https://github.com/random-walks/nyc311/issues/20
+
 ### Changed
 
 ### Fixed

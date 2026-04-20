@@ -19,6 +19,7 @@ SERVICE_REQUEST_CSV_COLUMNS: Final[tuple[str, ...]] = (
 
 SERVICE_REQUEST_OPTIONAL_COLUMNS: Final[tuple[str, ...]] = (
     "resolution_description",
+    "closed_date",
     "latitude",
     "longitude",
 )

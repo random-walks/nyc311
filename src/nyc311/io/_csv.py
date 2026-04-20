@@ -36,6 +36,19 @@ def _parse_created_date(raw_value: str) -> date:
     return date.fromisoformat(normalized_value)
 
 
+def _parse_optional_date(raw_value: str | None) -> date | None:
+    """Parse an optional NYC 311-style date string into a ``date`` or ``None``.
+
+    Accepts the same ISO shapes as :func:`_parse_created_date` plus
+    empty / ``None`` inputs for unresolved complaints.
+    """
+    if raw_value is None:
+        return None
+    if not raw_value.strip():
+        return None
+    return _parse_created_date(raw_value)
+
+
 def _parse_optional_coordinate(raw_value: str | None) -> float | None:
     if raw_value is None:
         return None
@@ -81,6 +94,7 @@ def _record_from_mapping(
         resolution_description=row.get("resolution_description"),
         latitude=_parse_optional_coordinate(row.get("latitude")),
         longitude=_parse_optional_coordinate(row.get("longitude")),
+        closed_date=_parse_optional_date(row.get("closed_date")),
     )
 
 

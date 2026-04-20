@@ -28,6 +28,7 @@ def test_records_dataframe_round_trip_preserves_core_fields() -> None:
         "borough",
         "community_district",
         "resolution_description",
+        "closed_date",
         "latitude",
         "longitude",
     ]

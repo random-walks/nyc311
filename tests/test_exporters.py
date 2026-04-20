@@ -89,6 +89,8 @@ def test_export_service_requests_csv_writes_snapshot_rows(tmp_path: Path) -> Non
         "borough": "BROOKLYN",
         "community_district": "BROOKLYN 01",
         "resolution_description": "Officers advised occupants to lower music",
+        # closed_date is optional; the packaged sample fixture has no value.
+        "closed_date": "",
         "latitude": "40.73",
         "longitude": "-73.96",
     }

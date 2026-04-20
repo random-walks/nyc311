@@ -136,6 +136,16 @@ def bulk_fetch(
     sidecar containing the row count, SHA-256 checksum, fetch
     timestamp, and the filter parameters used.
 
+    The Socrata ``$select`` fragment requests the schema:
+    ``unique_key, created_date, closed_date, complaint_type,
+    descriptor, borough, community_board, resolution_description,
+    latitude, longitude``. ``closed_date`` (added in v1.0.1 per
+    random-walks/nyc311#20) is nullable — unresolved complaints
+    serialize it as an empty column — which lets downstream
+    resolution-time / SLA analyses compute
+    ``closed_date - created_date`` directly without a second
+    round-trip.
+
     Args:
         complaint_types: Optional whitelist of complaint types. When
             empty, every complaint type is included.
