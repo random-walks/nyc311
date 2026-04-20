@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ACS community-district covariates — provenance sidecar",
+  "description": "Per-district demographic covariates derived from the American Community Survey 5-year estimates. This sidecar is read by humans and release auditors; scripts load `demographics.csv` directly. If a column here drifts from the CSV header, the CSV is canonical.",
+  "dataset": "American Community Survey 5-Year Estimates",
+  "publisher": "U.S. Census Bureau",
+  "vintage_year": "2023",
+  "table_versions": {
+    "population": "B01003_001E",
+    "pct_nonwhite": "derived from B02001",
+    "log_median_income": "log of B19013_001E",
+    "pct_renter": "derived from B25003"
+  },
+  "geography": "NYC community district (59 units; the sample ships 51 with matched complaints coverage)",
+  "unit_count": 51,
+  "columns": [
+    {
+      "name": "unit_id",
+      "type": "string",
+      "description": "Community district identifier matching nyc-geo-toolkit's canonical labelling, e.g. 'BRONX 04'."
+    },
+    {
+      "name": "population",
+      "type": "integer",
+      "description": "Total resident population (ACS table B01003_001E, 5-year estimates)."
+    },
+    {
+      "name": "pct_nonwhite",
+      "type": "float",
+      "description": "Fraction of residents identifying as other than 'White alone'. Derived from table B02001. Range [0, 1]."
+    },
+    {
+      "name": "log_median_income",
+      "type": "float",
+      "description": "Natural log of median household income in 2023 USD. Derived from B19013_001E. Log-transformed to stabilize variance for panel regression."
+    },
+    {
+      "name": "pct_renter",
+      "type": "float",
+      "description": "Fraction of occupied housing units that are renter-occupied (not owner-occupied). Derived from table B25003. Range [0, 1]."
+    }
+  ],
+  "how_to_regenerate": "The values were assembled manually from the ACS tables above using data.census.gov; no automated fetch pipeline ships with this case study. If you need a different vintage or set of covariates, fetch the corresponding tables from the Census API and overwrite this CSV.",
+  "notes": [
+    "`pct_nonwhite` = 1 - (B02001_002E / B02001_001E) where _002E is 'White alone'.",
+    "`pct_renter` = B25003_003E / B25003_001E.",
+    "`log_median_income` uses natural log. Back-transform with math.exp() for dollar values.",
+    "These covariates are strictly time-invariant in this case study; do not pair with a pre/post-period panel that needs time-varying demographics."
+  ]
+}
