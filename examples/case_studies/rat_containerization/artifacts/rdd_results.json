@@ -1,0 +1,16 @@
+[
+  {
+    "method": "nyc311_rdd_cct",
+    "att": -91.19815852838542,
+    "se": 603.3785042982279,
+    "ci_95_lower": -1273.820026952912,
+    "ci_95_upper": 1091.4237098961412,
+    "p_value": 0.879860662737505,
+    "n": 46,
+    "diagnostics": {
+      "bandwidth_left": 1121.45990956746,
+      "bandwidth_right": 1121.45990956746,
+      "kernel": "triangular"
+    }
+  }
+]

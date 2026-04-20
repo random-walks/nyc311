@@ -193,23 +193,16 @@ Thumbs.db
 **/.jellycell/cache/state.db
 **/.jellycell/cache/assets/
 
-# Examples/case-studies are self-contained showcase projects.
-# Reproducibility comes from pinned version ranges in each example's
-# pyproject.toml — not from committed lockfiles. Also keep all
-# transient outputs per-example out of VCS so a new example only
-# needs pyproject.toml + main.py + README.md + a per-example
-# .gitignore.
+# examples/ are self-contained jellycell projects — keep the source of
+# truth + jellycell's canonical layout (pyproject.toml + main.py +
+# README.md + jellycell.toml + manuscripts/ + artifacts/) committed so
+# the rendered site is reproducible from git. Only drop lockfiles and
+# per-example venvs. See jellycell's project-layout docs for the
+# committed-manuscripts rule.
 examples/*/uv.lock
 examples/*/.venv/
-examples/*/artifacts/
-examples/*/manuscripts/
-examples/*/cache/
-examples/*/data/cache/
 examples/case_studies/*/uv.lock
 examples/case_studies/*/.venv/
-examples/case_studies/*/artifacts/
-examples/case_studies/*/manuscripts/
-examples/case_studies/*/cache/
 
 # Common editor files
 *~

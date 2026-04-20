@@ -1,0 +1,17 @@
+[
+  {
+    "method": "twfe",
+    "att": 0.04980151711761201,
+    "se": 0.001792033451111005,
+    "ci_95_lower": 0.04625834849653379,
+    "ci_95_upper": 0.05334468573869022,
+    "p_value": 0.0,
+    "n": 180,
+    "cohort_atts": null,
+    "cohort_ses": null,
+    "diagnostics": {
+      "r_squared": 0.8444272571086981,
+      "r_squared_within": 0.6647008582641842
+    }
+  }
+]

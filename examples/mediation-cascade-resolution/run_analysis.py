@@ -180,6 +180,10 @@ def main() -> None:
     # Step 4: tearsheets
     print("\n-- Step 4: Render jellycell tearsheets --\n")
     project_dir = str(HERE)
+    overrides = {
+        "project": HERE.name,
+        "generated_at": "committed (regenerate with run_analysis.py)",
+    }
     for renderer in (
         tearsheets.methodology,
         tearsheets.diagnostics,
@@ -188,7 +192,11 @@ def main() -> None:
         tearsheets.manuscript,
     ):
         try:
-            path = renderer(project_dir, overwrite=True)
+            path = renderer(
+                project_dir,
+                overwrite=True,
+                template_overrides=overrides,
+            )
             print(f"  {path.name}")
         except Exception as exc:
             print(f"  tearsheet {renderer.__name__} FAILED: {exc}")

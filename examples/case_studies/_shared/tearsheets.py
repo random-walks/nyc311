@@ -166,8 +166,26 @@ def ensure_jellycell_toml(project_root: Path, name: str) -> None:
     )
 
 
+def _project_display_name(project_root: Path) -> str:
+    """Return the stable [project].name from jellycell.toml, or the dir name."""
+    toml_path = project_root / "jellycell.toml"
+    if toml_path.exists():
+        import tomllib
+
+        data = tomllib.loads(toml_path.read_text())
+        name = data.get("project", {}).get("name")
+        if name:
+            return str(name)
+    return project_root.name
+
+
 def render_all_tearsheets(project_root: Path) -> list[str]:
     """Render the five jellycell tearsheets into ``project_root/manuscripts/``.
+
+    Passes a stable display name via ``template_overrides`` so the
+    committed tearsheets don't embed the local absolute path —
+    jellycell's rendered HTML site is then reproducible from git
+    without diff-churn across contributors' machines.
 
     Args:
         project_root: The case-study directory (where
@@ -180,6 +198,15 @@ def render_all_tearsheets(project_root: Path) -> list[str]:
 
     rendered: list[str] = []
     project_dir = str(project_root)
+    display_name = _project_display_name(project_root)
+    # Pin the "generated_at" stamp to a stable string so committed
+    # tearsheets don't diff on every regeneration across contributors'
+    # machines and clocks. The git commit SHA + time are the true
+    # provenance for reviewers.
+    overrides = {
+        "project": display_name,
+        "generated_at": "committed (regenerate with run_analysis.py)",
+    }
     for renderer in (
         tearsheets.methodology,
         tearsheets.diagnostics,
@@ -188,7 +215,11 @@ def render_all_tearsheets(project_root: Path) -> list[str]:
         tearsheets.manuscript,
     ):
         try:
-            path = renderer(project_dir, overwrite=True)
+            path = renderer(
+                project_dir,
+                overwrite=True,
+                template_overrides=overrides,
+            )
             rendered.append(path.name)
         except Exception as exc:
             print(f"  tearsheet {renderer.__name__} FAILED: {exc}")

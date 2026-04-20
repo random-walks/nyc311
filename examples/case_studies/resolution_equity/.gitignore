@@ -3,7 +3,8 @@ data/panel.parquet
 data/panel.pkl
 data/analysis_results.json
 figures/
-artifacts/
-manuscripts/
-jellycell.toml
+
 # Keep data/demographics.csv — real ACS data that ships with the example
+# Keep artifacts/ + manuscripts/ + jellycell.toml COMMITTED — the
+# jellycell site depends on them being reproducible from git without
+# running the pipeline (which requires live Socrata fetch).

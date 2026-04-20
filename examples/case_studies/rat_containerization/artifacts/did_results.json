@@ -1,0 +1,18 @@
+[
+  {
+    "method": "nyc311_cs_staggered",
+    "att": 6.790982532297589,
+    "se": 2.676467581116096,
+    "ci_95_lower": 1.5451060733100412,
+    "ci_95_upper": 12.036858991285136,
+    "p_value": 0.011171340335278002,
+    "n": 24,
+    "cohort_atts": null,
+    "cohort_ses": null,
+    "diagnostics": {
+      "n_groups": 1,
+      "n_periods": 24,
+      "group_time_atts_count": 24
+    }
+  }
+]

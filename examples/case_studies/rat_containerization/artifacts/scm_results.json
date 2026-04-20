@@ -1,0 +1,24 @@
+[
+  {
+    "method": "nyc311_scm",
+    "att": -2.5989151232177137,
+    "se": null,
+    "ci_95_lower": null,
+    "ci_95_upper": null,
+    "p_value": null,
+    "n": 24,
+    "unit_weights": {
+      "BRONX 01": 0.39442219924869076,
+      "BRONX 12": 0.20217241380279344,
+      "BROOKLYN 01": 0.06512019105176796,
+      "BROOKLYN 08": 0.10809609648584445,
+      "MANHATTAN 11": 0.02617084551689497,
+      "STATEN ISLAND 02": 0.20401900467132644
+    },
+    "diagnostics": {
+      "pre_treatment_mspe": 24.38301950301204,
+      "treated_unit": "MANHATTAN 03",
+      "model_summary": "Synthetic Control: MANHATTAN 03\nPre-treatment periods: 17\nPost-treatment periods: 7\nDonors used: 6\nPre-treatment MSPE: 24.383020\nATT: -2.5989"
+    }
+  }
+]
