@@ -20,7 +20,17 @@ def load_boundaries_geodataframe(
     *,
     layer: str | None = None,
 ) -> Any:
-    """Load supported boundaries from a path, collection, or packaged layer."""
+    """Load supported boundaries from a path, collection, or packaged layer.
+
+    .. note::
+
+       Need polygon centroids for spatial weights / Moran's I / label
+       placement? Upstream :func:`nyc_geo_toolkit.centroids_from_boundaries`
+       (v0.4+) converts any polygon ``BoundaryCollection`` into a Point
+       ``BoundaryCollection``, preserving geography / vintage / properties.
+       Pair with ``representative=True`` for non-convex polygons. See the
+       :mod:`nyc311.spatial` module docstring for the full recipe.
+    """
     if layer is not None:
         if source is not None:
             raise ValueError("Pass either source or layer, not both.")

@@ -151,6 +151,41 @@ Each case study ships a `jellycell.toml` alongside its `run_analysis.py` so
 | `nyc-geo-toolkit` | `>=0.3.0,<0.5` (widened v1.0.2 for upstream v0.4) |
 | Python            | `>=3.12` (dropped 3.10/3.11 in v1.0.0)            |
 
+## Upstream helpers worth knowing
+
+These live in `nyc-geo-toolkit` and `factor-factory` but compose naturally with
+`nyc311.spatial` / `nyc311.temporal` workflows:
+
+- **`nyc_geo_toolkit.centroids_from_boundaries(boundaries, *, representative=False)`**
+  — v0.4+. Turns any polygon `BoundaryCollection` into a Point
+  `BoundaryCollection`. For spatial weights, Moran's I / LISA, nearest-neighbour
+  joins, choropleth label placement. Use `representative=True` for concave NYC
+  shorelines.
+
+  ```python
+  from nyc_geo_toolkit import centroids_from_boundaries, load_nyc_boundaries
+  from nyc311.temporal import build_distance_weights
+
+  cbs = load_nyc_boundaries("community_district")
+  point_collection = centroids_from_boundaries(cbs, representative=True)
+  # Flip (lon, lat) GeoJSON order to (lat, lon) for build_distance_weights.
+  unit_centroids = {
+      f.geography_value: (f.geometry["coordinates"][1], f.geometry["coordinates"][0])
+      for f in point_collection.features
+  }
+  weights = build_distance_weights(unit_centroids, threshold_meters=2000.0)
+  ```
+
+  nyc311 v1.0.2+ (pin `>=0.3.0,<0.5`) allows installing the required
+  nyc-geo-toolkit version. Install with the `[spatial]` extra upstream for the
+  shapely dependency.
+
+- **`factor_factory.engines.*.estimate(panel, ...)`** — the engine families
+  listed above. Call via `Pipeline.as_factor_factory_estimate()` for the
+  chaining convenience, or import directly.
+
+## factor-factory roadmap
+
 Follow the
 [factor-factory roadmap](https://github.com/random-walks/factor-factory/blob/main/docs/og_context/06_post_v0.1_roadmap.md)
 for upcoming engine families; most new engines become available to
