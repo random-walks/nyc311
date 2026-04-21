@@ -6,6 +6,86 @@
 
 ### Changed
 
+### Fixed
+
+### Deprecated
+
+### Contracts
+
+### Security
+
+## 1.0.3 - 2026-04-21
+
+Docs-only patch. Ships everything that landed on `main` after v1.0.2 (PR #23's
+llms.txt + doc refresh) plus a cross-reference surfacing
+`nyc_geo_toolkit.centroids_from_boundaries` from `nyc311.spatial` (closes
+[#24][i24]). No consumer code needs to change.
+
+### Added — machine-readable agent guide
+
+- **`docs/llms.txt`** — canonical [llmstxt.org](https://llmstxt.org)-style
+  summary consumed by Cursor, Codex, Copilot, Claude Code, Aider, Zed, Windsurf,
+  Gemini CLI, ChatGPT. Covers the public surface, typical workflows, contracts,
+  install paths, examples, version ranges, ecosystem siblings. Added to mkdocs
+  nav as "For LLMs / agents"; `AGENTS.md` gains a pointer at it.
+
+### Docs
+
+- **`nyc311.spatial` module + `load_boundaries_geodataframe` docstring** now
+  cross-reference upstream `nyc_geo_toolkit.centroids_from_boundaries` (v0.4+)
+  for polygon-centroid extraction (addresses [#24][i24] via the doc-only path —
+  nyc311 deliberately doesn't ship a centroid helper in `nyc311.spatial` because
+  the upstream helper is the one-stop shop).
+- **`docs/integration.md`** — new "Upstream helpers worth knowing" section with
+  the full `centroids_from_boundaries → build_distance_weights` composition
+  recipe inline, including the `(lat, lon)` vs `(lon, lat)` GeoJSON axis-flip.
+- **`docs/migration-v0-to-v1.md`** — new "v1.0.1 + v1.0.2 addenda" subsection
+  with before / after snippets for the `closed_date` SDK / Socrata-bypass
+  migration and the shapely-backed-centroid upgrade.
+- **`docs/sdk.md`** — `!!! tip` block in the spatial-weights section pointing at
+  upstream's shapely-backed helper with the complete `(lat, lon)` adapter
+  snippet for `build_distance_weights`.
+- **`docs/integration.md` pin row** refreshed to the v1.0.2 state
+  (`nyc-geo-toolkit>=0.3.0,<0.5`).
+- **`README.md`** — new v1.0.1 `closed_date` and v1.0.2 pin-widening subsections
+  under the existing factor-factory integration block.
+- **`AGENTS.md`** — new "Current release line" roll-up for v1.0.0 / v1.0.1 /
+  v1.0.2 / v1.0.3.
+- **`examples/factor-factory-quickstart/`** — extended to demonstrate both
+  `outcome="complaint_count"` and `outcome="median_resolution_days"` DiD fits
+  against the same panel (the v1.0.1 `closed_date` pivot workflow). Same panel,
+  single `outcome=` swap, two ATT recoveries. README gains a "What's also in the
+  panel" table documenting every numeric column the adapter exposes.
+
+### Ecosystem convergence
+
+Not code changes in this release, but worth tracking:
+
+- **`nyc-geo-toolkit` v0.4.1** (2026-04-21) — patch aligning the upstream
+  showcase with `jellycell.tearsheets` v1.4.0's native API. No public-surface
+  change. Our `>=0.3.0,<0.5` pin accepts it automatically.
+- **Jellycell v1.4.0** — landed upstream with the native `jellycell.tearsheets`
+  API ([#24][j24]) and deps-comma lint fix ([#25][j25]). All six issues we filed
+  from v1.0.0 dogfooding (J1 through J6) are closed. Our `jellycell>=1.3.5,<2`
+  pin accepts v1.4.0 via semver when it hits PyPI. A targeted alignment pass —
+  dropping `factor_factory.jellycell.cells.setup()` workarounds in favour of the
+  native API — is a future concern gated on factor-factory's own update cycle.
+- Three downstream follow-ups filed: [nyc311#24][i24] (this release),
+  [subway-access#19 comment](https://github.com/random-walks/subway-access/pull/19),
+  [blaise-website#20](https://github.com/random-walks/blaise-website/issues/20)
+  (resolution-equity centroid swap).
+
+[i24]: https://github.com/random-walks/nyc311/issues/24
+[j24]: https://github.com/random-walks/jellycell/issues/24
+[j25]: https://github.com/random-walks/jellycell/issues/25
+
+## 1.0.2 - 2026-04-20
+
+Patch release. Widens the `nyc-geo-toolkit` pin so consumers can pick up
+upstream v0.4.0 (shapely-backed `centroids_from_boundaries`) alongside nyc311.
+
+### Changed
+
 - **Widen the `nyc-geo-toolkit` pin** from `>=0.3.0,<0.4` to `>=0.3.0,<0.5` so
   consumers can pick up the just-shipped [nyc-geo-toolkit v0.4.0][ngt040]
   alongside nyc311. The upstream v0.4.0 release adds a shapely-backed
@@ -18,14 +98,6 @@
 
 [ngt040]: https://github.com/random-walks/nyc-geo-toolkit/releases/tag/v0.4.0
 [ngt12]: https://github.com/random-walks/nyc-geo-toolkit/issues/12
-
-### Fixed
-
-### Deprecated
-
-### Contracts
-
-### Security
 
 ## 1.0.1 - 2026-04-20
 
