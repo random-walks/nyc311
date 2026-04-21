@@ -66,3 +66,4 @@ nav:
   - Contributing: contributing.md
   - Releasing: releasing.md
   - Changelog: changelog.md
+  - For LLMs / agents: llms.txt

@@ -40,6 +40,23 @@ against your diff.
 **For agents cutting a release**: read [`docs/releasing.md`](docs/releasing.md)
 and [`.claude/skills/release-bump.md`](.claude/skills/release-bump.md).
 
+**For LLMs / agentic tools** discovering this repo cold:
+[`docs/llms.txt`](docs/llms.txt) is the canonical machine-readable
+[llmstxt.org](https://llmstxt.org)-style summary of the public surface, typical
+workflows, contracts, and ecosystem position.
+
+## Current release line
+
+- **v1.0.2** (2026-04-20) — patch widening `nyc-geo-toolkit` pin to
+  `>=0.3.0,<0.5` for upstream v0.4.0's shapely-backed
+  `centroids_from_boundaries` (the homegrown `nyc311.temporal` helper stays
+  as-is, shapely-free, with a docstring cross-reference).
+- **v1.0.1** (2026-04-20) — patch adding `ServiceRequestRecord.closed_date`
+  through the full Socrata / CSV / dataframe pipeline. Resolution-time analysis
+  no longer needs to bypass the SDK.
+- **v1.0.0** (2026-04-19) — first major. factor-factory integration, Claude Code
+  infra, jellycell tearsheets, four bundled case studies, Python 3.12+ floor.
+
 ## Hard rules
 
 - **The two factor-factory bridges are additive contracts**. Renaming or

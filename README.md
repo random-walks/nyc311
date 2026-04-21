@@ -92,6 +92,29 @@ bundled case studies:
 pip install "nyc311[tearsheets]"
 ```
 
+### v1.0.1 — `ServiceRequestRecord.closed_date`
+
+Resolution-time / SLA analyses don't need to bypass the SDK any more.
+`bulk_fetch`'s Socrata `$select` now requests `closed_date` by default, the CSV
+reader and writer preserve it, and `records_to_dataframe` surfaces it as a
+`datetime64[ns]` column (with `NaT` for unresolved complaints):
+
+```python
+records = io.load_service_requests("data/cache/noise-2020-2024.csv")
+resolved = [r for r in records if r.closed_date is not None]
+mean_latency_days = sum((r.closed_date - r.created_date).days for r in resolved) / len(
+    resolved
+)
+```
+
+### v1.0.2 — `nyc-geo-toolkit>=0.3,<0.5` pin widened
+
+Pulls in upstream's shapely-backed `nyc_geo_toolkit.centroids_from_boundaries` —
+useful when the lean shapely-free `nyc311.temporal.centroids_from_boundaries`
+(which returns a `dict[str, (lat, lon)]` and feeds `build_distance_weights`)
+isn't publication-grade enough. See the docstring `.. note::` for the decision
+table on which to pick.
+
 ## Install
 
 Choose the dependency footprint that matches your workflow:

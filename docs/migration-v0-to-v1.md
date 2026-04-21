@@ -145,6 +145,70 @@ Nothing is deprecated in v1.0.0. A future minor may deprecate specific
 `nyc311.stats` methods in favor of the factor-factory equivalent, but only with
 a full deprecation cycle (two minors of warning before removal).
 
+## v1.0.1 + v1.0.2 addenda
+
+Two patch releases landed same-week as v1.0.0 in response to downstream
+dogfooding signal. Both are **strictly additive**, no consumer code needs to
+change, but you can opt into two small API improvements:
+
+### `ServiceRequestRecord.closed_date` (v1.0.1, see [#20](https://github.com/random-walks/nyc311/issues/20))
+
+`closed_date: date | None` is now a first-class field on the record, carried
+end-to-end through CSV ingest / export, dataframe helpers, and the Socrata
+`$select`. Unresolved complaints surface as `None` (pandas `NaT` in
+`datetime64[ns]` columns). Resolution-time analysis becomes a one-liner:
+
+```python
+# Before — had to bypass the SDK and hit Socrata directly
+import aiohttp
+
+async with aiohttp.ClientSession() as session:
+    ...  # manual $select=..., closed_date + pagination
+```
+
+```python
+# After
+from nyc311 import io, models
+
+records = io.load_service_requests(
+    "data/cache/noise-2020-2024.csv",
+    filters=models.ServiceRequestFilter(complaint_types=("Noise - Residential",)),
+)
+resolved = [r for r in records if r.closed_date is not None]
+latencies = [(r.closed_date - r.created_date).days for r in resolved]
+```
+
+CSV snapshots written by pre-v1.0.1 SDKs load without the column (it's
+optional); fresh snapshots written by v1.0.1+ include it.
+
+### `nyc-geo-toolkit>=0.3.0,<0.5` pin (v1.0.2)
+
+The pin widened to allow installing
+[nyc-geo-toolkit v0.4.0](https://github.com/random-walks/nyc-geo-toolkit/releases/tag/v0.4.0)
+alongside nyc311. Upstream v0.4.0 adds a shapely-backed
+`centroids_from_boundaries` helper that returns a `BoundaryCollection` of
+GeoJSON `Point` features with optional `representative_point=True` for
+non-convex polygons (useful for NYC's jagged community districts).
+
+nyc311's own `nyc311.temporal.centroids_from_boundaries` stays as-is — it's the
+shapely-free path, returns `dict[str, (lat, lon)]`, and feeds directly into
+`build_distance_weights`. Don't swap them mid-analysis (the two return different
+shapes and slightly different numbers). See the cross-reference note in that
+function's docstring for the full decision table.
+
+For publication-grade geometry:
+
+```python
+from nyc_geo_toolkit import centroids_from_boundaries, load_nyc_boundaries
+
+cbs = load_nyc_boundaries("community_district")
+centroid_collection = centroids_from_boundaries(cbs, representative=True)
+centroids = {
+    f.geography_value: (f.geometry["coordinates"][1], f.geometry["coordinates"][0])
+    for f in centroid_collection.features
+}
+```
+
 ## Questions
 
 Open an issue on [GitHub](https://github.com/random-walks/nyc311/issues). If you
