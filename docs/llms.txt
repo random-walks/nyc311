@@ -1,0 +1,82 @@
+# nyc311
+
+> Reproducible Python toolkit for NYC 311 complaint analysis — typed SDK + thin CLI, composable factor pipelines, balanced temporal panels, 17 statistical modules, and additive adapters into factor-factory's 17 causal-inference engine families. Optional jellycell tearsheets for publication-grade case-study reports.
+
+Authored by Blaise Albis-Burdige (<https://blaiseab.com>). MIT-licensed. Python ≥ 3.12.
+
+Sits downstream of [`nyc-geo-toolkit`](https://github.com/random-walks/nyc-geo-toolkit) (geographic primitives) and [`factor-factory`](https://github.com/random-walks/factor-factory) (causal-inference engines). Optionally consumes [`jellycell`](https://github.com/random-walks/jellycell) via the `tearsheets` extra.
+
+## Docs
+
+- [Home](https://nyc311.readthedocs.io/en/latest/): project overview + install
+- [Getting Started](https://nyc311.readthedocs.io/en/latest/getting-started/): fastest path to a useful run
+- [SDK Guide](https://nyc311.readthedocs.io/en/latest/sdk/): composable SDK patterns, `records_to_dataframe`, factor pipelines, temporal panels, resolution-time analysis
+- [CLI Reference](https://nyc311.readthedocs.io/en/latest/cli/): `nyc311 fetch` + `nyc311 topics` subcommands
+- [factor-factory integration](https://nyc311.readthedocs.io/en/latest/integration/): `PanelDataset.to_factor_factory_panel()` + `Pipeline.as_factor_factory_estimate()` — the two load-bearing bridges
+- [Migration v0 → v1](https://nyc311.readthedocs.io/en/latest/migration-v0-to-v1/): consumer upgrade path, before/after snippets
+- [Architecture](https://nyc311.readthedocs.io/en/latest/architecture/): module responsibilities + mermaid pipeline diagram
+- [Examples](https://nyc311.readthedocs.io/en/latest/examples/): case-study + showcase index
+- [Changelog](https://nyc311.readthedocs.io/en/latest/changelog/): per-release detail
+
+## Public surfaces
+
+- `nyc311.models`: typed dataclasses — `ServiceRequestRecord` (carries `created_date`, `closed_date`, `resolution_description`, `lat/lon`), `ServiceRequestFilter`, `GeographyFilter`, `SocrataConfig`, `ExportTarget`, `TopicQuery`, `AnalysisWindow`, borough constants.
+- `nyc311.io`: `load_service_requests_from_csv`, `load_service_requests` (dispatches CSV or Socrata), `cached_fetch`.
+- `nyc311.pipeline`: `fetch_service_requests`, `run_topic_pipeline`, `bulk_fetch` (per-borough CSV + `.meta.json` sidecars).
+- `nyc311.analysis`: `extract_topics`, `aggregate_by_geography`, `analyze_topic_coverage`, `analyze_resolution_gaps`, `detect_anomalies`.
+- `nyc311.export`: `export_topic_table`, `export_anomalies`, `export_geojson`, `export_report_card`, `export_service_requests_csv`.
+- `nyc311.dataframes`: optional pandas helpers — `records_to_dataframe`, `dataframe_to_records`, plus assignment / summary / gap / anomaly / coverage variants.
+- `nyc311.geographies`: thin compatibility layer over `nyc-geo-toolkit`, plus sample boundary loaders.
+- `nyc311.samples`: packaged sample fixtures — `load_sample_service_requests`, `load_sample_boundaries`.
+- `nyc311.factors`: composable factor pipeline. `Pipeline.add()` / `.run()` / `.as_factor_factory_estimate()`. Built-in factors: `ComplaintVolumeFactor`, `ResolutionTimeFactor`, `TopicConcentrationFactor`, `SeasonalityFactor`, `AnomalyScoreFactor`, `ResponseRateFactor`, `RecurrenceFactor`, `SpatialLagFactor`, `EquityGapFactor`.
+- `nyc311.temporal`: `PanelDataset`, `PanelObservation`, `TreatmentEvent`, `build_complaint_panel`, `build_distance_weights`, `centroids_from_boundaries` (shapely-free dict), `weights_to_pysal`, `PanelDataset.to_factor_factory_panel` (adapter to `factor_factory.tidy.Panel`).
+- `nyc311.stats`: 17 statistical modules — ITS, PELT changepoints, STL decomposition, spatial Moran's I / LISA, panel FE/RE, synthetic control, staggered DiD (Callaway-Sant'Anna), event study, RDD (CCT), spatial lag / error, GWR, Theil + Oaxaca-Blinder, reporting-bias EM, Hawkes, BYM2 small-area, STL anomaly, power analysis. Eleven of the seventeen cross-reference a factor-factory equivalent as the preferred backend.
+
+## Typical workflows
+
+- **Load a CSV snapshot, extract topics, aggregate, export**: `load_service_requests` → `extract_topics` → `aggregate_by_geography` → `export_topic_table`.
+- **Live Socrata fetch with filtered $select (includes `closed_date` since v1.0.1)**: `pipeline.fetch_service_requests(filters=..., socrata_config=...)` or the per-borough `pipeline.bulk_fetch(start_date=, end_date=)` for multi-year extracts.
+- **Resolution-time analysis**: `record.closed_date - record.created_date` directly on each `ServiceRequestRecord` (unresolved → `closed_date is None`).
+- **Balanced panels + treatment events**: `build_complaint_panel(records, geography="community_district", freq="ME", treatment_events=...)` → `PanelDataset`.
+- **Causal inference via factor-factory**: `panel.to_factor_factory_panel()` → `factor_factory.engines.<family>.estimate(...)`. Families: `did`, `sdid`, `scm`, `mediation`, `rdd`, `changepoint`, `stl`, `panel_reg`, `inequality`, `spatial`, `reporting_bias`, `hawkes`, `survival`, `event_study`, `het_te`, `dml`, `climate`, `diffusion`.
+- **Publication-grade tearsheets** (opt-in via `nyc311[tearsheets]`): each case study's `run_analysis.py` emits `manuscripts/{METHODOLOGY,DIAGNOSTICS_CHECKLIST,FINDINGS,MANUSCRIPT,AUDIT}.md` via `factor_factory.jellycell.tearsheets.*`.
+
+## Contracts
+
+- `ServiceRequestRecord.closed_date` (added v1.0.1): `date | None`, defaults to `None`. Round-trips through CSV ingest / export / dataframe / Socrata as `datetime64[ns]` with pandas `NaT` ↔ Python `None`.
+- `PanelDataset.to_factor_factory_panel(*, outcome_col, provenance, spatial_weights) -> factor_factory.tidy.Panel` (added v1.0.0): public additive contract. Any kwarg rename or removal is a major bump.
+- `Pipeline.as_factor_factory_estimate(panel, *, family, method, outcome, **engine_kwargs)` (added v1.0.0): public additive contract. Same rule.
+
+## Install
+
+- `pip install nyc311` — base SDK + CLI + CSV / Socrata loaders.
+- `pip install "nyc311[all]"` — full turnkey stack (pandas, geopandas, matplotlib, stats, tearsheets).
+- Individual extras: `[dataframes]`, `[spatial]`, `[plotting]`, `[science]`, `[stats]`, `[bayes]`, `[tearsheets]`.
+
+## Examples (tracked in repo)
+
+- `examples/case_studies/rat_containerization/`: 2024 NYC rat-containerization mandate evaluation using nyc311's full causal-inference surface (SCM, staggered DiD, event study, RDD).
+- `examples/case_studies/resolution_equity/`: 5-year NYC 311 resolution-equity longitudinal study (STL, PELT changepoints, panel FE, Moran's I / LISA, Theil, Oaxaca-Blinder, reporting-bias EM).
+- `examples/sdid-multi-borough-policy/`: synthetic Synthetic-DiD showcase via factor-factory.
+- `examples/mediation-cascade-resolution/`: synthetic four-way mediation decomposition via factor-factory.
+- `examples/factor-factory-quickstart/`: 50-line no-jellycell showcase of `PanelDataset → factor_factory.tidy.Panel → engine → pandas`.
+
+## Version ranges (v1.0.2)
+
+- `nyc-geo-toolkit>=0.3.0,<0.5` (widened in v1.0.2 to allow upstream v0.4.0's shapely-backed `centroids_from_boundaries`)
+- `factor-factory>=1.0.2,<2`
+- `jellycell>=1.3.5,<2` (via `tearsheets` extra)
+- Python `>=3.12`
+
+## Release history
+
+- v1.0.2 (2026-04-20): widen `nyc-geo-toolkit` pin to `>=0.3.0,<0.5`.
+- v1.0.1 (2026-04-20): `ServiceRequestRecord.closed_date` through Socrata / CSV / dataframe pipelines.
+- v1.0.0 (2026-04-19): factor-factory integration, Claude Code infra, jellycell tearsheets, four bundled case studies, Python 3.12+ floor.
+
+## See also
+
+- [`random-walks/factor-factory`](https://github.com/random-walks/factor-factory): causal-inference engine framework
+- [`random-walks/jellycell`](https://github.com/random-walks/jellycell): reporting / tearsheet library
+- [`random-walks/nyc-geo-toolkit`](https://github.com/random-walks/nyc-geo-toolkit): geographic primitives
+- [`random-walks/subway-access`](https://github.com/random-walks/subway-access): companion 311-adjacent transit accessibility toolkit

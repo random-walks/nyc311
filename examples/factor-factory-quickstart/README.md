@@ -11,10 +11,32 @@ the reporting machinery, start here.
 
 - Build an nyc311 `PanelDataset` with a `TreatmentEvent`.
 - Convert via `PanelDataset.to_factor_factory_panel()`.
-- Fit `factor_factory.engines.did.estimate(panel, methods=("twfe",))`.
-- Print the ATT / SE / 95% CI / p-value as a pandas row.
+- Fit `factor_factory.engines.did.estimate(panel, methods=("twfe",))` twice:
+  - Once with `outcome="complaint_count"` (the volume signal).
+  - Once with `outcome="median_resolution_days"` (the resolution-latency
+    signal that `ServiceRequestRecord.closed_date` enables in v1.0.1+).
+- Print both ATT / SE / 95% CI / p-value rows as pandas DataFrames.
 
-Total: ~50 lines in `main.py`.
+Total: ~70 lines in `main.py`. Same panel, two engine fits — one
+`outcome=` swap.
+
+## What's also in the panel
+
+`PanelDataset.to_factor_factory_panel()` exposes every numeric column on the
+underlying `PanelObservation`s as a candidate outcome. The synthetic panel
+in this example carries:
+
+| Column                    | Notes                                                              |
+| ------------------------- | ------------------------------------------------------------------ |
+| `complaint_count`         | The default outcome (set via `outcome_col=`).                      |
+| `resolution_rate`         | Constant in the synthetic data; flat in DiD.                       |
+| `median_resolution_days`  | Drops 5 days post-treatment on the treated unit. DiD recovers it.  |
+| `treatment`               | `0/1` indicator — engine reads this for the DiD interaction.       |
+| `complaints_<type>`       | One per complaint type seen on the cell.                           |
+| `population`              | Per-unit population; useful for per-capita normalization.          |
+
+In a real run, `closed_date - created_date` would feed
+`median_resolution_days` for each cell at panel-build time.
 
 ## Running
 

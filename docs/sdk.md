@@ -365,6 +365,35 @@ centroids = centroids_from_boundaries(boundaries)
 weights = build_distance_weights(centroids, threshold_meters=2000.0)
 ```
 
+!!! tip "Upstream shapely-backed centroids (nyc-geo-toolkit v0.4+)"
+
+    nyc311's `centroids_from_boundaries` returns the shapely-free
+    approximation (mean of exterior-ring points) as a
+    `dict[str, (lat, lon)]` so it feeds directly into
+    `build_distance_weights`. This is the lean default.
+
+    For publication-grade geometry — correct centroids, optional
+    `representative_point` for concave shorelines — use upstream's
+    shapely-backed helper (pulled in via
+    `pip install "nyc-geo-toolkit[spatial]"`):
+
+    ```python
+    from nyc_geo_toolkit import centroids_from_boundaries as ngt_centroids
+
+    centroid_collection = ngt_centroids(boundaries, representative=True)
+    centroids = {
+        f.geography_value: (
+            f.geometry["coordinates"][1],  # lat
+            f.geometry["coordinates"][0],  # lon
+        )
+        for f in centroid_collection.features
+    }
+    weights = build_distance_weights(centroids, threshold_meters=2000.0)
+    ```
+
+    The two helpers return **different shapes and different numbers**
+    — don't swap them mid-analysis.
+
 ## Statistical Modeling
 
 `nyc311.stats` is a thin, typed layer over `statsmodels`, `ruptures`,

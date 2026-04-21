@@ -142,14 +142,14 @@ for each case study:
 Each case study ships a `jellycell.toml` alongside its `run_analysis.py` so
 `uv run jellycell render` works in-place.
 
-## Version ranges
+## Version ranges (v1.0.2)
 
-| Package           | v1.0.0 pin                             |
-| ----------------- | -------------------------------------- |
-| `factor-factory`  | `>=1.0.2,<2`                           |
-| `jellycell`       | `>=1.3.5,<2` (via `tearsheets` extra)  |
-| `nyc-geo-toolkit` | `>=0.3.0,<0.4`                         |
-| Python            | `>=3.12` (dropped 3.10/3.11 in v1.0.0) |
+| Package           | Pin                                               |
+| ----------------- | ------------------------------------------------- |
+| `factor-factory`  | `>=1.0.2,<2`                                      |
+| `jellycell`       | `>=1.3.5,<2` (via `tearsheets` extra)             |
+| `nyc-geo-toolkit` | `>=0.3.0,<0.5` (widened v1.0.2 for upstream v0.4) |
+| Python            | `>=3.12` (dropped 3.10/3.11 in v1.0.0)            |
 
 Follow the
 [factor-factory roadmap](https://github.com/random-walks/factor-factory/blob/main/docs/og_context/06_post_v0.1_roadmap.md)
