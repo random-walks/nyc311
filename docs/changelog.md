@@ -14,6 +14,34 @@
 
 ### Security
 
+## 1.0.4 - 2026-07-15
+
+Patch release. Fixes a data-fidelity regression in `bulk_fetch`'s CSV cache
+surfaced by the cold-run rebuild of the resolution-equity case study: cached
+snapshots shipped an empty `closed_date` column and truncated timestamps to
+whole days, making resolution-time analyses impossible. `date`-only inputs are
+unchanged and the fix is additive.
+
+### Added
+
+- **`ServiceRequestRecord.created_at` / `closed_at`** — optional full-precision
+  `datetime` fields, populated whenever the source string carries a time
+  component (Socrata always provides one for `erm2-nwe9`). The day-grain
+  `created_date` / `closed_date` `date` fields stay authoritative and
+  backward-compatible; use `closed_at - created_at` when a resolution-time
+  analysis needs hour precision.
+
+### Fixed
+
+- **`bulk_fetch` CSV cache dropped `closed_date` and truncated timestamps to
+  whole days.** `_write_record_row` omitted `closed_date` from the row dict
+  entirely, so every cached CSV shipped an empty closure column — silently
+  defeating the resolution-time feature added in [#20][i20] — and wrote
+  `created_date` at day grain, collapsing hour-level resolution latency. Cached
+  and exported CSVs now round-trip the full timestamps. Surfaced by the cold-run
+  rebuild of the resolution-equity case study (a stale local cache had masked
+  it). `date`-only inputs are unchanged.
+
 ## 1.0.3 - 2026-04-21
 
 Docs-only patch. Ships everything that landed on `main` after v1.0.2 (PR #23's

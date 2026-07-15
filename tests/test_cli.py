@@ -110,7 +110,10 @@ def test_cli_fetch_command_exports_filtered_socrata_snapshot(
     assert rows == [
         {
             "unique_key": "9001",
-            "created_date": "2025-02-01",
+            # Full-precision timestamp is preserved (the fixture seeds
+            # created_date as "2025-02-01T10:00:00"); resolution-time
+            # analyses need the time component, not a truncated date.
+            "created_date": "2025-02-01T10:00:00",
             "complaint_type": "Rodent",
             "descriptor": "Rats seen near bags",
             "borough": "BROOKLYN",

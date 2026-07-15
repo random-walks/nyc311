@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 
 from ._constants import SUPPORTED_GEOGRAPHIES
 from ._normalize import (
@@ -26,6 +26,16 @@ class ServiceRequestRecord:
         null ``closed_date`` for any unresolved complaint — and
         existing call sites that instantiate the record without it
         keep working unchanged.
+
+    .. note::
+
+        As of nyc311 v1.0.4, ``created_at`` / ``closed_at`` carry the
+        full-precision timestamps whenever the source string includes a
+        time component (Socrata always provides one for this dataset).
+        The day-grain ``created_date`` / ``closed_date`` fields stay
+        authoritative for day-grain analyses and remain
+        backward-compatible; use ``closed_at - created_at`` when a
+        resolution-time analysis needs hour precision.
     """
 
     service_request_id: str
@@ -41,6 +51,15 @@ class ServiceRequestRecord:
     #: complaints. Use ``closed_date - created_date`` for resolution
     #: latency in days.
     closed_date: date | None = None
+    #: Full-precision creation timestamp when the source provides a
+    #: time component; ``None`` when only a bare date was available.
+    #: ``created_date`` stays authoritative for day-grain analyses.
+    created_at: datetime | None = None
+    #: Full-precision closure timestamp when the source provides a
+    #: time component; ``None`` for unresolved complaints or when only
+    #: a bare date was available. Use ``closed_at - created_at`` for
+    #: resolution latency at hour precision.
+    closed_at: datetime | None = None
 
     def __post_init__(self) -> None:
         if not _normalize_value(self.service_request_id):

@@ -280,7 +280,10 @@ ignore = [
 # typing-modules = ["nyc311._compat.typing"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["T20", "PLC0415"]
+# DTZ001: NYC 311 timestamps are naive local time (Socrata emits no
+# tzinfo); tests compare against the same naive datetimes the parser
+# produces.
+"tests/**" = ["T20", "PLC0415", "DTZ001"]
 "src/nyc311/_version.py" = ["Q000", "RUF022"]
 "src/nyc311/factors/_base.py" = ["PLC0415"]
 "src/nyc311/factors/_advanced.py" = ["PLC0415"]

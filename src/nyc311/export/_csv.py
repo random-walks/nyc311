@@ -73,18 +73,30 @@ def export_service_requests_csv(
         )
         writer.writeheader()
         for row in data:
+            # Prefer full-precision timestamps when present so the export
+            # round-trips hour-grain resolution time; fall back to the
+            # day-grain dates for records loaded without a time component.
+            created_out = (
+                row.created_at.isoformat()
+                if row.created_at is not None
+                else row.created_date.isoformat()
+            )
+            if row.closed_at is not None:
+                closed_out = row.closed_at.isoformat()
+            elif row.closed_date is not None:
+                closed_out = row.closed_date.isoformat()
+            else:
+                closed_out = ""
             writer.writerow(
                 {
                     "unique_key": row.service_request_id,
-                    "created_date": row.created_date.isoformat(),
+                    "created_date": created_out,
                     "complaint_type": row.complaint_type,
                     "descriptor": row.descriptor,
                     "borough": row.borough,
                     "community_district": row.community_district,
                     "resolution_description": row.resolution_description or "",
-                    "closed_date": (
-                        "" if row.closed_date is None else row.closed_date.isoformat()
-                    ),
+                    "closed_date": closed_out,
                     "latitude": "" if row.latitude is None else row.latitude,
                     "longitude": "" if row.longitude is None else row.longitude,
                 }

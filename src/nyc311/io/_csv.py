@@ -49,6 +49,26 @@ def _parse_optional_date(raw_value: str | None) -> date | None:
     return _parse_created_date(raw_value)
 
 
+def _parse_optional_datetime(raw_value: str | None) -> datetime | None:
+    """Parse a NYC 311-style date string into a full-precision ``datetime``.
+
+    Returns a ``datetime`` only when the source string carries a time
+    component (an ISO ``T`` or space separator); bare-date strings and
+    empty / ``None`` inputs yield ``None`` so the day-grain ``*_date``
+    fields stay authoritative. Callers use ``closed_at - created_at``
+    when a resolution-time analysis needs hour precision.
+    """
+    if raw_value is None:
+        return None
+    normalized_value = raw_value.strip()
+    if not normalized_value:
+        return None
+    normalized_value = normalized_value.removesuffix("Z")
+    if "T" in normalized_value or " " in normalized_value:
+        return datetime.fromisoformat(normalized_value)
+    return None
+
+
 def _parse_optional_coordinate(raw_value: str | None) -> float | None:
     if raw_value is None:
         return None
@@ -95,6 +115,8 @@ def _record_from_mapping(
         latitude=_parse_optional_coordinate(row.get("latitude")),
         longitude=_parse_optional_coordinate(row.get("longitude")),
         closed_date=_parse_optional_date(row.get("closed_date")),
+        created_at=_parse_optional_datetime(row.get("created_date")),
+        closed_at=_parse_optional_datetime(row.get("closed_date")),
     )
 
 
