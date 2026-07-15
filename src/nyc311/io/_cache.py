@@ -66,15 +66,32 @@ def cache_path_for_request(
 def _write_record_row(
     writer: csv.DictWriter[str], record: ServiceRequestRecord
 ) -> None:
+    # Prefer the full-precision timestamps when present so cached CSVs
+    # round-trip hour-grain resolution time; fall back to the day-grain
+    # dates. ``closed_date`` had been omitted entirely, which silently
+    # shipped an empty closure column and broke resolution-time analyses
+    # (the feature #20 was meant to enable).
+    created_out = (
+        record.created_at.isoformat()
+        if record.created_at is not None
+        else record.created_date.isoformat()
+    )
+    if record.closed_at is not None:
+        closed_out = record.closed_at.isoformat()
+    elif record.closed_date is not None:
+        closed_out = record.closed_date.isoformat()
+    else:
+        closed_out = ""
     writer.writerow(
         {
             "unique_key": record.service_request_id,
-            "created_date": record.created_date.isoformat(),
+            "created_date": created_out,
             "complaint_type": record.complaint_type,
             "descriptor": record.descriptor,
             "borough": record.borough,
             "community_district": record.community_district,
             "resolution_description": record.resolution_description or "",
+            "closed_date": closed_out,
             "latitude": "" if record.latitude is None else str(record.latitude),
             "longitude": "" if record.longitude is None else str(record.longitude),
         }
